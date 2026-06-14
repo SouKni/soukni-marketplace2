@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "electronics": "إلكترونيات",
+    "fashion": "أزياء",
+    "home": "المنزل والديكور",
+    "motors": "سيارات",
+    "realEstate": "عقارات",
+    "services": "خدمات",
+    "login": "تسجيل الدخول",
+    "postAd": "نشر إعلان"
+  },
+  "homepage": {
+    "welcome": "أفضل مكان للشراء والبيع والاكتشاف في المغرب",
+    "searchPlaceholder": "ابحث عن عقارات، سيارات، وظائف، إلكترونيات...",
+    "premiumListings": "إعلانات مميزة",
+    "editorsPicks": "اختيارات المحررين",
+    "nearYou": "بالقرب منك",
+    "recentlyAdded": "أضيف مؤخراً",
+    "trending": "الأكثر رواجاً"
+  },
+  "listing": {
+    "mad": "درهم",
+    "save": "حفظ",
+    "contact": "تواصل مع البائع",
+    "viewDetails": "عرض التفاصيل"
+  },
+  "currencies": {
+    "base": "MAD",
+    "secondary": ["EUR", "USD", "GBP"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "electronics": "Elektronik",
+    "fashion": "Mode",
+    "home": "Wohnen & Deko",
+    "motors": "Fahrzeuge",
+    "realEstate": "Immobilien",
+    "services": "Dienstleistungen",
+    "login": "Anmelden / Registrieren",
+    "postAd": "Anzeige aufgeben"
+  },
+  "homepage": {
+    "welcome": "Der beste Ort zum Kaufen, Verkaufen und Entdecken in Marokko",
+    "searchPlaceholder": "Immobilien, Fahrzeuge, Jobs, Elektronik suchen...",
+    "premiumListings": "Premium Anzeigen",
+    "editorsPicks": "Redaktionstipps",
+    "nearYou": "In Ihrer Nähe",
+    "recentlyAdded": "Neu hinzugefügt",
+    "trending": "Im Trend"
+  },
+  "listing": {
+    "mad": "MAD",
+    "save": "Speichern",
+    "contact": "Verkäufer kontaktieren",
+    "viewDetails": "Details ansehen"
+  },
+  "currencies": {
+    "base": "MAD",
+    "secondary": ["EUR", "USD", "GBP"]
+  }
+}

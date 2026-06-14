@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mint: #2dd4bf;
+  --color-mint-light: #e0faf6;
+  --color-mint-dark: #0f9b8e;
+  --color-surface: #f4fbf8;
+  --color-on-surface: #0f172a;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f4fbf8;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hover effects replacing JS handlers */
+.vertical-card:hover {
+  border-color: #2dd4bf !important;
+  background-color: #f0fdfa !important;
+}
+.footer-link:hover { color: white !important; }
+.editor-cta:hover { opacity: 0.85; }

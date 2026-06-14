@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "electronics": "Électronique",
+    "fashion": "Mode",
+    "home": "Maison & Décor",
+    "motors": "Voitures",
+    "realEstate": "Immobilier",
+    "services": "Services",
+    "login": "Connexion / Inscription",
+    "postAd": "Déposer une annonce"
+  },
+  "homepage": {
+    "welcome": "Le meilleur endroit pour acheter, vendre et découvrir au Maroc",
+    "searchPlaceholder": "Rechercher propriétés, voitures, emplois, électronique...",
+    "premiumListings": "Annonces Premium",
+    "editorsPicks": "Sélection de la Rédaction",
+    "nearYou": "Près de vous",
+    "recentlyAdded": "Ajoutés récemment",
+    "trending": "Tendances"
+  },
+  "listing": {
+    "mad": "MAD",
+    "save": "Sauvegarder",
+    "contact": "Contacter",
+    "viewDetails": "Voir l'annonce"
+  },
+  "currencies": {
+    "base": "MAD",
+    "secondary": ["EUR", "USD", "GBP"]
+  }
+}

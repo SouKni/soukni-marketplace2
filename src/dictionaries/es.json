@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "electronics": "Electrónica",
+    "fashion": "Moda",
+    "home": "Hogar y Decoración",
+    "motors": "Motores",
+    "realEstate": "Inmobiliaria",
+    "services": "Servicios",
+    "login": "Iniciar sesión",
+    "postAd": "Publicar anuncio"
+  },
+  "homepage": {
+    "welcome": "El mejor lugar para comprar, vender y descubrir en Marruecos",
+    "searchPlaceholder": "Buscar propiedades, coches, empleos, electrónica...",
+    "premiumListings": "Anuncios Premium",
+    "editorsPicks": "Selección del Editor",
+    "nearYou": "Cerca de ti",
+    "recentlyAdded": "Añadidos recientemente",
+    "trending": "Tendencias"
+  },
+  "listing": {
+    "mad": "MAD",
+    "save": "Guardar",
+    "contact": "Contactar",
+    "viewDetails": "Ver detalles"
+  },
+  "currencies": {
+    "base": "MAD",
+    "secondary": ["EUR", "USD", "GBP"]
+  }
+}

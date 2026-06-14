@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "electronics": "Electronics",
+    "fashion": "Fashion",
+    "home": "Home & Living",
+    "motors": "Motors",
+    "realEstate": "Real Estate",
+    "services": "Services",
+    "login": "Login / Signup",
+    "postAd": "Post an Ad"
+  },
+  "homepage": {
+    "welcome": "The best place to buy, sell & discover in Morocco",
+    "searchPlaceholder": "Search properties, motors, jobs, electronics...",
+    "premiumListings": "Premium Featured Listings",
+    "editorsPicks": "Editor's Picks",
+    "nearYou": "Near You",
+    "recentlyAdded": "Recently Added",
+    "trending": "Trending Now"
+  },
+  "listing": {
+    "mad": "MAD",
+    "save": "Save",
+    "contact": "Contact Seller",
+    "viewDetails": "View Details"
+  },
+  "currencies": {
+    "base": "MAD",
+    "secondary": ["EUR", "USD", "GBP"]
+  }
+}
