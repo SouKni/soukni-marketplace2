@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-
-const navLinks = ['Electronics', 'Fashion', 'Home & Living', 'Motors', 'Real Estate', 'Services', 'The Vault']
+import Link from 'next/link'
 
 const categoryGrid = [
   { label: 'Luxury Motors', count: '9,420', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=500', href: '/en/motors' },
@@ -63,9 +62,7 @@ function ListingCard({ item, isVault }: { item: any, isVault?: boolean }) {
       }}
     >
       <div style={{ position: 'relative', height: isVault ? '256px' : '224px', overflow: 'hidden' }}>
-        <img
-          src={item.image}
-          alt={item.title}
+        <img src={item.image} alt={item.title}
           style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s', transform: hovered ? 'scale(1.1)' : 'scale(1)' }}
         />
         {item.badge && (
@@ -73,8 +70,7 @@ function ListingCard({ item, isVault }: { item: any, isVault?: boolean }) {
             <span style={{ backgroundColor: '#006b5f', color: 'white', fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.badge}</span>
           </div>
         )}
-        <button
-          onClick={() => setLiked(!liked)}
+        <button onClick={() => setLiked(!liked)}
           style={{ position: 'absolute', top: '16px', right: '16px', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px', color: liked ? '#ba1a1a' : '#3c4a46', transition: 'color 0.2s' }}
         >{liked ? '♥' : '♡'}</button>
       </div>
@@ -141,119 +137,115 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: '#f4fbf8', minHeight: '100vh' }}>
 
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                  />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), rgba(0,0,0,0))' }} />
-                  <div style={{ position: 'absolute', bottom: '24px', left: '24px' }}>
-                    <p style={{ color: '#62fae3', fontSize: '13px', fontWeight: 600, marginBottom: '4px', letterSpacing: '0.05em' }}>{cat.count} LISTINGS</p>
-                    <h3 style={{ color: 'white', fontSize: '22px', fontWeight: 700, letterSpacing: '-0.01em' }}>{cat.label}</h3>
-                  </div>
+      {/* HERO */}
+      <section style={{ position: 'relative', height: '560px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img src="https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1400" alt="Hero"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2))' }} />
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 20px', maxWidth: '800px', width: '100%' }}>
+          <h1 style={{ fontSize: '52px', fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '16px' }}>
+            Morocco's Premium Marketplace
+          </h1>
+          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px' }}>
+            Buy and sell luxury motors, property, fashion, electronics and more.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', maxWidth: '600px', margin: '0 auto', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', borderRadius: '100px', padding: '8px' }}>
+            <input
+              type="text"
+              placeholder="Search anything..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', padding: '10px 20px', fontSize: '16px', color: 'white', fontFamily: 'Inter, sans-serif' }}
+            />
+            <button style={{ backgroundColor: '#2dd4bf', color: '#00574d', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+              Search
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORY GRID */}
+      <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '64px 40px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#161d1b', marginBottom: '32px', letterSpacing: '-0.01em' }}>Browse by Category</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          {categoryGrid.map((cat) => (
+            <Link key={cat.label} href={`/${locale}${cat.href.replace('/en', '')}`} style={{ textDecoration: 'none' }}>
+              <div style={{ position: 'relative', height: '200px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }}>
+                <img src={cat.image} alt={cat.label}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), rgba(0,0,0,0))' }} />
+                <div style={{ position: 'absolute', bottom: '24px', left: '24px' }}>
+                  <p style={{ color: '#62fae3', fontSize: '13px', fontWeight: 600, marginBottom: '4px', letterSpacing: '0.05em' }}>{cat.count} LISTINGS</p>
+                  <h3 style={{ color: 'white', fontSize: '22px', fontWeight: 700, letterSpacing: '-0.01em' }}>{cat.label}</h3>
                 </div>
-              </a>
-            ))}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* LISTING ROWS */}
+      <ListingRow title="Featured Motors" subtitle="The finest performance and luxury vehicles in Morocco" items={motors} bg="#eef5f2" />
+      <ListingRow title="Featured Mobiles & Tablets" subtitle="Latest high-end devices and tech essentials." items={mobiles} bg="#ffffff" />
+      <ListingRow title="Featured Property for Sale & Rent" subtitle="Premium residential and commercial opportunities." items={property} bg="#eef5f2" />
+
+      {/* DIAMOND BANNER */}
+      <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '48px 40px' }}>
+        <div style={{ position: 'relative', height: '192px', borderRadius: '40px', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '48px', background: 'linear-gradient(to right, #006b5f, #2dd4bf)' }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h3 style={{ color: 'white', fontSize: '28px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.02em' }}>Join the Elite. Become a Diamond Member.</h3>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '16px' }}>Priority listings, exclusive vault access, and dedicated support.</p>
+            <button style={{ backgroundColor: 'white', color: '#006b5f', border: 'none', padding: '12px 32px', borderRadius: '100px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Explore Benefits</button>
           </div>
-        </section>
+          <span style={{ position: 'absolute', right: '48px', fontSize: '120px', color: 'rgba(255,255,255,0.1)', lineHeight: 1, userSelect: 'none' as const }}>💎</span>
+        </div>
+      </section>
 
-        {/* LISTING ROWS */}
-        <ListingRow title="Featured Motors" subtitle="The finest performance and luxury vehicles in Morocco" items={motors} bg="#eef5f2" />
-        <ListingRow title="Featured Mobiles & Tablets" subtitle="Latest high-end devices and tech essentials." items={mobiles} bg="#ffffff" />
-        <ListingRow title="Featured Property for Sale & Rent" subtitle="Premium residential and commercial opportunities." items={property} bg="#eef5f2" />
+      {/* VAULT */}
+      <ListingRow title="Trending in The Vault" subtitle="Rare collectibles, fine art, and horological masterpieces" items={vault} isVault bg="#f4fbf8" viewAllColor="#8d4f00" />
 
-        {/* DIAMOND BANNER */}
-        <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '48px 40px' }}>
-          <div style={{ position: 'relative', height: '192px', borderRadius: '40px', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '48px', background: 'linear-gradient(to right, #006b5f, #2dd4bf)' }}>
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <h3 style={{ color: 'white', fontSize: '28px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.02em' }}>Join the Elite. Become a Diamond Member.</h3>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '16px' }}>Priority listings, exclusive vault access, and dedicated support.</p>
-              <button style={{ backgroundColor: 'white', color: '#006b5f', border: 'none', padding: '12px 32px', borderRadius: '100px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Explore Benefits</button>
+      {/* TRUST & APP */}
+      <section style={{ backgroundColor: '#dde4e1', padding: '64px 0' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(22,29,27,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '40px', padding: '48px', color: 'white' }}>
+            <h2 style={{ fontSize: '36px', fontWeight: 700, marginBottom: '24px', letterSpacing: '-0.02em' }}>Join the SouKni Family.</h2>
+            <p style={{ fontSize: '17px', marginBottom: '32px', opacity: 0.8, lineHeight: 1.6 }}>Buy and sell with confidence on Morocco's most trusted marketplace. Verified sellers, secure messaging, and 100% free ads.</p>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '40px' }}>
+              {['🍎 App Store', '▶ Google Play'].map(btn => (
+                <button key={btn} style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '14px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>{btn}</button>
+              ))}
             </div>
-            <span style={{ position: 'absolute', right: '48px', fontSize: '120px', color: 'rgba(255,255,255,0.1)', lineHeight: 1, userSelect: 'none' as const }}>💎</span>
-          </div>
-        </section>
-
-        {/* VAULT */}
-        <ListingRow title="Trending in The Vault" subtitle="Rare collectibles, fine art, and horological masterpieces" items={vault} isVault bg="#f4fbf8" viewAllColor="#8d4f00" />
-
-        {/* TRUST & APP */}
-        <section style={{ backgroundColor: '#dde4e1', padding: '64px 0' }}>
-          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
-            <div style={{ backgroundColor: 'rgba(22,29,27,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '40px', padding: '48px', color: 'white' }}>
-              <h2 style={{ fontSize: '36px', fontWeight: 700, marginBottom: '24px', letterSpacing: '-0.02em' }}>Join the SouKni Family.</h2>
-              <p style={{ fontSize: '17px', marginBottom: '32px', opacity: 0.8, lineHeight: 1.6 }}>Buy and sell with confidence on Morocco's most trusted marketplace. Verified sellers, secure messaging, and 100% free ads.</p>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '40px' }}>
-                {['🍎 App Store', '▶ Google Play'].map(btn => (
-                  <button key={btn} style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '14px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>{btn}</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex' }}>
+                {['#2dd4bf', '#e6e2d9', '#ffac5a'].map((color, i) => (
+                  <div key={i} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: color, border: '2px solid #006b5f', marginLeft: i > 0 ? '-16px' : '0' }} />
                 ))}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ display: 'flex' }}>
-                  {['#2dd4bf', '#e6e2d9', '#ffac5a'].map((color, i) => (
-                    <div key={i} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: color, border: '2px solid #006b5f', marginLeft: i > 0 ? '-16px' : '0' }} />
-                  ))}
+              <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em' }}>Over 2M+ active Moroccans trust SouKni</p>
+            </div>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+              <span style={{ fontSize: '22px', fontWeight: 700, color: '#161d1b' }}>Excellent</span>
+              <span style={{ fontSize: '20px' }}>⭐⭐⭐⭐⭐</span>
+              <span style={{ color: '#6b7a76', fontSize: '15px' }}>Trustpilot</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {testimonials.map(t => (
+                <div key={t.author} style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', padding: '32px', borderRadius: '24px' }}>
+                  <p style={{ fontSize: '15px', fontStyle: 'italic', color: '#3c4a46', marginBottom: '16px', lineHeight: 1.7 }}>"{t.text}"</p>
+                  <p style={{ fontWeight: 700, color: '#161d1b', fontSize: '14px' }}>– {t.author}</p>
                 </div>
-                <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em' }}>Over 2M+ active Moroccans trust SouKni</p>
-              </div>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
-                <span style={{ fontSize: '22px', fontWeight: 700, color: '#161d1b' }}>Excellent</span>
-                <span style={{ fontSize: '20px' }}>⭐⭐⭐⭐⭐</span>
-                <span style={{ color: '#6b7a76', fontSize: '15px' }}>Trustpilot</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {testimonials.map(t => (
-                  <div key={t.author} style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', padding: '32px', borderRadius: '24px' }}>
-                    <p style={{ fontSize: '15px', fontStyle: 'italic', color: '#3c4a46', marginBottom: '16px', lineHeight: 1.7 }}>"{t.text}"</p>
-                    <p style={{ fontWeight: 700, color: '#161d1b', fontSize: '14px' }}>– {t.author}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      {/* FOOTER */}
-      <footer style={{ backgroundColor: '#1a202c', color: '#dde4e1', paddingTop: '64px', paddingBottom: '48px' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px', marginBottom: '64px' }}>
-            <div>
-              <div style={{ fontSize: '26px', fontWeight: 900, color: '#62fae3', marginBottom: '24px', letterSpacing: '-0.04em', textTransform: 'uppercase' as const }}>SOUKNI</div>
-              <p style={{ fontSize: '15px', opacity: 0.7, lineHeight: 1.7, marginBottom: '24px', maxWidth: '280px' }}>Morocco's premier destination for high-end automotive, luxury real estate, and rare collectibles.</p>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                {['👤', '🔗', '✉️'].map((icon, i) => (
-                  <a key={i} href="#" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '18px' }}>{icon}</a>
-                ))}
-              </div>
-            </div>
-            {[
-              { title: 'Verticals', links: ['Luxury Motors', 'Premium Real Estate', 'The Vault Collectibles', 'Pro Electronics', 'High Fashion'] },
-              { title: 'Company', links: ['About SouKni', 'Sustainability', 'Concierge Services', 'Diamond Membership', 'Careers'] },
-              { title: 'Support', links: ['Help Center', 'Safety Tips', 'Contact Us', 'Terms of Service', 'Privacy Policy'] },
-            ].map(col => (
-              <div key={col.title}>
-                <h5 style={{ color: 'white', fontWeight: 700, marginBottom: '24px', fontSize: '15px' }}>{col.title}</h5>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {col.links.map(link => (
-                    <li key={link} style={{ marginBottom: '14px' }}>
-                      <a href="#" style={{ fontSize: '14px', color: '#dde4e1', opacity: 0.7, textDecoration: 'none' }}>{link}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <p style={{ fontSize: '13px', opacity: 0.5 }}>© 2026 SouKni - soukni.com. All rights reserved.</p>
-            <div style={{ display: 'flex', gap: '32px', fontSize: '13px', opacity: 0.5 }}>
-              {['Terms', 'Privacy', 'Cookies'].map(link => (
-                <a key={link} href="#" style={{ color: '#dde4e1', textDecoration: 'none' }}>{link}</a>
               ))}
             </div>
           </div>
         </div>
-      </footer>
+      </section>
+
     </div>
   )
 }
