@@ -3,91 +3,185 @@
 import Link from 'next/link'
 import type { Locale } from '@/lib/types'
 
-const marketplace = ['Motors', 'Property', 'The Vault', 'Jobs', 'Services', 'Fashion', 'Electronics']
-const company = ['About Us', 'Careers', 'Press', 'Sustainability', 'Legal']
-const support = ['Help Center', 'Safety Tips', 'Trust & Safety', 'Contact Us']
+const slugMap: Record<string, string> = {
+  'Motors': 'motors',
+  'Property': 'property',
+  'The Vault': 'vault',
+  'Jobs': 'jobs',
+  'Services': 'services',
+  'Fashion': 'fashion',
+  'Electronics': 'electronics',
+}
 
 export default function Footer({ locale }: { locale: Locale }) {
   return (
-    <footer style={{ backgroundColor: '#7a7a7a', color: 'white', paddingTop: '64px', paddingBottom: '32px', fontFamily: 'Inter, sans-serif' }}>
+    <footer style={{ backgroundColor: '#161d1b', color: 'white', paddingTop: '72px', paddingBottom: '32px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
 
-        {/* Top: Brand + Newsletter */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', marginBottom: '48px', paddingBottom: '48px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        {/* TOP ROW — Brand + Contact + Newsletter */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.4fr', gap: '64px', marginBottom: '56px', paddingBottom: '56px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+
+          {/* Brand block */}
           <div>
-            <div style={{ fontSize: '22px', fontWeight: 900, color: 'white', letterSpacing: '-0.04em', marginBottom: '8px' }}>soukni</div>
-            <p style={{ fontSize: '16px', fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', marginBottom: '20px' }}>The Market in your Pocket</p>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {['📘', '𝕏', '📸', '💼', '▶'].map((icon, i) => (
-                <a key={i} href="#" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '16px', transition: 'background 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(45,212,191,0.3)'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
-                >{icon}</a>
-              ))}
+            <div style={{ fontWeight: 900, letterSpacing: '-0.05em', fontSize: '28px', color: 'white', marginBottom: '10px' }}>soukni</div>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: '24px', lineHeight: 1.6 }}>Morocco's #1 Premium Marketplace — Motors, Property, Fashion, Electronics &amp; more.</p>
+
+            {/* Real SVG social icons */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Facebook */}
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.15)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+              {/* X / Twitter */}
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.15)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+              {/* Instagram */}
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.15)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+              {/* LinkedIn */}
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.15)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+              {/* YouTube */}
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.15)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#161d1b"/></svg>
+              </a>
             </div>
           </div>
+
+          {/* Contact & Address */}
           <div>
-            <h4 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px' }}>Join our Newsletter</h4>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <input type="email" placeholder="Enter your email" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px 16px', color: 'white', fontSize: '14px', outline: 'none', fontFamily: 'Inter, sans-serif' }} />
-              <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Subscribe</button>
+            <h5 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '20px' }}>Contact</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Address</p>
+                <a href="https://maps.google.com/?q=Bldg+7+%26+8,+Av.+Attine,+Rabat+10100,+Morocco" target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', lineHeight: 1.6, display: 'block', transition: 'color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#22d4a8'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}>
+                  Bldg 7 &amp; 8, Av. Attine<br />Rabat 10100, Morocco
+                </a>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email</p>
+                <a href="mailto:contact@soukni.ma"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#22d4a8'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}>
+                  contact@soukni.ma
+                </a>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Phone</p>
+                <a href="tel:+212530136072"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#22d4a8'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}>
+                  +212 5 30 13 60 72
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h5 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '20px' }}>Stay in the loop</h5>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px', lineHeight: 1.6 }}>Get the latest listings, market trends, and exclusive deals delivered to your inbox.</p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="email" placeholder="your@email.com"
+                style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '100px', padding: '12px 18px', color: 'white', fontSize: '13px', outline: 'none', fontFamily: 'Inter, sans-serif', transition: 'border 0.2s' }}
+                onFocus={e => e.currentTarget.style.borderColor = '#22d4a8'}
+                onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'} />
+              <button style={{ backgroundColor: '#22d4a8', color: 'white', border: 'none', padding: '12px 22px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#0f9b8e'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#22d4a8'}>Subscribe</button>
             </div>
           </div>
         </div>
 
-        {/* Middle: Links */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1.2fr', gap: '32px', marginBottom: '48px' }}>
+        {/* MIDDLE ROW — Nav links */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '32px', marginBottom: '56px' }}>
           {[
-            { title: 'Marketplace', links: marketplace },
-            { title: 'Company', links: company },
-            { title: 'Support', links: support },
-            { title: 'Resources', links: ['Market Trends', 'App Download', 'Advertising'] },
-          ].map(({ title, links }) => (
+            { title: 'Marketplace', links: ['Motors', 'Property', 'The Vault', 'Jobs', 'Services', 'Fashion', 'Electronics'], isMarketplace: true },
+            { title: 'Company', links: ['About Us', 'Careers', 'Press', 'Sustainability', 'Legal'], isMarketplace: false },
+            { title: 'Support', links: ['Help Center', 'Safety Tips', 'Trust & Safety', 'Contact Us'], isMarketplace: false },
+            { title: 'Resources', links: ['Market Trends', 'App Download', 'Advertising', 'Partner with Us'], isMarketplace: false },
+          ].map(({ title, links, isMarketplace }) => (
             <div key={title}>
-              <h5 style={{ color: 'white', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '11px', marginBottom: '16px' }}>{title}</h5>
-              {links.map(link => (
-                <a key={link} href="#" style={{ display: 'block', fontSize: '13px', color: 'rgba(255,255,255,0.6)', textDecoration: 'none', marginBottom: '10px', transition: 'color 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#2dd4bf'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-                >{link}</a>
-              ))}
+              <h5 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '18px' }}>{title}</h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {links.map(link => {
+                  const href = isMarketplace && slugMap[link] ? `/${locale}/${slugMap[link]}` : '#'
+                  return (
+                    <Link key={link} href={href}
+                      style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}>
+                      {link}
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
           ))}
-
-          {/* App Downloads */}
-          <div>
-            <h5 style={{ color: 'white', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '11px', marginBottom: '16px' }}>App Downloads</h5>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { icon: '🍎', store: 'App Store', sub: 'Download on the' },
-                { icon: '▶', store: 'Google Play', sub: 'Get it on' },
-                { icon: '🛍', store: 'AppGallery', sub: 'Explore on' },
-                { icon: '📱', store: 'Galaxy Store', sub: 'Available on' },
-              ].map(({ icon, store, sub }) => (
-                <a key={store} href="#" style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 12px', borderRadius: '10px', textDecoration: 'none', transition: 'background 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'}
-                >
-                  <span style={{ fontSize: '20px' }}>{icon}</span>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>{sub}<br /><b style={{ fontSize: '12px', color: 'white' }}>{store}</b></span>
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Bottom */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '24px', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
-            {['Privacy Policy', 'Terms of Service', 'Cookies'].map(link => (
-              <a key={link} href="#" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'white'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-              >{link}</a>
+        {/* APP DOWNLOAD STRIP */}
+        <div style={{ marginBottom: '40px', paddingBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: '8px' }}>Download</span>
+          {[
+            { label: 'App Store', sublabel: 'Download on the', icon: (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            )},
+            { label: 'Google Play', sublabel: 'Get it on', icon: (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="m3 20.5v-17c0-.83 1-.98 1.45-.5l14 8.5c.41.25.41.75 0 1l-14 8.5c-.45.48-1.45.33-1.45-.5z"/></svg>
+            )},
+          ].map(app => (
+            <a key={app.label} href="#"
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 18px', borderRadius: '100px', textDecoration: 'none', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.1)'; e.currentTarget.style.borderColor = '#22d4a8' }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+              {app.icon}
+              <span style={{ lineHeight: 1.3 }}>
+                <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{app.sublabel}</span>
+                <span style={{ display: 'block', fontSize: '13px', color: 'white', fontWeight: 700 }}>{app.label}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+
+        {/* BOTTOM ROW */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            {['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Sitemap'].map(link => (
+              <a key={link} href="#"
+                style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                {link}
+              </a>
             ))}
           </div>
-          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>© 2026 SouKni Marketplace. All rights reserved.</span>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>© 2026 SouKni Marketplace. All rights reserved.</span>
         </div>
+
       </div>
     </footer>
   )

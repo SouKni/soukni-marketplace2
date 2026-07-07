@@ -1,170 +1,178 @@
 'use client'
-
-import { useState } from 'react'
-import { MapPin, Clock, ChevronDown, Search } from 'lucide-react'
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Search, MapPin, Clock, ChevronRight, Heart, MessageCircle, Building2, GraduationCap, Briefcase, Users } from 'lucide-react'
 
 const jobCategories = [
-  { icon: '📈', label: 'Sales', count: '1.2k' },
-  { icon: '💻', label: 'Tech', count: '840' },
-  { icon: '💰', label: 'Finance', count: '420' },
-  { icon: '🎨', label: 'Creative', count: '310' },
-  { icon: '🏥', label: 'Healthcare', count: '215' },
-  { icon: '🎓', label: 'Education', count: '750' },
-  { icon: '📣', label: 'Marketing', count: '1.1k' },
-  { icon: '🍽️', label: 'Hospitality', count: '2.3k' },
-  { icon: '⚖️', label: 'Legal', count: '420' },
-  { icon: '⚙️', label: 'Engineering', count: '1.5k' },
-  { icon: '🎧', label: 'Customer Service', count: '2k' },
+  { label: 'Real Estate', count: '460', slug: 'real-estate', image: 'https://images.pexels.com/photos/7415083/pexels-photo-7415083.jpeg?auto=compress&w=600' },
+  { label: 'Restaurant & Hospitality', count: '2,300', slug: 'restaurant', image: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=600' },
+  { label: 'Construction', count: '340', slug: 'construction', image: 'https://images.pexels.com/photos/159306/construction-site-build-construction-work-159306.jpeg?auto=compress&w=600' },
+  { label: 'Marketing & Advertising', count: '210', slug: 'marketing', image: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=600' },
+  { label: 'Customer Service', count: '440', slug: 'customer-service', image: 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&w=600' },
+  { label: 'Security & Guard', count: '40', slug: 'security', image: 'https://images.pexels.com/photos/612923/pexels-photo-612923.jpeg?auto=compress&w=600' },
+  { label: 'Medical & Healthcare', count: '220', slug: 'medical', image: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&w=600' },
+  { label: 'Home Cleaning', count: '370', slug: 'home-cleaning', image: 'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=600' },
+  { label: 'Handyman & Technician', count: '390', slug: 'handyman', image: 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=600' },
+]
+
+const moreCategories = [
+  { label: 'Manufacturing & Warehouse', count: '440' },
+  { label: 'HR & Admin', count: '420' },
+  { label: 'Handyman & Technician', count: '390' },
+  { label: 'Restaurant Operations', count: '360' },
+  { label: 'Construction', count: '340' },
+  { label: 'Logistics & Distribution', count: '220' },
+  { label: 'Medical & Healthcare', count: '220' },
+  { label: 'Marketing & Advertising', count: '210' },
+  { label: 'Customer Service', count: '440' },
+  { label: 'Legal Services', count: '40' },
+  { label: 'Security & Guard', count: '40' },
+  { label: 'Education', count: '60' },
+  { label: 'Sports & Fitness', count: '20' },
+  { label: 'Others', count: '590' },
+]
+
+const jobTypes = [
+  { label: 'Full Time', count: '9,410', icon: <Briefcase size={28} color="#2dd4bf" /> },
+  { label: 'Part Time', count: '190', icon: <Clock size={28} color="#2dd4bf" /> },
+  { label: 'Contract', count: '240', icon: <Building2 size={28} color="#2dd4bf" /> },
+  { label: 'Remote', count: '310', icon: <Users size={28} color="#2dd4bf" /> },
+]
+
+const qualifications = [
+  { label: 'High School', count: '285' },
+  { label: 'Bachelors Degree', count: '358' },
+  { label: 'Masters Degree', count: '11' },
+  { label: 'PhD', count: '0' },
 ]
 
 const popularJobs = [
-  { title: 'Supermarket Staff', company: 'Retail Excellence Group', salary: '5,500 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&w=400' },
-  { title: 'Account Assistant', company: 'Capital Trust Global', salary: '8,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=400' },
-  { title: 'Waiter / Waitress', company: 'Azure Luxury Lounge', salary: 'Negotiable', location: 'Marrakech', type: 'Shift Based', image: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=400' },
-  { title: 'Front Desk Receptionist', company: 'Skyline Holdings', salary: '6,500 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=400' },
+  { id: '1', title: 'Supermarket Staff', company: 'Retail Excellence Group', salary: '5,500 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&w=400' },
+  { id: '2', title: 'Account Assistant', company: 'Capital Trust Global', salary: '8,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=400' },
+  { id: '3', title: 'Waiter / Waitress', company: 'Azure Luxury Lounge', salary: 'Negotiable', location: 'Marrakech', type: 'Shift Based', image: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=400' },
+  { id: '4', title: 'Front Desk Receptionist', company: 'Skyline Holdings', salary: '6,500 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=400' },
+  { id: '4b', title: 'Warehouse Supervisor', company: 'LogiTrans Morocco', salary: '7,200 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/4481259/pexels-photo-4481259.jpeg?auto=compress&w=400' },
+  { id: '4c', title: 'Delivery Driver', company: 'Speedy Logistics', salary: '4,800 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/4391470/pexels-photo-4391470.jpeg?auto=compress&w=400' },
+  { id: '4d', title: 'Retail Sales Associate', company: 'Marjane Holding', salary: '4,200 MAD', location: 'Fes', type: 'Full Time', image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&w=400' },
+  { id: '4e', title: 'Call Center Agent', company: 'Webhelp Morocco', salary: '5,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&w=400' },
 ]
 
 const techJobs = [
-  { title: 'Senior Full Stack Developer', company: 'Nexus Tech Solutions', salary: '25,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&w=400' },
-  { title: 'Cloud Architect', company: 'DataSphere Global', salary: '32,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&w=400' },
-  { title: 'AI Research Engineer', company: 'Future Intelligence', salary: '40,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&w=400' },
-  { title: 'DevOps Lead', company: 'CloudScale Systems', salary: '28,000 MAD', location: 'Agadir', type: 'Full Time', image: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&w=400' },
+  { id: '5', title: 'Senior Full Stack Developer', company: 'Nexus Tech Solutions', salary: '25,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&w=400' },
+  { id: '6', title: 'Cloud Architect', company: 'DataSphere Global', salary: '32,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&w=400' },
+  { id: '7', title: 'AI Research Engineer', company: 'Future Intelligence', salary: '40,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&w=400' },
+  { id: '8', title: 'DevOps Lead', company: 'CloudScale Systems', salary: '28,000 MAD', location: 'Agadir', type: 'Full Time', image: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&w=400' },
+  { id: '8b', title: 'Mobile App Developer', company: 'AppFactory MA', salary: '20,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&w=400' },
+  { id: '8c', title: 'Data Analyst', company: 'InsightWorks', salary: '16,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&w=400' },
+  { id: '8d', title: 'Cybersecurity Specialist', company: 'SecureNet Morocco', salary: '27,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&w=400' },
+  { id: '8e', title: 'UI/UX Product Designer', company: 'PixelForge Studio', salary: '18,500 MAD', location: 'Marrakech', type: 'Full Time', image: 'https://images.pexels.com/photos/196645/pexels-photo-196645.jpeg?auto=compress&w=400' },
+]
+
+const salesJobs = [
+  { id: 's1', title: 'Business Development Manager', company: 'Atlas Trade Group', salary: '15,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=400' },
+  { id: 's2', title: 'Key Account Executive', company: 'Maghreb Distribution', salary: '12,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&w=400' },
+  { id: 's3', title: 'Retail Sales Manager', company: 'Marjane Holding', salary: '13,500 MAD', location: 'Marrakech', type: 'Full Time', image: 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&w=400' },
+  { id: 's4', title: 'Sales Representative B2B', company: 'IndustriPro', salary: '9,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=400' },
 ]
 
 const financeJobs = [
-  { title: 'Investment Analyst', company: 'Global Wealth Partners', salary: '18,000 MAD', location: 'Casablanca Finance City', type: 'Full Time', image: 'https://images.pexels.com/photos/6863183/pexels-photo-6863183.jpeg?auto=compress&w=400' },
-  { title: 'Portfolio Manager', company: 'Apex Capital', salary: '45,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&w=400' },
-  { title: 'Senior Accountant', company: 'Elite Audit Firm', salary: '12,000 MAD', location: 'Marrakech', type: 'Full Time', image: 'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&w=400' },
-  { title: 'Risk Manager', company: 'Secure Finance Group', salary: '22,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&w=400' },
+  { id: 'f1', title: 'Investment Analyst', company: 'Global Wealth Partners', salary: '18,000 MAD', location: 'Casablanca Finance City', type: 'Full Time', image: 'https://images.pexels.com/photos/6863183/pexels-photo-6863183.jpeg?auto=compress&w=400' },
+  { id: 'f2', title: 'Portfolio Manager', company: 'Apex Capital', salary: '45,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&w=400' },
+  { id: 'f3', title: 'Senior Accountant', company: 'Elite Audit Firm', salary: '12,000 MAD', location: 'Marrakech', type: 'Full Time', image: 'https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&w=400' },
+  { id: 'f4', title: 'Risk Manager', company: 'Secure Finance Group', salary: '22,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg?auto=compress&w=400' },
 ]
 
-const creativeJobs = [
-  { title: 'Creative Director', company: 'Vivid Media Agency', salary: '35,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=400' },
-  { title: 'Senior UI/UX Designer', company: 'Digital Craft Studio', salary: '20,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&w=400' },
-  { title: 'Fashion Photographer', company: 'Luxe Studio', salary: '15,000 MAD', location: 'Marrakech', type: 'Contract', image: 'https://images.pexels.com/photos/1264210/pexels-photo-1264210.jpeg?auto=compress&w=400' },
-  { title: 'Interior Architect', company: 'Modern Spaces', salary: '24,000 MAD', location: 'Agadir', type: 'Full Time', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=400' },
+const hospitalityJobs = [
+  { id: 'h1', title: 'Hotel General Manager', company: 'Riad Collection Group', salary: '28,000 MAD', location: 'Marrakech', type: 'Full Time', image: 'https://images.pexels.com/photos/261101/pexels-photo-261101.jpeg?auto=compress&w=400' },
+  { id: 'h2', title: 'Executive Chef', company: 'Azure Luxury Lounge', salary: '18,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/2696064/pexels-photo-2696064.jpeg?auto=compress&w=400' },
+  { id: 'h3', title: 'Front Office Manager', company: 'Skyline Holdings', salary: '11,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&w=400' },
+  { id: 'h4', title: 'Events Coordinator', company: 'Grand Oasis Resorts', salary: '9,500 MAD', location: 'Agadir', type: 'Full Time', image: 'https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg?auto=compress&w=400' },
 ]
 
 const healthcareJobs = [
-  { title: 'Specialist Surgeon', company: 'Moroccan Health Group', salary: '85,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&w=400' },
-  { title: 'Senior Nurse', company: 'City Medical Center', salary: '14,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3259624/pexels-photo-3259624.jpeg?auto=compress&w=400' },
-  { title: 'Clinical Researcher', company: 'BioTech Labs', salary: '26,000 MAD', location: 'Fès', type: 'Full Time', image: 'https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&w=400' },
-  { title: 'Orthodontist', company: 'Smile Design Clinic', salary: '50,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/305568/pexels-photo-305568.jpeg?auto=compress&w=400' },
+  { id: 'hc1', title: 'Specialist Surgeon', company: 'Moroccan Health Group', salary: '85,000 MAD', location: 'Casablanca', type: 'Full Time', image: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&w=400' },
+  { id: 'hc2', title: 'Senior Nurse', company: 'City Medical Center', salary: '14,000 MAD', location: 'Rabat', type: 'Full Time', image: 'https://images.pexels.com/photos/3259624/pexels-photo-3259624.jpeg?auto=compress&w=400' },
+  { id: 'hc3', title: 'Clinical Researcher', company: 'BioTech Labs', salary: '26,000 MAD', location: 'Fes', type: 'Full Time', image: 'https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&w=400' },
+  { id: 'hc4', title: 'Orthodontist', company: 'Smile Design Clinic', salary: '50,000 MAD', location: 'Tangier', type: 'Full Time', image: 'https://images.pexels.com/photos/305568/pexels-photo-305568.jpeg?auto=compress&w=400' },
 ]
 
-type Job = { title: string; company: string; salary: string; location: string; type: string; image: string }
+const featuredCompanies = [
+  { name: 'Attijariwafa Bank', sector: 'Finance', initials: 'AW' },
+  { name: 'Maroc Telecom', sector: 'Telecom', initials: 'MT' },
+  { name: 'OCP Group', sector: 'Mining', initials: 'OCP' },
+  { name: 'CIH Bank', sector: 'Banking', initials: 'CIH' },
+  { name: 'ONCF', sector: 'Transport', initials: 'ON' },
+  { name: 'Royal Air Maroc', sector: 'Aviation', initials: 'RAM' },
+]
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job }: { job: typeof popularJobs[0] }) {
+  const [liked, setLiked] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const [saved, setSaved] = useState(false)
-
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        backgroundColor: 'white', borderRadius: '32px', overflow: 'hidden',
-        border: '1px solid #f1f5f9',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s', display: 'flex', flexDirection: 'column',
-      }}
-    >
-      {/* Image */}
-      <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
-        <img
-          src={job.image} alt={job.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
-        />
-        <div style={{ position: 'absolute', top: '14px', left: '14px', background: 'linear-gradient(135deg, #2dd4bf, #0d9488)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.06em', boxShadow: '0 4px 12px rgba(45,212,191,0.4)' }}>
-          💎 Diamond Member
-        </div>
-        <button
-          onClick={e => { e.stopPropagation(); setSaved(!saved) }}
-          style={{ position: 'absolute', top: '14px', right: '14px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}
-        >
-          {saved ? '❤️' : '🤍'}
+    <article onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ backgroundColor: 'white', borderRadius: '28px', overflow: 'hidden', border: '1px solid #f1f5f9', boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.3s', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+        <img src={job.image} alt={job.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.06)' : 'scale(1)' }} />
+        <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #2dd4bf, #0d9488)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase' }}>Diamond Member</div>
+        <button onClick={() => setLiked(!liked)} style={{ position: 'absolute', top: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Heart size={14} fill={liked ? '#ef4444' : 'none'} color={liked ? '#ef4444' : '#64748b'} />
         </button>
       </div>
-
-      {/* Content */}
-      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '8px' }}>
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: hovered ? '#2dd4bf' : '#0f172a', marginBottom: '3px', lineHeight: 1.3, transition: 'color 0.2s' }}>{job.title}</h3>
-            <p style={{ fontSize: '12px', color: '#64748b' }}>{job.company}</p>
-          </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <p style={{ fontSize: '14px', fontWeight: 700, color: '#2dd4bf' }}>{job.salary}</p>
-            <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Salary</p>
-          </div>
+      <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: 700, color: hovered ? '#2dd4bf' : '#0f172a', marginBottom: '3px', transition: 'color 0.2s' }}>{job.title}</h3>
+        <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>{job.company}</p>
+        <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><MapPin size={11} />{job.location}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Clock size={11} />{job.type}</span>
         </div>
-
-        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} />{job.location}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} />{job.type}</span>
-        </div>
-
+        <div style={{ fontSize: '16px', fontWeight: 800, color: '#2dd4bf', marginBottom: '14px' }}>{job.salary}</div>
         <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-          <button style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', border: 'none', backgroundColor: 'rgba(45,212,191,0.1)', color: '#2dd4bf', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s' }}
+          <button style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', backgroundColor: 'rgba(45,212,191,0.1)', color: '#2dd4bf', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', transition: 'all 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#2dd4bf'; e.currentTarget.style.color = 'white' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(45,212,191,0.1)'; e.currentTarget.style.color = '#2dd4bf' }}
-          >💬 Chat</button>
-          <button style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', border: 'none', backgroundColor: '#22c55e', color: 'white', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(45,212,191,0.1)'; e.currentTarget.style.color = '#2dd4bf' }}>
+            <MessageCircle size={13} /> Chat
+          </button>
+          <button style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', backgroundColor: '#22c55e', color: 'white', fontWeight: 700, fontSize: '12px', cursor: 'pointer', transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = '#16a34a'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#22c55e'}
-          >📱 WhatsApp</button>
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#22c55e'}>WhatsApp</button>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 
-function SectionHeader({ sub, title }: { sub: string; title: string }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
-      <div>
-        <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>{sub}</span>
-        <h2 style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{title}</h2>
-      </div>
-      <button style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer', transition: 'opacity 0.2s' }}
-        onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-      >Explore All →</button>
-    </div>
-  )
-}
-
-export default function JobsPage() {
+export default function JobsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = React.use(params)
   const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
+  const [showMoreCats, setShowMoreCats] = useState(false)
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: '#f4fbf8', minHeight: '100vh' }}>
 
       {/* HERO */}
-      <section style={{ position: 'relative', height: '460px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px', overflow: 'hidden' }}>
+      <section style={{ position: 'relative', height: '440px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(15,23,42,0.55), rgba(15,23,42,0.55)), url(https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&w=1600)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '720px', textAlign: 'center' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '12px' }}>Morocco's Premier Job Marketplace</p>
           <h1 style={{ fontSize: '48px', fontWeight: 800, color: 'white', marginBottom: '8px', letterSpacing: '-0.02em', lineHeight: 1.1, textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>Find Your Dream Job</h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '28px' }}>Morocco's premium jobs marketplace — 12,000+ verified opportunities</p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '28px' }}>12,000+ verified opportunities across Morocco</p>
           <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(16px)', borderRadius: '100px', padding: '6px 6px 6px 24px', display: 'flex', alignItems: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.35)' }}>
             <Search size={18} color="#64748b" style={{ flexShrink: 0 }} />
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              type="text" placeholder="Search job titles, companies, skills..."
-              style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', padding: '10px 16px', fontSize: '15px', fontFamily: 'Inter, sans-serif', color: '#0f172a' }}
-            />
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'background 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#0f9b8e'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2dd4bf'}
-            >Search</button>
+            <input value={search} onChange={e => setSearch(e.target.value)} type="text" placeholder="Search job titles, companies, skills..."
+              style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', padding: '10px 16px', fontSize: '15px', fontFamily: 'Inter, sans-serif', color: '#0f172a' }} />
+            <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Search</button>
+          </div>
+          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link href={`/${locale}/jobs/post`} style={{ color: '#62fae3', fontWeight: 700, fontSize: '13px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              I am a Recruiter — Post a Job FREE <ChevronRight size={14} />
+            </Link>
           </div>
         </div>
       </section>
 
       {/* STATS */}
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: '-48px', position: 'relative', zIndex: 10, marginBottom: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: '-48px', position: 'relative', zIndex: 10, marginBottom: '56px' }}>
           {[{ label: 'Active Jobs', value: '12,000+' }, { label: 'Companies', value: '3,400' }, { label: 'Placed This Month', value: '840' }, { label: 'Cities', value: '12' }].map(s => (
             <div key={s.label} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px 24px', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', textAlign: 'center' }}>
               <p style={{ fontSize: '26px', fontWeight: 800, color: '#2dd4bf', marginBottom: '4px', letterSpacing: '-0.02em' }}>{s.value}</p>
@@ -173,152 +181,208 @@ export default function JobsPage() {
           ))}
         </div>
 
-        {/* CATEGORY PILLS */}
-        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '48px', scrollbarWidth: 'none' }}>
-          <button
-            onClick={() => setActiveCategory('All')}
-            style={{ whiteSpace: 'nowrap', padding: '10px 20px', borderRadius: '100px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: activeCategory === 'All' ? '#2dd4bf' : 'white', color: activeCategory === 'All' ? 'white' : '#64748b', boxShadow: activeCategory === 'All' ? '0 4px 14px rgba(45,212,191,0.35)' : '0 1px 4px rgba(0,0,0,0.06)', transition: 'all 0.15s' }}
-          >All Jobs</button>
-          {jobCategories.map(cat => (
-            <button
-              key={cat.label}
-              onClick={() => setActiveCategory(cat.label)}
-              style={{ whiteSpace: 'nowrap', padding: '10px 20px', borderRadius: '100px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', flexShrink: 0, backgroundColor: activeCategory === cat.label ? '#2dd4bf' : 'white', color: activeCategory === cat.label ? 'white' : '#64748b', boxShadow: activeCategory === cat.label ? '0 4px 14px rgba(45,212,191,0.35)' : '0 1px 4px rgba(0,0,0,0.06)', transition: 'all 0.15s' }}
-            >
-              {cat.icon} {cat.label} <span style={{ opacity: 0.6, fontSize: '11px' }}>({cat.count})</span>
-            </button>
-          ))}
-        </div>
+        {/* JOBS BY CATEGORY — image grid */}
+        <section style={{ marginBottom: '56px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '28px', letterSpacing: '-0.01em' }}>Jobs by Category</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '20px' }}>
+            {jobCategories.map(cat => (
+              <Link key={cat.slug} href={`/${locale}/jobs/${cat.slug}`} style={{ textDecoration: 'none' }}>
+                <div style={{ position: 'relative', height: '160px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.03)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'}>
+                  <img src={cat.image} alt={cat.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.1))' }} />
+                  <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px' }}>
+                    <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: '#62fae3', marginBottom: '4px' }}>{cat.count} jobs</p>
+                    <p style={{ fontSize: '15px', fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>{cat.label}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
 
-        {/* FILTERS BAR */}
-        <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {[{ label: 'City', value: 'All Morocco' }, { label: 'Job Type', value: 'Full Time' }, { label: 'Salary', value: 'Any Range' }, { label: 'Experience', value: 'Any Level' }].map(f => (
-            <div key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{f.label}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{f.value}</span>
-                <ChevronDown size={14} color="#94a3b8" />
-              </div>
-            </div>
-          ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: 'auto', gap: '12px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>12,388 jobs found</span>
-            <button style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: 'white', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Sort: Newest <ChevronDown size={13} />
+          {/* MORE CATEGORY PILLS */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+            {(showMoreCats ? moreCategories : moreCategories.slice(0, 8)).map(cat => (
+              <button key={cat.label} style={{ padding: '6px 16px', borderRadius: '100px', border: '1px solid #e2e8f0', backgroundColor: 'white', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#2dd4bf'; e.currentTarget.style.color = '#2dd4bf' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#334155' }}>
+                {cat.label} <span style={{ opacity: 0.6, fontSize: '11px' }}>({cat.count})</span>
+              </button>
+            ))}
+            <button onClick={() => setShowMoreCats(!showMoreCats)}
+              style={{ padding: '6px 16px', borderRadius: '100px', border: '1px solid #e2e8f0', backgroundColor: 'white', fontSize: '12px', fontWeight: 700, color: '#2dd4bf', cursor: 'pointer' }}>
+              {showMoreCats ? 'View Less' : 'View More'} {showMoreCats ? '↑' : '↓'}
             </button>
           </div>
-        </div>
-
-        {/* RECRUITER BANNER */}
-        <div style={{ backgroundColor: 'white', border: '1px solid rgba(45,212,191,0.2)', borderRadius: '32px', padding: '40px 48px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: '56px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.02em' }}>Find Your Next Star Talent — 100% Free</h2>
-          <p style={{ fontSize: '16px', color: '#64748b', marginBottom: '24px', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 24px' }}>Connect with Morocco's most qualified professionals. Post your job ad today and build the team of your dreams at zero cost.</p>
-          <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '14px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(45,212,191,0.3)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#0f9b8e'; e.currentTarget.style.transform = 'scale(1.02)' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#2dd4bf'; e.currentTarget.style.transform = 'scale(1)' }}
-          >Post a Job for FREE</button>
-        </div>
+        </section>
 
         {/* POPULAR JOBS */}
-        <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Trending Now" title="Popular Jobs" />
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Trending Now</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Popular Jobs</h2>
+            </div>
+            <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Explore All <ChevronRight size={15} /></a>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-            {popularJobs.map(job => <JobCard key={job.title} job={job} />)}
+            {popularJobs.map(job => <JobCard key={job.id} job={job} />)}
+          </div>
+        </section>
+
+        {/* JOBS BY TYPE */}
+        <section style={{ marginBottom: '56px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '28px', letterSpacing: '-0.01em' }}>Jobs by Type in Rabat</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+            {jobTypes.map(t => (
+              <div key={t.label} style={{ backgroundColor: 'white', borderRadius: '24px', padding: '32px 24px', textAlign: 'center', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)' }}>
+                <div style={{ backgroundColor: 'rgba(45,212,191,0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>{t.icon}</div>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>{t.label}</p>
+                <p style={{ fontSize: '13px', color: '#64748b' }}>{t.count}+ Jobs</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* JOBS BY QUALIFICATION */}
+        <section style={{ marginBottom: '56px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '28px', letterSpacing: '-0.01em' }}>Jobs by Qualification in Rabat</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+            {qualifications.map(q => (
+              <div key={q.label} style={{ backgroundColor: 'white', borderRadius: '24px', padding: '32px 24px', textAlign: 'center', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)' }}>
+                <div style={{ backgroundColor: 'rgba(45,212,191,0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <GraduationCap size={28} color="#2dd4bf" />
+                </div>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>{q.label}</p>
+                <p style={{ fontSize: '13px', color: '#64748b' }}>{q.count}+ Jobs</p>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* TECH JOBS */}
-        <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Innovation Hub" title="Tech Jobs" />
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Innovation Hub</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Tech Jobs</h2>
+            </div>
+            <Link href={`/${locale}/jobs/tech`} style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>View All <ChevronRight size={15} /></Link>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-            {techJobs.map(job => <JobCard key={job.title} job={job} />)}
+            {techJobs.map(job => <JobCard key={job.id} job={job} />)}
+          </div>
+        </section>
+
+        {/* SALES JOBS */}
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Business Growth</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Sales &amp; Business Jobs</h2>
+            </div>
+            <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Explore All <ChevronRight size={15} /></a>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+            {salesJobs.map(job => <JobCard key={job.id} job={job} />)}
           </div>
         </section>
 
         {/* FINANCE JOBS */}
-        <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Capital Markets" title="Finance Jobs" />
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Capital Markets</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Finance Jobs</h2>
+            </div>
+            <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Explore All <ChevronRight size={15} /></a>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-            {financeJobs.map(job => <JobCard key={job.title} job={job} />)}
+            {financeJobs.map(job => <JobCard key={job.id} job={job} />)}
           </div>
         </section>
 
-        {/* CREATIVE JOBS */}
-        <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Design & Arts" title="Creative Jobs" />
+        {/* HOSPITALITY JOBS */}
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Hotels &amp; Dining</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Hospitality Jobs</h2>
+            </div>
+            <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Explore All <ChevronRight size={15} /></a>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-            {creativeJobs.map(job => <JobCard key={job.title} job={job} />)}
+            {hospitalityJobs.map(job => <JobCard key={job.id} job={job} />)}
           </div>
         </section>
 
         {/* HEALTHCARE JOBS */}
-        <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Medical Excellence" title="Healthcare Jobs" />
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
+            <div>
+              <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '4px' }}>Medical Excellence</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>Healthcare Jobs</h2>
+            </div>
+            <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Explore All <ChevronRight size={15} /></a>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-            {healthcareJobs.map(job => <JobCard key={job.title} job={job} />)}
+            {healthcareJobs.map(job => <JobCard key={job.id} job={job} />)}
           </div>
         </section>
 
-        {/* REMOTE OPPORTUNITIES */}
+        {/* FEATURED COMPANIES */}
+        <section style={{ marginBottom: '56px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '28px', letterSpacing: '-0.01em' }}>Featured Companies</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
+            {featuredCompanies.map(co => (
+              <div key={co.name} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px 16px', textAlign: 'center', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: 'rgba(45,212,191,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '14px', fontWeight: 900, color: '#2dd4bf' }}>{co.initials}</div>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', marginBottom: '4px', lineHeight: 1.3 }}>{co.name}</p>
+                <p style={{ fontSize: '11px', color: '#64748b' }}>{co.sector}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* RECRUITER BANNER */}
+        <section style={{ marginBottom: '56px' }}>
+          <div style={{ backgroundColor: 'white', border: '1px solid rgba(45,212,191,0.2)', borderRadius: '40px', padding: '48px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.02em' }}>Find Your Next Star Talent — 100% Free</h2>
+            <p style={{ fontSize: '16px', color: '#64748b', marginBottom: '24px', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 24px' }}>Connect with Morocco's most qualified professionals. Post your job ad today and build the team of your dreams at zero cost.</p>
+            <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '14px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(45,212,191,0.3)' }}>Post a Job for FREE</button>
+          </div>
+        </section>
+
+        {/* 80% CV BANNER */}
         <section style={{ marginBottom: '64px' }}>
-          <SectionHeader sub="Future of Work" title="Remote Opportunities" />
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-            <div style={{ backgroundColor: '#0f172a', padding: '48px', borderRadius: '40px', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'relative', zIndex: 1, color: 'white', maxWidth: '480px' }}>
-                <h3 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '16px', lineHeight: 1.2 }}>Work from Anywhere in Morocco</h3>
-                <p style={{ fontSize: '16px', opacity: 0.75, marginBottom: '28px', lineHeight: 1.6 }}>Access verified remote positions from top Moroccan and international companies. Curated daily.</p>
-                <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '14px 32px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#5eead4'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2dd4bf'}
-                >View Remote Roles 🚀</button>
-              </div>
-              <img src="https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&w=600" alt="Remote" style={{ position: 'absolute', right: 0, bottom: 0, width: '45%', height: '100%', objectFit: 'cover', mixBlendMode: 'overlay', opacity: 0.4 }} />
-            </div>
-            <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '40px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'border-color 0.2s, box-shadow 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#2dd4bf'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(45,212,191,0.1)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              <div>
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: 'rgba(45,212,191,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', marginBottom: '24px' }}>🌐</div>
-                <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>Hybrid Roles</h3>
-                <p style={{ color: '#64748b', lineHeight: 1.6, fontSize: '14px' }}>The perfect balance between office presence and remote flexibility. Browse 500+ hybrid roles across Morocco.</p>
-              </div>
-              <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '28px' }}
-                onMouseEnter={e => e.currentTarget.style.gap = '10px'}
-                onMouseLeave={e => e.currentTarget.style.gap = '6px'}
-              >Browse Hybrid →</a>
-            </div>
-          </div>
-        </section>
-
-        {/* APP DOWNLOAD BANNER */}
-        <section style={{ marginBottom: '80px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #2dd4bf 0%, #006b5f 100%)', borderRadius: '40px', padding: '64px', display: 'flex', alignItems: 'center', gap: '48px', overflow: 'hidden', position: 'relative', boxShadow: '0 20px 60px rgba(0,107,95,0.2)' }}>
-            <div style={{ flex: 1, color: 'white', position: 'relative', zIndex: 1 }}>
-              <h2 style={{ fontSize: '36px', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>Join the SouKni Family</h2>
-              <p style={{ fontSize: '16px', marginBottom: '32px', opacity: 0.9, lineHeight: 1.6, maxWidth: '480px' }}>Experience premium recruitment at your fingertips. Download the app for exclusive early access and AI-powered job matching.</p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {[{ icon: '🍎', label: 'App Store', sub: 'Download on the' }, { icon: '▶', label: 'Google Play', sub: 'Get it on' }].map(btn => (
-                  <button key={btn.label} style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'Inter, sans-serif', transition: 'transform 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                  >
-                    <span style={{ fontSize: '24px' }}>{btn.icon}</span>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '9px', opacity: 0.6, textTransform: 'uppercase', lineHeight: 1 }}>{btn.sub}</div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, lineHeight: 1.3 }}>{btn.label}</div>
+          <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: '40px', padding: '48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '32px', flexWrap: 'wrap' }}>
+            <div style={{ maxWidth: '520px' }}>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '16px', letterSpacing: '-0.01em' }}>80% of recruiters hire candidates with a CV</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
+                {['Boost your chances of getting ahead of other candidates', 'Enable recruiters to easily view your contact details', 'Showcase your professional accomplishments'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ color: 'white', fontSize: '11px', fontWeight: 800 }}>✓</span>
                     </div>
-                  </button>
+                    <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '15px' }}>{item}</span>
+                  </div>
                 ))}
               </div>
+              <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '14px 32px', borderRadius: '100px', fontWeight: 800, fontSize: '14px', cursor: 'pointer' }}>Upload CV</button>
             </div>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: '220px', height: '400px', backgroundColor: '#0f172a', borderRadius: '40px', border: '6px solid rgba(255,255,255,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
-                <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&w=400" alt="App" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
+            <div style={{ width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(45,212,191,0.1)', border: '2px solid rgba(45,212,191,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <GraduationCap size={64} color="#2dd4bf" />
             </div>
           </div>
         </section>
+
       </div>
     </div>
   )

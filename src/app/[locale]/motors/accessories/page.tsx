@@ -37,10 +37,10 @@ function AccessoryCard({ item }: { item: typeof performance[0] }) {
       <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
         <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s', transform: hovered ? 'scale(1.1)' : 'scale(1)' }} />
         {item.badge === 'diamond' && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #006b5f, #2dd4bf)', color: 'white', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 4px 12px rgba(45,212,191,0.4)' }}>💎 Diamond Member</div>
+          <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #2dd4bf, #2dd4bf)', color: 'white', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 4px 12px rgba(45,212,191,0.4)' }}>💎 Diamond Member</div>
         )}
         {item.badge === 'verified' && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: '#006b5f', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>✓ Verified</div>
+          <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: '#2dd4bf', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>✓ Verified</div>
         )}
         <button onClick={e => { e.stopPropagation(); setSaved(!saved) }}
           style={{ position: 'absolute', top: '12px', right: '12px', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', transition: 'all 0.2s' }}
@@ -54,7 +54,7 @@ function AccessoryCard({ item }: { item: typeof performance[0] }) {
         <div style={{ fontSize: '9px', fontWeight: 800, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>{item.cat}</div>
         <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '20px', fontWeight: 800, color: '#006b5f' }}>{formatPrice(item.price)}</span>
+          <span style={{ fontSize: '20px', fontWeight: 800, color: '#2dd4bf' }}>{formatPrice(item.price)}</span>
           <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>📦 {item.cond}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #f8fafc', paddingTop: '12px', marginBottom: '14px' }}>
@@ -202,13 +202,13 @@ export default function AccessoriesPage({ params }: { params: Promise<{ locale: 
 
         {/* AUTO PRO BANNER */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '56px' }}>
-          <div style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', background: 'linear-gradient(135deg, #006b5f, #2dd4bf)', display: 'flex', alignItems: 'center', padding: '40px' }}>
+          <div style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', background: 'linear-gradient(135deg, #2dd4bf, #2dd4bf)', display: 'flex', alignItems: 'center', padding: '40px' }}>
             <div style={{ position: 'absolute', right: '-10px', bottom: '-20px', fontSize: '120px', opacity: 0.1 }}>🔧</div>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <span style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>Certified Services</span>
               <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px', lineHeight: 1.2 }}>SouKni Auto Pro</h2>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>Premium installation and diagnostic services across Morocco.</p>
-              <button style={{ backgroundColor: 'white', color: '#006b5f', border: 'none', padding: '10px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Explore Services</button>
+              <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '10px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Explore Services</button>
             </div>
           </div>
           <div style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', padding: '40px' }}>
@@ -231,7 +231,7 @@ export default function AccessoriesPage({ params }: { params: Promise<{ locale: 
             <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>Sell Your Parts — 100% Free</h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.9)' }}>Reach thousands of buyers across Morocco. Post your listing in minutes.</p>
           </div>
-          <button style={{ backgroundColor: 'white', color: '#006b5f', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: 800, fontSize: '15px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>Post Free Ad →</button>
+          <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: 800, fontSize: '15px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>Post Free Ad →</button>
         </section>
 
       </div>

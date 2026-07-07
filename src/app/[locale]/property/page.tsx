@@ -49,7 +49,7 @@ function PropertyCard({ item }: { item: typeof apartments[0] }) {
       <div style={{ position: 'relative', height: '220px', overflow: 'hidden' }}>
         <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.06)' : 'scale(1)' }} />
         <div style={{ position: 'absolute', top: '14px', left: '14px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {item.badges.includes('Diamond Member') && <span style={{ backgroundColor: 'rgba(45,212,191,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(45,212,191,0.3)', color: '#006b5f', fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase' }}>💎 Diamond</span>}
+          {item.badges.includes('Diamond Member') && <span style={{ backgroundColor: 'rgba(45,212,191,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(45,212,191,0.3)', color: '#2dd4bf', fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase' }}>💎 Diamond</span>}
           {item.badges.includes('Verified') && <span style={{ backgroundColor: '#2dd4bf', color: 'white', fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase' }}>✓ Verified</span>}
         </div>
         <button onClick={() => setLiked(!liked)} style={{ position: 'absolute', top: '14px', right: '14px', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px' }}>{liked ? '❤️' : '🤍'}</button>
@@ -147,11 +147,11 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
 
       {/* DIAMOND BANNER */}
       <section style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 80px' }}>
-        <div style={{ background: 'linear-gradient(135deg, #006b5f 0%, #2dd4bf 100%)', borderRadius: '40px', padding: '56px', display: 'flex', alignItems: 'center', gap: '48px' }}>
+        <div style={{ background: 'linear-gradient(135deg, #2dd4bf 0%, #2dd4bf 100%)', borderRadius: '40px', padding: '56px', display: 'flex', alignItems: 'center', gap: '48px' }}>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'white', marginBottom: '16px', letterSpacing: '-0.02em' }}>Become a Diamond Certified Member</h2>
             <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px', marginBottom: '28px', lineHeight: 1.6 }}>Boost your trust score, get exclusive access to off-market listings, and enjoy priority support.</p>
-            <button style={{ backgroundColor: 'white', color: '#006b5f', border: 'none', padding: '14px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '16px', cursor: 'pointer', transition: 'transform 0.15s' }}
+            <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '14px 36px', borderRadius: '100px', fontWeight: 700, fontSize: '16px', cursor: 'pointer', transition: 'transform 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >Get Certified Now</button>
