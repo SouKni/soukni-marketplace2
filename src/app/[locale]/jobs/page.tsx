@@ -13,11 +13,14 @@ const jobCategories = [
   { label: 'Medical & Healthcare', count: '220', slug: 'medical', image: 'https://images.pexels.com/photos/4386466/pexels-photo-4386466.jpeg?auto=compress&w=600' },
   { label: 'Home Cleaning', count: '370', slug: 'home-cleaning', image: 'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=600' },
   { label: 'Handyman & Technician', count: '390', slug: 'handyman', image: 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=600' },
+  { label: 'HR \& Admin', count: '420', slug: 'hr-admin', image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=600' },
+  { label: 'Logistics \& Distribution', count: '580', slug: 'logistics', image: 'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=600' },
+  { label: 'Manufacturing \& Warehouse', count: '720', slug: 'manufacturing', image: 'https://images.pexels.com/photos/3846022/pexels-photo-3846022.jpeg?auto=compress&w=600' },
 ]
 
 const moreCategories = [
   { label: 'Manufacturing & Warehouse', count: '440' },
-  { label: 'HR & Admin', count: '420' },
+  { label: 'HR & Admin', count: '420', slug: 'hr-admin' },
   { label: 'Handyman & Technician', count: '390' },
   { label: 'Restaurant Operations', count: '360' },
   { label: 'Construction', count: '340' },

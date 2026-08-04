@@ -2,11 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  Check, Shield, Star, Zap, ChevronRight, Upload,
-  Phone, Mail, CreditCard, ArrowRight, X, Camera,
-  Building2, FileCheck, Lock, Users, TrendingUp, Award
-} from 'lucide-react'
+import { Check, Shield, Star, Zap, ChevronRight, Upload, Phone, Mail, CreditCard, ArrowRight, X, Camera, Building2, FileCheck, Lock, Users, TrendingUp, Award } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Step = 'landing' | 'choose-plan' | 'verify-phone' | 'verify-id' | 'verify-business' | 'payment' | 'success'

@@ -2,12 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  Package, ChevronRight, Clock, Check, X, MessageCircle,
-  MapPin, Star, AlertTriangle, Handshake, ArrowRight,
-  Phone, Shield, RefreshCw, ChevronDown, Filter,
-  TrendingUp, DollarSign, CheckCircle, XCircle, Eye
-} from 'lucide-react'
+import { Package, ChevronRight, Clock, Check, X, MessageCircle, MapPin, Star, AlertTriangle, Handshake, ArrowRight, Phone, Shield, RefreshCw, ChevronDown, Filter, TrendingUp, DollarSign, CheckCircle, XCircle, Eye } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type OrderTab = 'all' | 'active' | 'completed' | 'cancelled'
@@ -630,7 +625,18 @@ export default function OrdersPage({ params }: { params: Promise<{ locale: Local
                 </div>
               </div>
 
-              {/* Safety reminder */}
+              {/* Escrow link */}
+            <Link href={`/${locale}/escrow/${selectedOrder.id}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', background: '#f0fdf9', borderRadius: '12px', border: `1px solid ${MINT}`, textDecoration: 'none', marginBottom: '10px' }}>
+              <Shield size={14} color={MINT} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '12px', fontWeight: 900, color: INK }}>Escrow Protection Active</p>
+                <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>Payment secured until you confirm receipt</p>
+              </div>
+              <ChevronRight size={13} color={MUTED} />
+            </Link>
+
+            {/* Safety reminder */}
               <div style={{ padding: '14px 16px', background: CREAM, borderRadius: '14px', border: `1px solid #e8d5c0`, display: 'flex', gap: '10px' }}>
                 <Shield size={15} color="#b45309" style={{ flexShrink: 0, marginTop: '1px' }} />
                 <p style={{ fontSize: '11px', color: '#6b4c2a', lineHeight: 1.5, fontWeight: 700 }}>

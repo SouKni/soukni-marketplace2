@@ -2,10 +2,7 @@
 
 import { useState, use, useMemo } from 'react'
 import Link from 'next/link'
-import {
-  Search, MapPin, SlidersHorizontal, X, ChevronDown,
-  Heart, Grid, List, ArrowUpDown, Check
-} from 'lucide-react'
+import { Search, MapPin, SlidersHorizontal, X, ChevronDown, Heart, Grid, List, ArrowUpDown, Check } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -45,6 +42,19 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
   const [conditions, setConditions] = useState<string[]>([])
   const [sortBy, setSortBy] = useState('relevance')
   const [sortOpen, setSortOpen] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const POPULAR_SEARCHES = [
+    'iPhone 15 Pro', 'BMW Série 3', 'Appartement Rabat', 'MacBook Pro',
+    'Rolex Submariner', 'PlayStation 5', 'Land Rover Defender', 'Airpods Pro',
+  ]
+
+  const suggestions = query.trim().length > 0
+    ? ALL_LISTINGS
+        .filter(l => l.title.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 5)
+        .map(l => l.title)
+    : POPULAR_SEARCHES
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [savedIds, setSavedIds] = useState<number[]>([])
@@ -52,9 +62,35 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
   const toggleCondition = (c: string) => setConditions(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   const toggleSave = (id: number) => setSavedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
+  // Fuzzy match — scores how well query matches title
+  const fuzzyScore = (text: string, query: string): number => {
+    const t = text.toLowerCase()
+    const q = query.toLowerCase().trim()
+    if (!q) return 1
+    if (t.includes(q)) return 1                        // exact match
+    const words = q.split(/\s+/)
+    const allWords = words.every(w => t.includes(w))
+    if (allWords) return 0.9                           // all words present
+    const someWords = words.filter(w => t.includes(w)).length / words.length
+    if (someWords > 0) return 0.5 + someWords * 0.3   // partial word match
+    // Typo tolerance — check char-by-char overlap
+    let matches = 0
+    for (let i = 0; i < q.length; i++) {
+      if (t.includes(q[i])) matches++
+    }
+    const ratio = matches / q.length
+    return ratio > 0.7 ? ratio * 0.5 : 0              // typo tolerance
+  }
+
   const results = useMemo(() => {
     let filtered = ALL_LISTINGS.filter(l => {
-      const matchesQuery = query.trim() === '' || l.title.toLowerCase().includes(query.toLowerCase()) || l.category.toLowerCase().includes(query.toLowerCase())
+      const score = query.trim() === '' ? 1 : Math.max(
+        fuzzyScore(l.title, query),
+        fuzzyScore(l.category, query),
+        fuzzyScore(l.subcategory, query),
+        fuzzyScore(l.city, query)
+      )
+      const matchesQuery = score > 0.3
       const matchesCity = city === 'All Cities' || l.city === city
       const matchesMin = minPrice === '' || l.price >= Number(minPrice)
       const matchesMax = maxPrice === '' || l.price <= Number(maxPrice)
@@ -62,6 +98,7 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
       return matchesQuery && matchesCity && matchesMin && matchesMax && matchesCondition
     })
 
+    if (sortBy === 'relevance') filtered = [...filtered].sort((a, b) => { const sa = Math.max(fuzzyScore(a.title, query), fuzzyScore(a.category, query)); const sb = Math.max(fuzzyScore(b.title, query), fuzzyScore(b.category, query)); return sb - sa })
     if (sortBy === 'price-low') filtered = [...filtered].sort((a, b) => a.price - b.price)
     if (sortBy === 'price-high') filtered = [...filtered].sort((a, b) => b.price - a.price)
     if (sortBy === 'newest') filtered = [...filtered].sort((a, b) => a.postedDays - b.postedDays)
@@ -79,14 +116,36 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
       {/* SEARCH HERO BAR */}
       <div style={{ background: '#161d1b', padding: '28px 24px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '10px', background: 'white', borderRadius: '16px', padding: '6px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+          <div style={{ display: 'flex', gap: '10px', background: 'white', borderRadius: '16px', padding: '6px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', position: 'relative' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
               <Search size={18} color="#6b7a76" />
               <input
-                value={query} onChange={e => setQuery(e.target.value)}
+                value={query}
+                onChange={e => { setQuery(e.target.value); setShowSuggestions(true) }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={e => e.key === 'Escape' && setShowSuggestions(false)}
                 placeholder="Search for anything — iPhone, BMW, apartment..."
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: '15px', padding: '12px 0', fontFamily: 'inherit', color: '#161d1b' }}
+                autoComplete="off"
               />
+              {/* Suggestions dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', borderRadius: '14px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid #e2eae6', overflow: 'hidden', zIndex: 50, marginTop: '8px' }}>
+                  {query.trim() === '' && <div style={{ padding: '10px 16px 4px', fontSize: '10px', fontWeight: 900, color: '#6b7a76', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Popular Searches</div>}
+                  {suggestions.map((s, i) => (
+                    <button key={i}
+                      onMouseDown={() => { setQuery(s); setShowSuggestions(false) }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 16px', border: 'none', background: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#161d1b', textAlign: 'left', fontFamily: 'inherit' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f4fbf8'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                    >
+                      <span style={{ fontSize: '13px', color: '#6b7a76' }}>🔍</span>
+                      <span>{s}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {query && (
                 <button onClick={() => setQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}>
                   <X size={16} color="#6b7a76" />
@@ -114,7 +173,7 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Map view link */}
             <Link href={`/${locale}/map`}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2eae6', background: 'white', color: INK, textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2eae6', background: 'white', color: '#161d1b', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
               🗺 Map View
             </Link>
 

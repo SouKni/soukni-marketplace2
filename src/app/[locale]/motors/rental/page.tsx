@@ -2,47 +2,49 @@
 
 import { useState } from 'react'
 import React from 'react'
-import { Heart, Search, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Star } from 'lucide-react'
+import Link from 'next/link'
 
 const C = {
-  mint:    '#22d4a8',
-  ink:     '#161d1b',
-  surface: '#f4fbf8',
-  cream:   '#f5ede0',
-  muted:   '#6b7a76',
+  mint:   '#22d4a8',
+  mintDk: '#006c53',
+  ink:    '#161d1b',
+  surface:'#f4fbf8',
+  cream:  '#f5ede0',
+  muted:  '#6b7a76',
 }
-const UB: React.CSSProperties  = { fontFamily:'Inter,sans-serif',            fontWeight:900, letterSpacing:'-0.05em' }
-const CB: React.CSSProperties  = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' }
+const UB: React.CSSProperties = { fontFamily:'Inter,sans-serif',            fontWeight:900, letterSpacing:'-0.05em' }
+const CB: React.CSSProperties = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' }
 
-const IMGS = {
-  hero:       'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=1600',
-  range1:     'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=600',
-  merc1:      'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=600',
-  tesla:      'https://images.pexels.com/photos/1035108/pexels-photo-1035108.jpeg?auto=compress&w=600',
-  porsche:    'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=600',
-  volvo:      'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&w=600',
-  maserati:   'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&w=600',
-  defender:   'https://images.pexels.com/photos/1638459/pexels-photo-1638459.jpeg?auto=compress&w=600',
-  audi1:      'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=600',
-  bmw1:       'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=600',
-  ferrari:    'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&w=600',
-  bentley:    'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600',
-  lambo:      'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=600',
-  rolls:      'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=600',
-  mclaren:    'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&w=600',
-  cayenne:    'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=600',
-  motpro:     'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
-  phone:      'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=400',
+const I = {
+  hero:    'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=1600',
+  c1:      'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=600',
+  c2:      'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=600',
+  c3:      'https://images.pexels.com/photos/1035108/pexels-photo-1035108.jpeg?auto=compress&w=600',
+  c4:      'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=600',
+  bento1:  'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&w=900',
+  bento2:  'https://images.pexels.com/photos/1638459/pexels-photo-1638459.jpeg?auto=compress&w=600',
+  bento3:  'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=600',
+  bento4:  'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=600',
+  protect: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
+  hostcta: 'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&w=1200',
+  g1:      'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=400',
+  g2:      'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&w=400',
+  g3:      'https://images.pexels.com/photos/1035108/pexels-photo-1035108.jpeg?auto=compress&w=400',
+  g4:      'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=400',
+  g5:      'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&w=400',
 }
 
-type BadgeT = 'soukni'|'diamond'|'certified'
-function CardBadge({ type }: { type: BadgeT }) {
+type BadgeT = 'trusted'|'instant'|'verified'|'new'
+function Badge({ type }: { type: BadgeT }) {
   const map: Record<BadgeT,{bg:string;color:string;label:string}> = {
-    soukni:    { bg:C.mint,  color:C.ink,  label:'SOUKNI CERTIFIED' },
-    diamond:   { bg:C.ink,   color:C.mint, label:'◆ DIAMOND MEMBER' },
-    certified: { bg:C.mint,  color:C.ink,  label:'SouKni Certified'  },
+    trusted:  { bg:C.mint, color:C.ink,  label:'Trusted Host'   },
+    instant:  { bg:C.ink,  color:C.mint, label:'Instant Book'   },
+    verified: { bg:C.mint, color:C.ink,  label:'Verified Owner' },
+    new:      { bg:C.mint, color:'white', label:'New Listing'   },
   }
-  const s = map[type]
+  const s = map[type] || map.verified
+  if (!s) return null
   return (
     <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block', boxShadow:'0 2px 6px rgba(0,0,0,0.15)', whiteSpace:'nowrap' as const }}>
       {s.label}
@@ -50,133 +52,178 @@ function CardBadge({ type }: { type: BadgeT }) {
   )
 }
 
-interface Car { title:string; price:number; period?:string; img:string; badge:BadgeT; seats?:number; fuel?:string; location?:string }
-
-function RentalCard({ title, price, period='/ Day', img, badge, seats, fuel, location }: Car) {
-  const [hov, setHov] = useState(false)
+function FeaturedCard({ owner, title, price, location, rating, img, badges }: any) {
+  const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
-    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ backgroundColor:'white', borderRadius:'28px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.12)'}`, overflow:'hidden', boxShadow:hov?`0 16px 40px ${C.mint}20`:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const }}>
-      <div style={{ position:'relative', aspectRatio:'16/10', overflow:'hidden', backgroundColor:C.cream }}>
-        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
-        <div style={{ position:'absolute', top:'12px', left:'12px', zIndex:10 }}><CardBadge type={badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', zIndex:10, width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.82)', backdropFilter:'blur(8px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'24px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, boxShadow:hov?`0 20px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', overflow:'hidden', transition:'all 0.3s', cursor:'pointer' }}>
+      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s', transform:hov?'scale(1.1)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'12px', left:'12px', display:'flex', flexDirection:'column' as const, gap:'5px' }}>
+          {badges?.map((b:string)=><Badge key={b} type={b as BadgeT} />)}
+        </div>
+        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
       </div>
-      <div style={{ padding:'18px 20px', flex:1, display:'flex', flexDirection:'column' as const }}>
-        <h4 style={{ fontSize:'14px', ...CB, color:hov?C.mint:C.ink, transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const, marginBottom:'4px' }}>{title}</h4>
-        <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'8px' }}>MAD {price.toLocaleString()} <span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}>{period}</span></p>
-        {(seats||fuel||location) && (
-          <div style={{ display:'flex', gap:'12px', marginBottom:'14px', flexWrap:'wrap' as const }}>
-            {seats    && <span style={{ fontSize:'10px', ...CB, color:C.muted }}>👥 {seats} Seats</span>}
-            {fuel     && <span style={{ fontSize:'10px', ...CB, color:C.muted }}>⛽ {fuel}</span>}
-            {location && <span style={{ fontSize:'10px', ...CB, color:C.muted }}>📍 {location}</span>}
-          </div>
-        )}
-        <div style={{ marginTop:'auto', display:'flex', gap:'8px', paddingTop:'14px', borderTop:'1px solid rgba(107,122,118,0.08)' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'14px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
-            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
-            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >CHAT</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'10px', borderRadius:'14px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', transition:'filter 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-            onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-          >💬 WHATSAPP</button>
+      <div style={{ padding:'18px 20px' }}>
+        <h4 style={{ fontSize:'14px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' }}>
+          <span style={{ fontSize:'10px', ...CB, color:C.muted }}>Hosted by {owner}</span>
+          <span style={{ display:'flex', alignItems:'center', gap:'2px', fontSize:'10px', color:'#f59e0b', ...CB }}><Star size={10} fill="#f59e0b" />{rating.toFixed(1)}</span>
+        </div>
+        <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>MAD {price.toLocaleString()} <span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}>/ day</span></p>
+        {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >Message</button>
+          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
         </div>
       </div>
-    </article>
-  )
-}
-
-function SectionHead({ title, sub }: { title:string; sub?:string }) {
-  return (
-    <div style={{ marginBottom:'24px' }}>
-      <h3 style={{ fontSize:'clamp(16px,2vw,20px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:sub?'6px':'0' }}>{title}</h3>
-      {sub && <p style={{ fontSize:'13px', color:C.muted, fontFamily:'Inter,sans-serif', fontWeight:500 }}>{sub}</p>}
     </div>
   )
 }
 
-const fresh: Car[] = [
-  { title:'2024 Range Rover Velar',     price:2500, img:IMGS.range1,  badge:'soukni',    seats:5, fuel:'Hybrid',   location:'Agdal'    },
-  { title:'2024 Mercedes-Benz S-Class', price:3100, img:IMGS.merc1,   badge:'diamond',   seats:5, fuel:'Petrol',   location:'Souissi'  },
-  { title:'2024 Tesla Model 3 Plus',    price:1800, img:IMGS.tesla,   badge:'soukni',    seats:5, fuel:'Electric', location:'Hay Riad' },
-  { title:'2024 Porsche Cayenne Coupe', price:4200, img:IMGS.porsche, badge:'certified', seats:5, fuel:'Petrol',   location:'Centre'   },
-]
-const exec: Car[] = [
-  { title:'2024 Volvo XC',             price:1400, img:IMGS.volvo,    badge:'soukni',    seats:5, fuel:'Hybrid'  },
-  { title:'2024 Maserati Ghibli',      price:2600, img:IMGS.maserati, badge:'diamond',   seats:5, fuel:'Petrol'  },
-  { title:'2024 Land Rover Defender',  price:2800, img:IMGS.defender, badge:'soukni',    seats:7, fuel:'Diesel'  },
-  { title:'2024 Audi 5E',              price:1600, img:IMGS.audi1,    badge:'certified', seats:5, fuel:'Electric'},
-]
-const certified: Car[] = [
-  { title:'2024 Mercedes-Benz S-Class',price:3100, img:IMGS.merc1,    badge:'soukni',    seats:5, fuel:'Petrol' },
-  { title:'2024 Range Rover Atlas',    price:3800, img:IMGS.range1,   badge:'soukni',    seats:5, fuel:'Hybrid' },
-  { title:'2024 Porsche Cayenne Coupe',price:4200, img:IMGS.porsche,  badge:'diamond',   seats:5, fuel:'Petrol' },
-  { title:'2024 Land Rover Defender',  price:2800, img:IMGS.defender, badge:'certified', seats:7, fuel:'Diesel' },
-]
-const pro1: Car[] = [
-  { title:'2026 Ferrari Panamera',     price:12000, img:IMGS.ferrari,  badge:'diamond',   fuel:'Petrol' },
-  { title:'2026 Rolls-Royce Cullinan', price:16500, img:IMGS.rolls,    badge:'soukni',    fuel:'Petrol' },
-  { title:'2026 Lamborghini Urus S',   price:9500,  img:IMGS.lambo,    badge:'soukni',    fuel:'Petrol' },
-  { title:'2026 Bentley Bentayga EWB', price:8000,  img:IMGS.bentley,  badge:'certified', fuel:'Hybrid' },
-]
-const pro2: Car[] = [
-  { title:'2026 Aston Martin DB12',    price:7000, img:IMGS.maserati, badge:'soukni',    fuel:'Petrol' },
-  { title:'2026 Maserati MC20',        price:5500, img:IMGS.merc1,    badge:'soukni',    fuel:'Petrol' },
-  { title:'2026 McLaren Artura',       price:6800, img:IMGS.mclaren,  badge:'diamond',   fuel:'Hybrid' },
-  { title:'2026 BMW X8',               price:4900, img:IMGS.bmw1,     badge:'certified', fuel:'Petrol' },
-]
-const pro3: Car[] = [
-  { title:'2026 Audi RS Etron GT',     price:3700, img:IMGS.audi1,    badge:'soukni',    fuel:'Electric'},
-  { title:'2026 Land Rover Defender',  price:2800, img:IMGS.defender, badge:'soukni',    fuel:'Diesel'  },
-  { title:'2026 Porsche 911 Turbo S',  price:7800, img:IMGS.porsche,  badge:'diamond',   fuel:'Petrol'  },
-  { title:'2026 Rolls-Royce Phantom',  price:6000, img:IMGS.rolls,    badge:'soukni',    fuel:'Petrol'  },
-]
-const after1: Car[] = [
-  { title:'2024 Mercedes-Benz S-Class',price:3100, img:IMGS.merc1,   badge:'diamond',   fuel:'Petrol'   },
-  { title:'2024 Audi A8 L',            price:2400, img:IMGS.audi1,   badge:'soukni',    fuel:'Petrol'   },
-  { title:'2024 Tesla Model S Plaid',  price:2700, img:IMGS.tesla,   badge:'soukni',    fuel:'Electric' },
-  { title:'2024 Lamborghini Urus S',   price:9500, img:IMGS.lambo,   badge:'diamond',   fuel:'Petrol'   },
-]
-const after2: Car[] = [
-  { title:'2024 Bentley Bentayga EWB', price:8200, img:IMGS.bentley, badge:'soukni',    fuel:'Hybrid' },
-  { title:'2024 Porsche Cayenne Coupe',price:4200, img:IMGS.cayenne, badge:'diamond',   fuel:'Petrol' },
-  { title:'2024 Ferrari Portofino',    price:11000,img:IMGS.ferrari,  badge:'soukni',    fuel:'Petrol' },
-  { title:'2024 Rolls-Royce Cullinan', price:16500,img:IMGS.rolls,   badge:'certified', fuel:'Petrol' },
+function GridCard({ owner, title, price, img, badge, rating }: any) {
+  const [saved, setSaved] = useState(false)
+  const [hov,   setHov  ] = useState(false)
+  return (
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'28px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, boxShadow:hov?`0 16px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', overflow:'hidden', transition:'all 0.3s', cursor:'pointer' }}>
+      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s', transform:hov?'scale(1.1)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'10px', left:'10px' }}><Badge type={badge as BadgeT} /></div>
+        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Heart size={12} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
+        </button>
+      </div>
+      <div style={{ padding:'14px 16px' }}>
+        <h4 style={{ fontSize:'12px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+        <div style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'8px' }}>
+          <span style={{ fontSize:'9px', ...CB, color:C.muted }}>{owner}</span>
+          <span style={{ display:'flex', alignItems:'center', gap:'2px', fontSize:'9px', color:'#f59e0b', ...CB }}><Star size={9} fill="#f59e0b" />{rating.toFixed(1)}</span>
+        </div>
+        <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>MAD {price.toLocaleString()}<span style={{ fontSize:'9px', fontWeight:400, color:C.muted }}> /day</span></p>
+        <div style={{ display:'flex', gap:'6px' }}>
+          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
+          >Message</button>
+          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const featuredItems = [
+  { owner:'Yassine B.', title:'Range Rover Velar 2024',     price:2500, location:'Agdal, Rabat',    rating:4.9, img:I.c1, badges:['verified','trusted']  },
+  { owner:'Sara M.',    title:'Mercedes-Benz S-Class 2024', price:3100, location:'Souissi, Rabat',  rating:4.8, img:I.c2, badges:['instant']       },
+  { owner:'Amine K.',   title:'Tesla Model 3 Plus 2024',    price:1800, location:'Hay Riad, Rabat', rating:5.0, img:I.c3, badges:['verified']      },
+  { owner:'Nadia R.',   title:'Porsche Cayenne Coupe 2024', price:4200, location:'Centre, Rabat',   rating:4.7, img:I.c4, badges:['trusted']       },
 ]
 
-const PILLS = ['ALL VEHICLES','SEDAN','SUV','CONVERTIBLE','LUXURY','UTILITY','PREMIUM']
+function makeGrid(count: number) {
+  const owners = ['Karim T.','Hamza E.','Mehdi S.','Salma A.','Omar L.','Laila H.','Khalid M.','Ines D.']
+  const titles = ['Volvo XC90','Maserati Ghibli','Land Rover Defender','Audi e-tron GT','Lamborghini Urus S','Bentley Bentayga','BMW X8','Rolls-Royce Cullinan']
+  const imgs   = [I.g1,I.g2,I.g3,I.g4,I.g5]
+  const badges: BadgeT[] = ['verified','instant','trusted','new','verified']
+  return Array.from({length:count},(_,i)=>({
+    owner: owners[i%owners.length],
+    title: titles[i%titles.length],
+    price: 900 + ((i*731)%9000),
+    rating: 4.5 + ((i%5)*0.1),
+    img:   imgs[i%imgs.length],
+    badge: badges[i%badges.length],
+  }))
+}
+const gridItems = makeGrid(16)
+
+const CATS = [
+  { label:'All Vehicles', slug:'all-vehicles' },
+  { label:'SUV',           slug:'suv'          },
+  { label:'Sedan',         slug:'sedan'        },
+  { label:'Luxury',        slug:'luxury'       },
+  { label:'Economy',       slug:'economy'      },
+  { label:'Convertible',   slug:'convertible'  },
+  { label:'Van',           slug:'van'          },
+]
 
 export default function CarRentalPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = React.use(params)
-  const [pill, setPill]       = useState('ALL VEHICLES')
-  const [diamond, setDiamond] = useState(true)
-  const [page, setPage]       = useState(1)
-  const [kw, setKw]           = useState('')
+  const { locale }                      = React.use(params)
+  const [activeSeller, setActiveSeller] = useState('All Hosts')
+  const [verified,     setVerified    ] = useState(true)
+  const [gridView,     setGridView    ] = useState(true)
+  const [page,         setPage        ] = useState(1)
+  const [keyword,      setKeyword     ] = useState('')
+  const [city,         setCity        ] = useState('All')
+  const [period,       setPeriod      ] = useState('Daily, Monthly...')
+  const [type,         setType        ] = useState('SUVs, Sedans, Lux…')
+  const [price,        setPrice       ] = useState('Select')
+  const [specs,        setSpecs       ] = useState('Select')
+  const [cityOpen,     setCityOpen    ] = useState(false)
+  const [periodOpen,   setPeriodOpen  ] = useState(false)
+  const [typeOpen,     setTypeOpen    ] = useState(false)
+  const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [specsOpen,    setSpecsOpen   ] = useState(false)
+
+  const cities  = ['All','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const periods = ['Daily, Monthly...','Daily','Weekly','Monthly','Any Period']
+  const types   = ['SUVs, Sedans, Lux…','All Vehicles','SUV','Sedan','Luxury','Economy','Convertible','Van']
+  const prices  = ['Select','Any Price','0 – 1,000 MAD/day','1,000 – 2,500 MAD/day','2,500 – 5,000 MAD/day','5,000 – 10,000 MAD/day','10,000+ MAD/day']
+  const specOpts= ['Select','Any Specs','Automatic','GPS Included','Child Seat Available','Unlimited Mileage','Delivery Available']
+
+  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
+    return (
+      <div style={{ position:'relative', flex:1 }}>
+        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPeriodOpen(false); setTypeOpen(false); setPriceOpen(false); setSpecsOpen(false) }}
+          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 18px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <span style={{ fontSize:'13px', ...UB, color:C.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{value}</span>
+            <ChevronDown size={13} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+          </div>
+        </button>
+        {open && (
+          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
+            {options.map((opt:string)=>(
+              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
 
-      {/* ── HERO ── */}
-      <section style={{ position:'relative', height:'400px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src={IMGS.hero} alt="Cars" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(22,29,27,0.55) 0%, rgba(22,29,27,0.2) 60%, #f4fbf8 100%)' }} />
-        <div style={{ position:'relative', zIndex:10, textAlign:'center' as const, maxWidth:'820px', padding:'0 24px', width:'100%' }}>
-          <h1 style={{ fontSize:'clamp(34px,5.5vw,52px)', ...UB, color:'white', marginBottom:'32px', lineHeight:1, textShadow:'0 4px 24px rgba(0,0,0,0.4)' }}>Premium Car Rentals in Rabat</h1>
-          <div style={{ backgroundColor:'rgba(255,255,255,0.16)', backdropFilter:'blur(16px)', border:'1px solid rgba(255,255,255,0.24)', borderRadius:'100px', padding:'8px', display:'flex', gap:'10px', alignItems:'center', maxWidth:'680px', margin:'0 auto' }}>
-            <div style={{ flex:1, display:'flex', alignItems:'center', gap:'10px', backgroundColor:'rgba(255,255,255,0.14)', borderRadius:'100px', padding:'12px 22px' }}>
-              <Search size={17} color="rgba(255,255,255,0.8)" />
-              <input type="text" value={kw} onChange={e=>setKw(e.target.value)} placeholder="Search premium cars, SUV…"
-                style={{ flex:1, background:'none', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif' }} />
+      {/* ══ 1. HERO ══════════════════════════════════════════ */}
+      <section style={{ position:'relative', height:'520px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+        <img src={I.hero} alt="Car Rental" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.42)' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center' as const, maxWidth:'960px', padding:'0 24px', width:'100%' }}>
+          <h1 style={{ fontSize:'clamp(36px,6vw,64px)', ...UB, color:'white', marginBottom:'36px', lineHeight:1, textShadow:'0 4px 20px rgba(0,0,0,0.4)' }}>
+            RENT A CAR FROM LOCAL OWNERS.<br/><span style={{ color:C.mint }}>NO RENTAL COMPANY MARKUP.</span>
+          </h1>
+          <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
+            <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
+              <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
+              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>All Morocco <ChevronDown size={14} /></div>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', backgroundColor:'rgba(255,255,255,0.14)', borderRadius:'100px', padding:'12px 22px', cursor:'pointer' }}>
-              <span style={{ fontSize:'13px', ...UB, color:'rgba(255,255,255,0.9)' }}>Rabat</span>
-              <span style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px' }}>▾</span>
+            <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
+              <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>SEARCH</span>
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search premium cars, SUV..."
+                style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'14px 36px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', flexShrink:0, transition:'filter 0.15s' }}
+            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -184,227 +231,361 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
         </div>
       </section>
 
-      {/* ── FILTER BAR ── */}
-      <div style={{ maxWidth:'1280px', margin:'-36px auto 40px', padding:'0 24px', position:'relative', zIndex:20 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', padding:'6px' }}>
-          {[
-            { label:'CITY',          val:'Rabat',               flex:1   },
-            { label:'RENTAL PERIOD', val:'Daily, Monthly...',   flex:1.3 },
-            { label:'TYPE',          val:'SUVs, Sedans, Lux…',  flex:1.3 },
-            { label:'PRICE (MAD)',   val:'Select Range',         flex:1   },
-            { label:'SPECS',         val:'Select Range',         flex:1   },
-          ].map((f,i,arr)=>(
-            <div key={f.label} style={{ flex:f.flex, padding:'8px 20px', borderRight: i<arr.length-1?'1px solid rgba(107,122,118,0.12)':'none', cursor:'pointer' }}>
-              <div style={{ fontSize:'8px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{f.label}</div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'6px' }}>
-                <span style={{ fontSize:'13px', ...UB, color:C.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{f.val}</span>
-                <span style={{ color:C.mint, flexShrink:0, fontSize:'13px' }}>▾</span>
-              </div>
-            </div>
-          ))}
-          <div style={{ padding:'6px 10px' }}>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px 24px', borderRadius:'100px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer' }}>ALL FILTERS 🎚</button>
-          </div>
+      {/* ══ 2. ADVANCED FILTER BAR ═══════════════════════════ */}
+      <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="RENTAL PERIOD" value={period} options={periods} open={periodOpen} setOpen={setPeriodOpen} onChange={setPeriod} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="TYPE" value={type} options={types} open={typeOpen} setOpen={setTypeOpen} onChange={setType} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="PRICE (MAD)" value={price} options={prices} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="SPECS" value={specs} options={specOpts} open={specsOpen} setOpen={setSpecsOpen} onChange={setSpecs} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <button style={{ display:'flex', alignItems:'center', gap:'8px', padding:'0 24px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >
+            <SlidersHorizontal size={17} color={C.mint} />
+            <span style={{ fontSize:'13px', ...UB, color:C.ink }}>Filters</span>
+          </button>
         </div>
       </div>
 
-      <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 24px 80px' }}>
+      <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
-        {/* ── BREADCRUMB + HEADING ── */}
-        <div style={{ marginBottom:'24px' }}>
-          <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.14em', marginBottom:'16px' }}>
-            {['Rabat','Motors','Car Rental'].map((c,i,arr)=>(
-              <React.Fragment key={c}>
-                <a href="#" style={{ color: i===arr.length-1 ? C.mint : C.muted, textDecoration:'none' }}>{c}</a>
-                {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-              </React.Fragment>
-            ))}
-          </nav>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap' as const, gap:'16px' }}>
-            <div>
-              <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>Premium Car Rentals in Rabat</h2>
-              <span style={{ fontSize:'12px', ...UB, color:C.muted }}>1,992 LISTINGS</span>
-            </div>
-            <div style={{ display:'flex', gap:'10px' }}>
-              {['SORT: POPULAR','SAVE SEARCH 🔔'].map(b=>(
-                <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'10px 18px', borderRadius:'14px', fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                  onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
-                >{b}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── PILLS ── */}
-        <div style={{ display:'flex', gap:'10px', overflowX:'auto' as const, paddingBottom:'6px', marginBottom:'20px' }}>
-          {PILLS.map(p=>(
-            <button key={p} onClick={()=>setPill(p)}
-              style={{ whiteSpace:'nowrap' as const, padding:'12px 24px', borderRadius:'100px', fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', border:'none', cursor:'pointer', transition:'all 0.2s',
-                backgroundColor: pill===p ? C.mint : C.ink,
-                color:           pill===p ? C.ink  : 'white',
-              }}
-            >{p}</button>
+        {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
+          {['Home','Motors','Car Rental'].map((c,i,arr)=>(
+            <React.Fragment key={c}>
+              {i<arr.length-1
+                ? <><Link href={i===0?`/${locale}`:`/${locale}/motors`} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
+                : <span style={{ color:C.ink }}>{c}</span>}
+            </React.Fragment>
           ))}
-        </div>
-
-        {/* ── DIAMOND TOGGLE ── */}
-        <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'12px', marginBottom:'40px', padding:'14px 20px', backgroundColor:'white', borderRadius:'18px', border:'1px solid rgba(107,122,118,0.1)' }}>
-          <span style={{ fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>SHOW SOUKNI DIAMOND CERTIFIED FIRST</span>
-          <div style={{ width:'52px', height:'26px', borderRadius:'100px', backgroundColor: diamond?C.mint:'rgba(107,122,118,0.25)', position:'relative', transition:'background 0.25s', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
-            <div style={{ position:'absolute', top:'3px', left: diamond?'29px':'3px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:C.ink, transition:'left 0.25s' }} />
+        </nav>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>Car Rentals from Local Owners</h2>
+            <p style={{ fontSize:'14px', color:C.mint, ...CB }}>1,992 Listings across Morocco</p>
+          </div>
+          <div style={{ display:'flex', gap:'10px' }}>
+            {['Sort: Popular','Save Search'].map(b=>(
+              <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
+              >{b}</button>
+            ))}
           </div>
         </div>
 
-        {/* ── FRESH NEW LISTINGS ── */}
-        <SectionHead title="FRESH NEW LISTINGS" sub="Discover our latest premium certified vehicles available today" />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'64px' }}>
-          {fresh.map((c,i)=><RentalCard key={i} {...c} />)}
-        </div>
-
-        {/* ── EXECUTIVE SUVS ── */}
-        <SectionHead title="EXECUTIVE SUVS & PERFORMANCE SEDANS" sub="Luxury quality for every occasion" />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'64px' }}>
-          {exec.map((c,i)=><RentalCard key={i} {...c} />)}
-        </div>
-
-        {/* ── FEATURED CERTIFIED RENTALS ── */}
-        <SectionHead title="FEATURED SOUKNI CERTIFIED CAR RENTALS" sub="Rigorously inspected, cleared for ultimate peace of mind" />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'64px' }}>
-          {certified.map((c,i)=><RentalCard key={i} {...c} />)}
-        </div>
-
-        {/* ── MOTORS PRO BANNER ── */}
-        <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'340px', display:'flex', alignItems:'center', boxShadow:'0 24px 64px rgba(0,0,0,0.2)', marginBottom:'64px', cursor:'pointer' }}>
-          <img src={IMGS.motpro} alt="Motors Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s' }}
-            onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-          />
-          <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.6)' }} />
-          <div style={{ position:'relative', zIndex:1, padding:'0 64px', maxWidth:'560px' }}>
-            <div style={{ backgroundColor:C.mint, color:C.ink, fontSize:'9px', ...UB, padding:'5px 14px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:'16px' }}>AUTO LISTED</div>
-            <h2 style={{ fontSize:'clamp(28px,3.5vw,42px)', ...UB, color:'white', marginBottom:'12px', lineHeight:1.05 }}>SOUKNI MOTORS PRO</h2>
-            <p style={{ fontSize:'16px', color:'rgba(255,255,255,0.82)', marginBottom:'28px', lineHeight:1.5 }}>The Gold Standard for Premium Car Rental Services</p>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            >EXPLORE SOUKNI MOTORS PRO</button>
-          </div>
-        </div>
-
-        {/* ── PRO CHOICES ── */}
-        <SectionHead title="SOUKNI PREMIUM PRO CHOICES" />
-        {[pro1, pro2, pro3].map((row,ri)=>(
-          <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-            {row.map((c,j)=><RentalCard key={j} {...c} />)}
-          </div>
-        ))}
-
-        {/* ── DIAMOND CERTIFIED BANNER ── */}
-        <div style={{ position:'relative', backgroundColor:C.ink, borderRadius:'40px', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'48px', overflow:'hidden', boxShadow:'0 16px 48px rgba(0,0,0,0.25)', gap:'28px', flexWrap:'wrap' as const }}>
-          <div style={{ position:'absolute', right:'-60px', bottom:'-60px', width:'320px', height:'320px', backgroundColor:`${C.mint}14`, borderRadius:'50%' }} />
-          <div style={{ position:'absolute', right:'120px', top:'-80px', width:'200px', height:'200px', backgroundColor:`${C.mint}0a`, borderRadius:'50%' }} />
-          <div style={{ position:'relative', zIndex:1, maxWidth:'520px' }}>
-            <div style={{ backgroundColor:C.mint, color:C.ink, fontSize:'9px', ...UB, padding:'5px 14px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-flex', alignItems:'center', gap:'6px', marginBottom:'20px' }}>◆ AUTO LISTED</div>
-            <h2 style={{ fontSize:'clamp(26px,3.5vw,40px)', ...UB, color:'white', marginBottom:'14px', lineHeight:1.05 }}>BECOME A SOUKNI<br/>DIAMOND CERTIFIED<br/>MEMBER</h2>
-            <p style={{ fontSize:'16px', color:'rgba(255,255,255,0.6)', lineHeight:1.6, maxWidth:'420px' }}>Standard on listing placement and exclusive benefits for the premium car rental providers.</p>
-          </div>
-          <button style={{ position:'relative', zIndex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'20px 48px', borderRadius:'100px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s', whiteSpace:'nowrap' as const }}
-            onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-          >GET CERTIFIED NOW</button>
-        </div>
-
-        {/* ── AFTER-DIAMOND ROWS ── */}
-        {[after1, after2].map((row,ri)=>(
-          <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-            {row.map((c,j)=><RentalCard key={j} {...c} />)}
-          </div>
-        ))}
-
-        {/* ── PAGINATION ── */}
-        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', margin:'48px 0 80px' }}>
-          <button style={{ width:'48px', height:'48px', borderRadius:'14px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, transition:'all 0.2s' }}
+        {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
+        <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
+          {CATS.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/motors/rental/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.label}</Link>
+          ))}
+          <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
-            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted}}
-          ><ChevronLeft size={20} /></button>
+            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.mint}}
+          ><Plus size={14} /> View More</button>
+        </div>
+
+        {/* ══ 5. HOST TABS + VERIFIED TOGGLE ════════════════════ */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' as const, gap:'14px', marginBottom:'20px' }}>
+          <div style={{ display:'flex', gap:'4px', padding:'5px', backgroundColor:'#e8efec', borderRadius:'100px' }}>
+            {['All Hosts','SouKni Members','SouKni Pro'].map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'10px 24px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', border:'none', transition:'all 0.2s',
+                  backgroundColor: activeSeller===tab ? C.ink   : 'transparent',
+                  color:           activeSeller===tab ? 'white' : C.muted,
+                  boxShadow:       activeSeller===tab ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                }}
+              >{tab}</button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', cursor:'pointer' }} onClick={()=>setVerified(!verified)}>
+            <span style={{ fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>Show Verified Owners First</span>
+            <div style={{ width:'52px', height:'26px', borderRadius:'100px', backgroundColor:verified?C.mint:'rgba(107,122,118,0.25)', position:'relative', transition:'background 0.25s' }}>
+              <div style={{ position:'absolute', top:'3px', left:verified?'29px':'3px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:C.ink, transition:'left 0.25s' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* ══ 6. NEW LISTINGS + GRID TOGGLE ════════════════════ */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'40px' }}>
+          <div style={{ display:'flex', gap:'10px' }}>
+            {['New Listings','Instant Book Only'].map(btn=>(
+              <button key={btn}
+                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
+              >{btn}</button>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
+            <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
+            <button onClick={()=>setGridView(false)} style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:!gridView?C.ink:'transparent', color:!gridView?'white':C.muted, transition:'all 0.2s' }}>☰</button>
+          </div>
+        </div>
+
+        {/* ══ 7. FRESH NEW LISTINGS ═════════════════════════════ */}
+        <section style={{ marginBottom:'48px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+            <div>
+              <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'4px' }}>Fresh New Listings</h3>
+              <p style={{ fontSize:'14px', color:C.muted }}>Recently listed by verified owners near you</p>
+            </div>
+            <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All</a>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
+            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+          </div>
+        </section>
+
+        {/* ══ 8. HOST PROTECTION BANNER ═════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.ink, borderRadius:'40px', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative' as const, overflow:'hidden', minHeight:'240px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', flexWrap:'wrap' as const, gap:'24px' }}>
+            <div style={{ position:'absolute', right:'-48px', bottom:'-48px', width:'320px', height:'320px', backgroundColor:`${C.mint}18`, borderRadius:'50%' }} />
+            <div style={{ position:'absolute', right:'120px', top:'-60px', width:'200px', height:'200px', backgroundColor:`${C.mint}0a`, borderRadius:'50%' }} />
+            <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
+              <p style={{ fontSize:'11px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'16px' }}>SOUKNI HOST PROTECTION</p>
+              <h2 style={{ fontSize:'clamp(24px,3.5vw,38px)', ...UB, color:'white', marginBottom:'20px', lineHeight:1.1 }}>Insurance coverage and identity-verified renters for every booking.</h2>
+              <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >List Your Car</button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 9. EXCLUSIVE COLLECTOR CARS BENTO ════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <h3 style={{ fontSize:'clamp(20px,3vw,32px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'32px' }}>Exclusive Collector Cars</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gridTemplateRows:'380px 380px', gap:'20px' }}>
+            <div style={{ gridColumn:'1/3', gridRow:'1/3', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento1} alt="Ferrari" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'20px', left:'20px' }}>
+                  <span style={{ backgroundColor:C.ink, color:C.mint, fontSize:'10px', ...CB, padding:'7px 16px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>Instant Book</span>
+                </div>
+              </div>
+              <div style={{ padding:'24px 28px', flexShrink:0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'6px', gap:'12px' }}>
+                  <div>
+                    <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>HOSTED BY RIDA F.</p>
+                    <h4 style={{ fontSize:'20px', ...CB, color:C.ink }}>Ferrari Panamera — 2026</h4>
+                  </div>
+                  <span style={{ fontSize:'22px', ...CB, color:C.mint, flexShrink:0 }}>MAD 12,000<span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}> /day</span></span>
+                </div>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>★ 5.0 · Delivery available · Casablanca</p>
+                <div style={{ display:'flex', gap:'10px' }}>
+                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
+                  >Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'3', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento2} alt="Lamborghini Urus" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}>
+                  <span style={{ backgroundColor:C.mint, color:C.ink, fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>Verified Owner</span>
+                </div>
+              </div>
+              <div style={{ padding:'16px 18px', flexShrink:0 }}>
+                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>HOSTED BY OMAR L.</p>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Lamborghini Urus S</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 9,500</span>
+                </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Book Now</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'4', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento3} alt="Bentley Bentayga" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}>
+                  <span style={{ backgroundColor:'white', color:C.mint, fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>Trusted Host</span>
+                </div>
+              </div>
+              <div style={{ padding:'16px 18px', flexShrink:0 }}>
+                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>HOSTED BY LAILA H.</p>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Bentley Bentayga EWB</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 8,000</span>
+                </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Book Now</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'3/5', gridRow:'2', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'row' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ width:'50%', overflow:'hidden', position:'relative' }}>
+                <img src={I.bento4} alt="BMW X8" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}>
+                  <span style={{ backgroundColor:C.mint, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Listing</span>
+                </div>
+              </div>
+              <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
+                <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'6px' }}>HOSTED BY WIDAD P.</p>
+                <h4 style={{ fontSize:'18px', ...CB, color:C.ink, marginBottom:'6px' }}>BMW X8 — Fully Loaded</h4>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>★ 4.7 · Automatic · GPS included · Casablanca</p>
+                <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>MAD 4,900<span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}> /day</span></span>
+                <div style={{ display:'flex', gap:'10px' }}>
+                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
+                  >Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>Book Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 10. BECOME A HOST BANNER ══════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'320px', display:'flex', alignItems:'center', boxShadow:'0 16px 48px rgba(0,0,0,0.15)', cursor:'pointer' }}>
+            <img src={I.hostcta} alt="Become a Host" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.58)' }} />
+            <div style={{ position:'relative', zIndex:1, padding:'0 64px', maxWidth:'560px' }}>
+              <p style={{ fontSize:'11px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'14px' }}>FOR OWNERS</p>
+              <h2 style={{ fontSize:'clamp(26px,3.5vw,42px)', ...UB, color:'white', marginBottom:'18px', lineHeight:1.05 }}>Turn Your Car Into Income.</h2>
+              <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.55 }}>List your car in minutes and earn between trips, with insurance and verified renters.</p>
+              <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >BECOME A HOST</button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 11. RENTAL DISCOVERIES GRID ═══════════════════════ */}
+        <section style={{ marginBottom:'48px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'28px' }}>
+            <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>Rental Discoveries</h3>
+            <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All</a>
+          </div>
+          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
+            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
+              {row.map((item,j)=><GridCard key={j} {...item} />)}
+            </div>
+          ))}
+        </section>
+
+        {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
           {[1,2,3].map(p=>(
             <button key={p} onClick={()=>setPage(p)}
-              style={{ width:'48px', height:'48px', borderRadius:'14px', cursor:'pointer', fontSize:'16px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mint : 'white',
-                color:           page===p ? C.ink  : C.muted,
-                borderColor:     page===p ? C.mint : 'rgba(107,122,118,0.12)',
+              style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
+                backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
           <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'48px', height:'48px', borderRadius:'14px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'16px', ...UB, color:C.muted }}>6</button>
-          <button style={{ width:'48px', height:'48px', borderRadius:'14px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, transition:'all 0.2s' }}
-            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
-            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted}}
-          ><ChevronRight size={20} /></button>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>6</button>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
-        {/* ── JOIN SOUKNI FAMILY ── */}
-        <div style={{ backgroundColor:C.mint, borderRadius:'40px', padding:'64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'48px', position:'relative' as const, overflow:'hidden', flexWrap:'wrap' as const }}>
-          <div style={{ position:'absolute', right:'-80px', bottom:'-80px', width:'360px', height:'360px', backgroundColor:'rgba(22,29,27,0.08)', borderRadius:'50%' }} />
-          <div style={{ position:'relative', zIndex:1, maxWidth:'520px' }}>
-            <h2 style={{ fontSize:'clamp(26px,3.5vw,40px)', ...UB, color:C.ink, marginBottom:'14px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
-            <p style={{ fontSize:'16px', color:`${C.ink}b3`, marginBottom:'32px', lineHeight:1.6 }}>Download our premium marketplace for real-time alerts and exclusive rental deals.</p>
+        {/* ══ 13. TRUSTED HOST TRUST BANNER ═════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.mint, borderRadius:'40px', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:`0 16px 48px ${C.mint}30`, flexWrap:'wrap' as const, gap:'28px' }}>
+            <div style={{ maxWidth:'520px' }}>
+              <p style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:'rgba(22,29,27,0.6)', marginBottom:'14px' }}>FOR HOSTS</p>
+              <h2 style={{ fontSize:'clamp(26px,3.5vw,40px)', ...UB, color:C.ink, marginBottom:'16px', lineHeight:1.05 }}>Become a SouKni Trusted Host.</h2>
+              <p style={{ fontSize:'17px', color:`${C.ink}b3`, lineHeight:1.6 }}>Priority placement and a verified badge, so renters trust your listing from the first look.</p>
+            </div>
             <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
-              {['APPLE_ App Store','PLAY_ Google Play'].map(app=>(
-                <button key={app} style={{ height:'52px', minWidth:'160px', backgroundColor:C.ink, color:'white', border:'none', borderRadius:'14px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'transform 0.15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-                  onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-                >{app}</button>
-              ))}
+              <button style={{ backgroundColor:C.ink, color:'white', border:'none', padding:'18px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >Get Verified</button>
+              <button style={{ backgroundColor:'transparent', color:C.ink, border:`2px solid rgba(22,29,27,0.2)`, padding:'18px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'all 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(22,29,27,0.06)'}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+              >Learn More</button>
             </div>
           </div>
-          {/* Phone */}
-          <div style={{ position:'relative', zIndex:1, width:'200px', aspectRatio:'9/17', backgroundColor:C.ink, borderRadius:'44px', border:'6px solid rgba(255,255,255,0.25)', overflow:'hidden', boxShadow:'0 32px 80px rgba(0,0,0,0.3)', flexShrink:0 }}>
-            <img src={IMGS.phone} alt="App" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+        </section>
+
+        {/* ══ 14. APP BANNER ═══════════════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.cream, borderRadius:'40px', height:'440px', position:'relative' as const, overflow:'hidden', display:'flex', alignItems:'center', padding:'0 64px', border:'1px solid rgba(107,122,118,0.1)' }}>
+            <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
+              <h2 style={{ fontSize:'clamp(36px,5vw,56px)', ...UB, color:C.ink, marginBottom:'20px', lineHeight:1, letterSpacing:'-0.05em' }}>JOIN THE<br/>SOUKNI FAMILY</h2>
+              <p style={{ fontSize:'17px', color:C.muted, marginBottom:'36px', maxWidth:'400px', lineHeight:1.6 }}>Get early access to booking alerts, host deals, and exclusive vehicles.</p>
+              <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
+                {['App Store','Google Play'].map(app=>(
+                  <button key={app} style={{ height:'52px', minWidth:'160px', backgroundColor:C.ink, color:'white', border:'none', borderRadius:'14px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'transform 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                    onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+                  >{app}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ position:'absolute', right:'80px', bottom:'-40px', width:'320px', height:'500px', backgroundColor:'white', borderRadius:'56px', boxShadow:'0 32px 80px rgba(0,0,0,0.18)', border:'8px solid #f5ede0', padding:'20px', display:'flex', flexDirection:'column' as const, gap:'16px' }}>
+              <div style={{ backgroundColor:C.surface, borderRadius:'100px', height:'32px' }} />
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', flex:1 }}>
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px' }} />
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px' }} />
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px', gridColumn:'span 2' }} />
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ backgroundColor:C.ink, color:'white', padding:'80px 24px 48px' }}>
+      {/* ══ 15. FOOTER ═══════════════════════════════════════ */}
+      <footer style={{ backgroundColor:C.ink, color:'white', padding:'64px 24px 32px' }}>
         <div style={{ maxWidth:'1280px', margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr 1fr 1fr 1fr', gap:'40px', marginBottom:'64px' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:'48px', marginBottom:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(255,255,255,0.12)' }}>
             <div>
-              <div style={{ fontSize:'28px', ...UB, color:C.mint, marginBottom:'18px' }}>SouKni</div>
-              <p style={{ fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.1em', lineHeight:1.9, maxWidth:'240px', marginBottom:'24px', opacity:0.75 }}>The Market in your Pocket</p>
+              <Link href={`/${locale}`} style={{ textDecoration:'none' }}>
+                <div style={{ fontSize:'28px', ...UB, color:C.mint, marginBottom:'12px', cursor:'pointer' }}>SouKni</div>
+              </Link>
+              <p style={{ fontSize:'14px', ...CB, color:'rgba(255,255,255,0.82)', fontStyle:'italic', marginBottom:'20px' }}>The Market in your Pocket</p>
               <div style={{ display:'flex', gap:'10px' }}>
-                {['FB','IG','X'].map(s=>(
-                  <div key={s} style={{ width:'36px', height:'36px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', ...UB, color:C.muted, cursor:'pointer', transition:'all 0.2s' }}
-                    onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.backgroundColor=C.mint;(e.currentTarget as HTMLDivElement).style.color=C.ink}}
-                    onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.backgroundColor='rgba(255,255,255,0.06)';(e.currentTarget as HTMLDivElement).style.color=C.muted}}
-                  >{s}</div>
+                {[{s:'FB',h:'https://facebook.com'},{s:'IG',h:'https://instagram.com'},{s:'X',h:'https://x.com'}].map(({s,h})=>(
+                  <a key={s} href={h} target="_blank" rel="noopener noreferrer"
+                    style={{ width:'38px', height:'38px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', ...UB, color:'rgba(255,255,255,0.6)', textDecoration:'none', transition:'all 0.15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
+                    onMouseLeave={e=>{e.currentTarget.style.backgroundColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.6)'}}
+                  >{s}</a>
                 ))}
               </div>
             </div>
             {[
-              { title:'JOIN COMMUNITY', links:['__EMAIL__','SUBSCRIBE'] },
-              { title:'MARKETPLACE',   links:['Real Estate','Motors','Jobs','Services','The Vault'] },
-              { title:'COMPANY',       links:['About Us','Careers','Safety Tips','Advertising'] },
-              { title:'APP DOWNLOADS', links:['APPLE_ App Store','PLAY_ Google Play'] },
+              { title:'Marketplace', links:[{l:'Motors',h:`/${locale}/motors`},{l:'Property',h:`/${locale}/property`},{l:'Fashion',h:`/${locale}/fashion`},{l:'The Vault',h:`/${locale}/vault`}] },
+              { title:'Company',     links:[{l:'About Us',h:`/${locale}/about`},{l:'Careers',h:`/${locale}/jobs`},{l:'Press Kit',h:`/${locale}/about`}] },
+              { title:'Support',     links:[{l:'Help Center',h:`/${locale}/community`},{l:'Safety Center',h:`/${locale}/community`},{l:'Contact',h:`/${locale}/community`}] },
             ].map(col=>(
               <div key={col.title}>
-                <h5 style={{ fontSize:'9px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'24px' }}>{col.title}</h5>
-                {col.links.map((link,li)=>(
-                  col.title==='JOIN COMMUNITY' && li===0
-                    ? <input key={link} type="email" placeholder="Enter your email" style={{ width:'100%', backgroundColor:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', padding:'10px 12px', color:'white', fontSize:'9px', ...UB, fontFamily:'Inter,sans-serif', outline:'none', marginBottom:'8px', boxSizing:'border-box' as const }} />
-                    : col.title==='JOIN COMMUNITY' && li===1
-                    ? <button key={link} style={{ width:'100%', backgroundColor:C.mint, color:C.ink, border:'none', padding:'10px', borderRadius:'10px', fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer' }}>SUBSCRIBE</button>
-                    : <a key={link} href="#" style={{ display:'block', fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.1em', textDecoration:'none', marginBottom:'14px', transition:'color 0.15s' }}
-                        onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                        onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-                      >{link}</a>
+                <h4 style={{ fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:C.mint, marginBottom:'20px' }}>{col.title}</h4>
+                {col.links.map(({l,h})=>(
+                  <Link key={l} href={h} style={{ display:'block', fontSize:'13px', ...CB, color:'rgba(255,255,255,0.65)', textDecoration:'none', marginBottom:'12px', transition:'color 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.color='white'}
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.65)'}
+                  >{l}</Link>
                 ))}
               </div>
             ))}
           </div>
-          <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'28px', textAlign:'center' as const, fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.22em', opacity:0.35 }}>
+          <div style={{ textAlign:'center' as const, fontSize:'10px', ...UB, color:'rgba(255,255,255,0.35)', textTransform:'uppercase' as const, letterSpacing:'0.2em' }}>
             © 2026 SOUKNI MOROCCO — ALL RIGHTS RESERVED
           </div>
         </div>

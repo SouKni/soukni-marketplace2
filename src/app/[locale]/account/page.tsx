@@ -2,12 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  User, Mail, Phone, MapPin, Lock, Bell, Shield,
-  ChevronRight, Camera, Check, Eye, EyeOff,
-  Package, Heart, MessageCircle, Sparkles, LogOut,
-  Globe, CreditCard, Trash2, AlertTriangle
-} from 'lucide-react'
+import { User, Mail, Phone, MapPin, Lock, Bell, Shield, ChevronRight, Camera, Check, Eye, EyeOff, Package, Heart, MessageCircle, Sparkles, LogOut, Globe, CreditCard, Trash2, AlertTriangle, BarChart3, RefreshCw } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Tab = 'profile' | 'security' | 'notifications' | 'billing'
@@ -62,6 +57,8 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
     { icon: <Heart size={16} />, label: 'Favorites', count: '6 saved', href: `/${locale}/favorites` },
     { icon: <MessageCircle size={16} />, label: 'Messages', count: '2 unread', href: `/${locale}/messages` },
     { icon: <Shield size={16} />, label: 'Trust Score', count: 'Diamond', href: '#' },
+    { icon: <BarChart3 size={16} />, label: 'Analytics', count: 'View stats', href: `/${locale}/analytics` },
+    { icon: <Package size={16} />, label: 'Bulk Import', count: 'For dealers', href: `/${locale}/bulk-import` },
   ]
 
   const InputRow = ({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) => (

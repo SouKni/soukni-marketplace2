@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 
@@ -125,20 +126,89 @@ function makeGrid(count: number) {
   const titles  = ['Advanced Hydration Serum','Matte Perfection Foundation','Elite Oud Collection','Precision Contouring Kit','Archival Silk Scarf','Classic Flap Bag','Lady Dior','Black Opium','Dionysus Bag','Galleria Bag']
   const imgs    = [I.g1,I.g2,I.g3,I.g4,I.g5]
   const badges: BadgeT[] = ['certified','diamond','featured','certified','diamond']
+  const sellers = ['SouKni Members','SouKni Pro','SouKni Members','SouKni Pro']
   return Array.from({length:count},(_,i)=>({
-    brand:  brands[i%brands.length],
-    title:  titles[i%titles.length],
-    price:  400 + ((i*731)%8000),
-    img:    imgs[i%imgs.length],
-    badge:  badges[i%badges.length],
+    brand:    brands[i%brands.length],
+    title:    titles[i%titles.length],
+    price:    400 + ((i*731)%8000),
+    img:      imgs[i%imgs.length],
+    badge:    badges[i%badges.length],
+    seller:   sellers[i%sellers.length],
+    discount: i%3===0 ? 10+((i*7)%30) : null,
+    isNew:    badges[i%badges.length]==='featured' || i%5===0,
+    location: ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès'][i%7],
   }))
 }
 const gridItems = makeGrid(16)
 
-const CATS = ['All Brands','Skincare','Makeup','Fragrances','Haircare']
+const CATS = [
+  { label:'All Brands', slug:'all-brands' },
+  { label:'Skincare',   slug:'skincare'   },
+  { label:'Makeup',     slug:'makeup'     },
+  { label:'Fragrances', slug:'fragrances' },
+  { label:'Haircare',   slug:'haircare'   },
+]
+
+function DDrop({ label, value, options, open, setOpen, onChange, closeOthers }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+
+  useEffect(() => {
+    if (!open) return
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    return () => window.removeEventListener('scroll', closeOnScroll, true)
+  }, [open])
+
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{
+          e.stopPropagation()
+          if (!open && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect()
+            setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+          }
+          if (closeOthers) closeOthers()
+          setOpen(!open)
+        }}
+        style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
+          <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+        </div>
+      </button>
+      {open && (
+        <>
+          <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:9998 }} />
+          <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,220), backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.18)', border:'1px solid rgba(107,122,118,0.12)', zIndex:9999, overflow:'hidden', padding:'8px 0' }}>
+          {options.map((opt:string)=>(
+            <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+              style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+            >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+          ))}
+        </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 export default function BeautyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
+  const router = useRouter()
+  const [heroCity, setHeroCity] = useState('Rabat')
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
+  const [heroDropPos, setHeroDropPos] = useState({top:0,left:0})
+
+  useEffect(() => {
+    if (!heroCityOpen) return
+    const closeOnScroll = () => setHeroCityOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    return () => window.removeEventListener('scroll', closeOnScroll, true)
+  }, [heroCityOpen])
   const [activeCat,    setActiveCat   ] = useState('All Brands')
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
@@ -151,36 +221,42 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [neighOpen,    setNeighOpen   ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [sortBy,       setSortBy      ] = useState('Default')
+  const [showNewOnly,  setShowNewOnly ] = useState(false)
+  const [showDiscount, setShowDiscount] = useState(false)
+  const [sortOpen,     setSortOpen    ] = useState(false)
 
   const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
   const priceRanges   = ['Any Price','0 – 500 MAD','500 – 1,500 MAD','1,500 – 5,000 MAD','5,000 – 15,000 MAD','15,000+ MAD']
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setNeighOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+
+  function parsePriceRange(range: string): [number, number] {
+    if (range === 'Any Price') return [0, Infinity]
+    const nums = range.replace(/MAD/g,'').split('–').map(s=>parseInt(s.replace(/,/g,'').trim()))
+    if (range.includes('+')) return [nums[0], Infinity]
+    return [nums[0], nums[1]]
   }
+  const [minP, maxP] = parsePriceRange(price)
+
+  let filteredGridItems = gridItems.filter(item => {
+    const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+    const matchesPrice   = item.price >= minP && item.price <= maxP
+    const matchesSeller  = activeSeller==='All Sellers' || item.seller===activeSeller
+    const matchesNew     = !showNewOnly || item.isNew
+    const matchesDiscount= !showDiscount || item.discount
+    const matchesCity    = item.location === city
+    return matchesKeyword && matchesPrice && matchesSeller && matchesNew && matchesDiscount && matchesCity
+  })
+
+  if (diamond) {
+    filteredGridItems = [...filteredGridItems].sort((a,b)=>{
+      const rank = (b:string)=> b==='diamond'?2:b==='certified'?1:0
+      return rank(b.badge) - rank(a.badge)
+    })
+  }
+  if (sortBy === 'Price: Low to High') filteredGridItems = [...filteredGridItems].sort((a,b)=>a.price-b.price)
+  if (sortBy === 'Price: High to Low') filteredGridItems = [...filteredGridItems].sort((a,b)=>b.price-a.price)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -194,16 +270,25 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             ELITE BEAUTY & SKINCARE.<br/><span style={{ color:C.mint }}>PROFESSIONAL GLOW.</span>
           </h1>
           <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
-            <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
+            <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px', position:'relative' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>Rabat <ChevronDown size={14} /></div>
+              <button onClick={(e)=>{
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setHeroDropPos({ top: rect.bottom + 8, left: rect.left })
+                  setHeroCityOpen(!heroCityOpen)
+                }} style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                {heroCity} <ChevronDown size={14} style={{ transition:'transform 0.2s', transform:heroCityOpen?'rotate(180deg)':'rotate(0)' }} />
+              </button>
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="WHAT ARE YOU LOOKING FOR?"
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder="WHAT ARE YOU LOOKING FOR?"
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 48px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={()=>router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`)}
+              style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 48px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -211,10 +296,25 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
+      {heroCityOpen && (
+        <>
+          <div onClick={()=>setHeroCityOpen(false)} style={{ position:'fixed', inset:0, zIndex:9998 }} />
+          <div style={{ position:'fixed', top:heroDropPos.top, left:heroDropPos.left, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 20px 50px rgba(0,0,0,0.25)', overflow:'hidden', minWidth:'180px', zIndex:9999 }}>
+          {['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès'].map(c=>(
+            <button key={c} onClick={()=>{setHeroCity(c);setHeroCityOpen(false)}}
+              style={{ width:'100%', padding:'12px 18px', background:'none', border:'none', textAlign:'left' as const, fontSize:'13px', ...UB, color:heroCity===c?C.mint:C.ink, cursor:'pointer' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+            >{c}</button>
+          ))}
+          </div>
+        </>
+      )}
+
       {/* ══ 2. ADVANCED FILTER BAR ═══════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} closeOthers={()=>{setNeighOpen(false);setPriceOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
@@ -226,9 +326,9 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             </div>
           </div>
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="NEIGHBOURHOOD" value={neighborhood} options={neighborhoods} open={neighOpen} setOpen={setNeighOpen} onChange={setNeighborhood} />
+          <DDrop label="NEIGHBOURHOOD" value={neighborhood} options={neighborhoods} open={neighOpen} setOpen={setNeighOpen} onChange={setNeighborhood} closeOthers={()=>{setCityOpen(false);setPriceOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} closeOthers={()=>{setCityOpen(false);setNeighOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
@@ -249,25 +349,34 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             <p style={{ fontSize:'14px', color:C.mint, ...CB }}>2,140 Ads in Rabat District</p>
           </div>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['↕ Sort: Default','🔖 Save Search'].map(b=>(
-              <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
-              >{b}</button>
-            ))}
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)}
+                style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}
+              >↕ Sort: {sortBy}</button>
+              {sortOpen && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}}
+                      style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}
+                    >{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>🔖 Save Search</button>
           </div>
         </div>
 
         {/* ══ 4. CATEGORY PILLS ════════════════════════════════ */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px' }}>
           {CATS.map(cat=>(
-            <button key={cat} onClick={()=>setActiveCat(cat)}
-              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid',
-                backgroundColor: activeCat===cat ? C.mint  : 'white',
-                color:           activeCat===cat ? C.ink   : C.muted,
-                borderColor:     activeCat===cat ? C.mint  : 'rgba(186,202,197,0.4)',
+            <Link key={cat.slug} href={`/${locale}/fashion/beauty/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
               }}
-            >{cat}</button>
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.label}</Link>
           ))}
           <button
             style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em', textTransform:'uppercase', cursor:'pointer', transition:'all 0.2s', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8' }}
@@ -300,13 +409,12 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
         {/* ══ 6. NEW ARRIVALS + GRID TOGGLE ════════════════════ */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'40px' }}>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['✨ New Arrivals','📉 Price Drop Alert'].map(btn=>(
-              <button key={btn}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
-              >{btn}</button>
-            ))}
+            <button onClick={()=>setShowNewOnly(!showNewOnly)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showNewOnly?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showNewOnly?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showNewOnly?C.ink:C.muted, transition:'all 0.15s' }}
+            >✨ New Arrivals</button>
+            <button onClick={()=>setShowDiscount(!showDiscount)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showDiscount?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showDiscount?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showDiscount?C.ink:C.muted, transition:'all 0.15s' }}
+            >📉 Price Drop Alert</button>
           </div>
           <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
             <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
@@ -457,11 +565,33 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>Pro Beauty & Cosmetics</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
-            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-              {row.map((item,j)=><GridCard key={j} {...item} />)}
+          {(city!=='Rabat' || price!=='Any Price' || keyword.trim()!=='' || showNewOnly || showDiscount) && (
+            <div style={{ display:'flex', flexWrap:'wrap' as const, gap:'8px', marginBottom:'16px', alignItems:'center' }}>
+              <span style={{ fontSize:'11px', color:C.muted, ...CB }}>Active filters:</span>
+              {city!=='Rabat' && (
+                <button onClick={()=>setCity('Rabat')} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>{city} ✕</button>
+              )}
+              {price!=='Any Price' && (
+                <button onClick={()=>setPrice('Any Price')} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>{price} ✕</button>
+              )}
+              {keyword.trim()!=='' && (
+                <button onClick={()=>setKeyword('')} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>"{keyword}" ✕</button>
+              )}
+              {showNewOnly && (
+                <button onClick={()=>setShowNewOnly(false)} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>New Arrivals ✕</button>
+              )}
+              {showDiscount && (
+                <button onClick={()=>setShowDiscount(false)} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>Price Drop ✕</button>
+              )}
             </div>
-          ))}
+          )}
+          {filteredGridItems.length === 0 ? (
+            <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters. Try adjusting your search.</p>
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns: gridView ? 'repeat(4,1fr)' : '1fr', gap:'20px' }}>
+              {filteredGridItems.map((item,j)=><GridCard key={j} {...item} />)}
+            </div>
+          )}
         </section>
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}

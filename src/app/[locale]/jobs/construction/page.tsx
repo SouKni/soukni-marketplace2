@@ -1,256 +1,314 @@
 'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Search, MapPin, Globe, Bell, User, ChevronDown, MessageCircle, Car, Gem, HardHat, Zap, Wrench, Building2, Hammer, Layers, Shield, Truck, BarChart2, PenTool, Anchor, Cpu } from 'lucide-react'
+import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 
-const categoryPills = ['All Jobs', 'Civil Engineering', 'Site Management', 'Architecture', 'Electrical', 'Plumbing', 'Heavy Machinery']
+const subCategories = [
+  { slug:'civil-engineering', label:'Civil Engineering', count:'95',  image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600' },
+  { slug:'site-management',   label:'Site Management',   count:'72',  image:'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=600' },
+  { slug:'architecture',      label:'Architecture',      count:'48',  image:'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600' },
+  { slug:'electrical',        label:'Electrical',        count:'56',  image:'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600' },
+  { slug:'plumbing',          label:'Plumbing',          count:'34',  image:'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&w=600' },
+  { slug:'heavy-machinery',   label:'Heavy Machinery',   count:'35',  image:'https://images.pexels.com/photos/1078884/pexels-photo-1078884.jpeg?auto=compress&w=600' },
+]
+const topChoices = [
+  { id:'cn1', title:'Senior Civil Engineer — Infrastructure Mega-Project', desc:'Leading construction group in Rabat seeks a Senior Civil Engineer for the Bouregreg riverside development. Structural design, site supervision, and coordination with international consultants required.', price:25000, location:'Rabat, Bouregreg', rating:4.9, reviews:51, image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=800' },
+  { id:'cn2', title:'Construction Site Director — Luxury Resort', desc:'5-star resort developer in Agadir seeks a Site Director to manage all construction activities for a 350-room luxury property. 200+ subcontractor coordination and quality control.', price:40000, location:'Agadir, Tildi', rating:4.9, reviews:38, image:'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=800' },
+  { id:'cn3', title:'Project Director — Commercial & Hospitality Developments', desc:'Prestigious real estate development firm hiring a Project Director to lead multiple commercial and hospitality construction projects across Marrakech. Full P&L and timeline ownership.', price:42000, location:'Marrakech, Guéliz', rating:4.9, reviews:29, image:'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=800' },
+]
+const bentoListings = [
+  { id:'bc1', title:'Structural Engineer — Bridge Specialist',  price:22000, location:'Rabat',      image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600' },
+  { id:'bc2', title:'Industrial Electrician — High Voltage',    price:13500, location:'Casablanca', image:'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600' },
+  { id:'bc3', title:'Master Plumber — Commercial Systems',      price:11000, location:'Rabat',      image:'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&w=600' },
+  { id:'bc4', title:'Tower Crane Operator — Skyline Project',   price:12500, location:'Rabat',      image:'https://images.pexels.com/photos/1078884/pexels-photo-1078884.jpeg?auto=compress&w=600' },
+  { id:'bc5', title:'Architectural BIM Modeler',                price:15000, location:'Rabat',      image:'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600' },
+]
+const discoveryGrid = [
+  { id:'dc1', title:'Excavator Operator — Experienced',  price:9500,  location:'Casablanca', image:'https://images.pexels.com/photos/1078884/pexels-photo-1078884.jpeg?auto=compress&w=600' },
+  { id:'dc2', title:'HSE Officer — Construction Sites',  price:12000, location:'Tangier',    image:'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=600' },
+  { id:'dc3', title:'Quantity Surveyor',                 price:14000, location:'Casablanca', image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600' },
+  { id:'dc4', title:'Mason & Bricklayer — Senior',       price:7500,  location:'Marrakech',  image:'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=600' },
+  { id:'dc5', title:'Interior Finishing Specialist',     price:8500,  location:'Casablanca', image:'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600' },
+  { id:'dc6', title:'Welder & Metal Fabricator',         price:8000,  location:'Tangier',    image:'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600' },
+  { id:'dc7', title:'CAD Draftsman — Architecture',      price:10000, location:'Rabat',      image:'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600' },
+  { id:'dc8', title:'Construction Cost Estimator',       price:16000, location:'Casablanca', image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600' },
+]
+const pills = ['All Construction','Civil Engineering','Site Management','Architecture','Electrical','Plumbing','Heavy Machinery','View More']
 
-type Job = {
-  id: string; badge: 'Diamond Member' | 'Verified' | null
-  category: string; categoryColor: string
-  title: string; company: string; icon: any
-  salaryLabel: string; salary: string; salarySuffix?: string
-  image: string; cta: 'apply' | 'view'
+function CertifiedBadge() {
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
 }
-
-const row1: Job[] = [
-  { id: '1', badge: 'Diamond Member', category: 'Civil Engineering', categoryColor: '#2dd4bf', title: 'Senior Civil Engineer - Infrastructure', company: 'Rabat Construction Group', icon: Building2, salaryLabel: 'STARTING SALARY', salary: '25,000', image: 'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '2', badge: 'Verified', category: 'Site Management', categoryColor: '#8d4f00', title: 'Construction Site Supervisor - Bouregreg Project', company: 'Atlas Build Morocco', icon: HardHat, salaryLabel: 'ESTIMATED MAD', salary: '18,500', salarySuffix: '+', image: 'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '3', badge: 'Diamond Member', category: 'Architecture', categoryColor: '#605e58', title: 'Architectural BIM Modeler - Luxury Residential', company: 'Rabat Design Studio', icon: PenTool, salaryLabel: 'SALARY', salary: '15,000', image: 'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '4', badge: 'Verified', category: 'Heavy Machinery', categoryColor: '#2dd4bf', title: 'Experienced Excavator Operator', company: 'Capital Excavations', icon: Truck, salaryLabel: 'MONTHLY MAD', salary: '9,500', salarySuffix: '+ OT', image: 'https://images.pexels.com/photos/1078884/pexels-photo-1078884.jpeg?auto=compress&w=600', cta: 'view' },
-]
-
-const row2: Job[] = [
-  { id: '5', badge: 'Diamond Member', category: 'Heavy Machinery', categoryColor: '#8d4f00', title: 'Tower Crane Operator - Rabat Skyline', company: 'HighRise Morocco', icon: Truck, salaryLabel: 'SALARY', salary: '12,500', salarySuffix: '+', image: 'https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '6', badge: 'Verified', category: 'Plumbing', categoryColor: '#605e58', title: 'Master Plumber - Commercial Systems', company: 'Rabat Flow Experts', icon: Wrench, salaryLabel: 'SALARY', salary: '11,000', salarySuffix: '+', image: 'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '7', badge: 'Diamond Member', category: 'Civil Engineering', categoryColor: '#2dd4bf', title: 'Structural Engineer - Bridge Specialist', company: 'Morocco Urban Works', icon: Building2, salaryLabel: 'SALARY', salary: '22,000', image: 'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '8', badge: 'Verified', category: 'Electrical', categoryColor: '#8d4f00', title: 'Industrial Electrician - High Voltage', company: 'Power Grid Rabat', icon: Zap, salaryLabel: 'SALARY', salary: '13,500', image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600', cta: 'apply' },
-]
-
-const row3: Job[] = [
-  { id: '9', badge: 'Verified', category: 'Site Management', categoryColor: '#8d4f00', title: 'Site Supervisor - Residential Complex', company: 'Prestige Build Co.', icon: HardHat, salaryLabel: 'SALARY', salary: '19,000', image: 'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '10', badge: 'Diamond Member', category: 'Finishing', categoryColor: '#605e58', title: 'Master Painter - Luxury Interiors', company: 'Elite Interiors Rabat', icon: Layers, salaryLabel: 'SALARY', salary: '8,500', image: 'https://images.pexels.com/photos/4512155/pexels-photo-4512155.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '11', badge: 'Verified', category: 'Design', categoryColor: '#2dd4bf', title: 'CAD Drafter - Structural Layouts', company: 'CAD Solutions Morocco', icon: PenTool, salaryLabel: 'SALARY', salary: '12,000', image: 'https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '12', badge: 'Diamond Member', category: 'Safety', categoryColor: '#8d4f00', title: 'Fire Safety Technician', company: 'SafeGuard Maroc', icon: Shield, salaryLabel: 'SALARY', salary: '10,500', image: 'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&w=600', cta: 'apply' },
-]
-
-const row4: Job[] = [
-  { id: '13', badge: 'Verified', category: 'Electrical', categoryColor: '#2dd4bf', title: 'HV Electrical Engineer', company: 'Volt Morocco', icon: Zap, salaryLabel: 'SALARY', salary: '24,000', image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '14', badge: 'Diamond Member', category: 'Maintenance', categoryColor: '#605e58', title: 'Pool Maintenance Technician', company: 'Aqua Services Rabat', icon: Wrench, salaryLabel: 'SALARY', salary: '7,500', image: 'https://images.pexels.com/photos/1458457/pexels-photo-1458457.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '15', badge: 'Verified', category: 'Automation', categoryColor: '#8d4f00', title: 'PLC Programmer - Industrial Systems', company: 'AutoTech Maroc', icon: Cpu, salaryLabel: 'SALARY', salary: '18,000', image: 'https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '16', badge: 'Diamond Member', category: 'Welding', categoryColor: '#605e58', title: 'Welder (Certified) - Pipeline Project', company: 'PipeWeld Rabat', icon: Hammer, salaryLabel: 'SALARY', salary: '11,500', image: 'https://images.pexels.com/photos/3822727/pexels-photo-3822727.jpeg?auto=compress&w=600', cta: 'apply' },
-]
-
-const row5: Job[] = [
-  { id: '17', badge: 'Verified', category: 'Mechanic', categoryColor: '#8d4f00', title: 'Heavy Equipment Mechanic', company: 'MechPro Morocco', icon: Wrench, salaryLabel: 'SALARY', salary: '14,500', image: 'https://images.pexels.com/photos/3806288/pexels-photo-3806288.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '18', badge: 'Diamond Member', category: 'Surveying', categoryColor: '#2dd4bf', title: 'Land Surveyor - Infrastructure', company: 'GeoSurvey Rabat', icon: Anchor, salaryLabel: 'SALARY', salary: '16,000', image: 'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '19', badge: 'Verified', category: 'Interiors', categoryColor: '#605e58', title: 'Interior Fit-out Specialist', company: 'LuxFit Maroc', icon: Layers, salaryLabel: 'SALARY', salary: '13,000', image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600', cta: 'apply' },
-  { id: '20', badge: 'Diamond Member', category: 'Logistics', categoryColor: '#2dd4bf', title: 'Logistics Manager - Supply Chain', company: 'BuildChain Morocco', icon: Truck, salaryLabel: 'SALARY', salary: '21,000', image: 'https://images.pexels.com/photos/906494/pexels-photo-906494.jpeg?auto=compress&w=600', cta: 'apply' },
-]
-
-function badgePill(badge: Job['badge']) {
-  if (!badge) return null
-  const isDiamond = badge === 'Diamond Member'
-  return (
-    <span style={{
-      background: isDiamond ? 'linear-gradient(to right, #fbbf24, #f97316)' : 'rgba(0,107,95,0.9)',
-      color: 'white', fontSize: '10px', fontWeight: 800,
-      padding: '4px 8px', borderRadius: '6px',
-      textTransform: 'uppercase' as const, letterSpacing: '0.03em',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-    }}>{badge}</span>
-  )
+function Stars({ rating }: { rating: number }) {
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
 }
-
-function JobCard({ job }: { job: Job }) {
+function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
-    <article style={{ backgroundColor: 'white', borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid rgba(186,202,197,0.1)', transition: 'box-shadow 0.3s, transform 0.3s' }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)' }}
-    >
-      <div style={{ position: 'relative', height: '192px', overflow: 'hidden' }}>
-        <img src={job.image} alt={job.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-        />
-        <div style={{ position: 'absolute', top: '16px', left: '16px' }}>{badgePill(job.badge)}</div>
-        <button onClick={() => setSaved(!saved)} style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Heart size={15} color="white" fill={saved ? 'white' : 'none'} />
-        </button>
-      </div>
-      <div style={{ padding: '24px' }}>
-        <span style={{ color: job.categoryColor, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>{job.category}</span>
-        <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#161d1b', margin: '4px 0 12px', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>{job.title}</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3c4a46', marginBottom: '16px', fontSize: '13px' }}>
-          <job.icon size={16} color="#2dd4bf" /> {job.company}
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(186,202,197,0.1)', paddingTop: '16px' }}>
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontSize: '10px', color: '#6b7a76', fontWeight: 700, letterSpacing: '0.05em' }}>{job.salaryLabel}</div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: job.badge === 'Diamond Member' ? '#3cddc7' : '#161d1b' }}>
-              {job.salary}<span style={{ fontSize: '14px', fontWeight: 400, marginLeft: '4px' }}>{job.salarySuffix || 'MAD'}</span>
-            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} applicants)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {job.cta === 'apply' && (
-              <>
-                <button style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eef5f2', border: 'none', cursor: 'pointer', color: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MessageCircle size={18} /></button>
-                <button style={{ padding: '8px 16px', backgroundColor: '#2dd4bf', color: '#0f9b8e', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Apply Now</button>
-              </>
-            )}
-            {job.cta === 'view' && (
-              <button style={{ padding: '8px 24px', backgroundColor: '#2dd4bf', color: 'white', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>View Detail</button>
-            )}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
+            <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span><span style={{ fontSize:'12px', color:'#6b7a76' }}> / month</span></div>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Apply Now</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
+            </div>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }
-
-function JobGrid({ jobs, mb = 24 }: { jobs: Job[]; mb?: number }) {
+function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '24px', marginBottom: `${mb}px` }}>
-      {jobs.map(j => <JobCard key={j.id} job={j} />)}
-    </div>
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+        <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
+        </div>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
+          <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+          <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'6px' }}>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Apply</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </Link>
   )
 }
 
-export default function ConstructionJobsPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function ConstructionPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [activePill, setActivePill] = useState('All Jobs')
-  const [diamondFirst, setDiamondFirst] = useState(true)
+  const [city, setCity] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [activePill, setActivePill] = useState('All Construction')
+  const [tab, setTab] = useState('All')
+  const [diamond, setDiamond] = useState(true)
+  const [page, setPage] = useState(1)
+  const [grid, setGrid] = useState(true)
 
   return (
-    <div style={{ fontFamily: 'Hanken Grotesk, Inter, sans-serif', backgroundColor: '#f4fbf8', color: '#161d1b', minHeight: '100vh' }}>
-
-      {/* ── HEADER LINE 1 ── */}
-
-      {/* ── HERO ── */}
-      <section style={{ position: 'relative', height: '480px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <img src="https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=1600" alt="Construction site Rabat" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), transparent, #f4fbf8)' }} />
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' as const, maxWidth: '800px', padding: '0 24px' }}>
-          <h1 style={{ color: 'white', fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.1, textShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>Build Your Future in Rabat's Construction Industry</h1>
-          <div style={{ maxWidth: '680px', margin: '0 auto', backgroundColor: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '100px', padding: '8px', display: 'flex', gap: '8px', boxShadow: '0 25px 50px rgba(0,0,0,0.2)' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px', borderRight: '1px solid rgba(186,202,197,0.3)' }}>
-              <Search size={17} color="#2dd4bf" />
-              <input placeholder="Job title, skill, or construction firm..." style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontFamily: 'inherit', fontSize: '14px', padding: '12px 0' }} />
+    <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
+      <section style={{ position:'relative', height:'440px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src="https://images.pexels.com/photos/159306/construction-site-build-construction-work-159306.jpeg?auto=compress&w=1600" alt="Construction" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Find Top Construction Jobs in Morocco!</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>340 verified construction positions across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor: '#2dd4bf', color: '#0f9b8e', padding: '12px 32px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap' as const }}>Search Jobs</button>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Engineer, supervisor, electrician..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
 
-      {/* ── FILTER BAR + PILLS ── */}
-      <section style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 40px' }}>
-        <div style={{ marginTop: '-64px', position: 'relative', zIndex: 30, marginBottom: '32px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '2.5rem', padding: '16px', display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', gap: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}>
-            {[{ label: 'Neighborhood', value: 'All Rabat Neighborhoods' }, { label: 'Salary Range', value: 'Any Salary' }].map(f => (
-              <div key={f.label} style={{ flex: 1, minWidth: '180px', padding: '0 16px', borderRight: '1px solid rgba(186,202,197,0.2)', display: 'flex', flexDirection: 'column' as const }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase' as const, color: '#6b7a76', fontWeight: 700 }}>{f.label}</span>
-                <span style={{ fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>{f.value} <ChevronDown size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /></span>
-              </div>
-            ))}
-            <div style={{ flex: 1, minWidth: '140px', padding: '0 16px', display: 'flex', flexDirection: 'column' as const }}>
-              <span style={{ fontSize: '10px', textTransform: 'uppercase' as const, color: '#6b7a76', fontWeight: 700 }}>More Filters</span>
-              <span style={{ fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>Advanced ⚙</span>
+      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
+          {[['City','Rabat'],['Job Title','Engineer, Supervisor, Electrician...'],['Experience','All Levels'],['Salary','Any Range'],['Filters','All']].map(([l,v],i)=>(
+            <div key={l} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
+              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
             </div>
-            <div style={{ width: '1px', height: '40px', backgroundColor: 'rgba(186,202,197,0.2)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 12px' }}>
-              <span style={{ fontSize: '13px', color: '#3c4a46' }}>Diamond Verified First</span>
-              <button onClick={() => setDiamondFirst(!diamondFirst)} style={{ width: '44px', height: '24px', borderRadius: '100px', backgroundColor: diamondFirst ? '#2dd4bf' : '#dde4e1', border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0 }}>
-                <div style={{ position: 'absolute', top: '2px', left: diamondFirst ? '22px' : '2px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-              </button>
-            </div>
+          ))}
+          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}><Search size={16} /> SEARCH</button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Construction</span>
+        </nav>
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Construction Jobs in Morocco</h2>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Save Search
+            </button>
           </div>
         </div>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'24px' }}>340 Construction positions across Morocco</p>
 
-        {/* PILLS + SORT */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '48px', flexWrap: 'wrap' as const }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '10px' }}>
-            {categoryPills.map(c => (
-              <button key={c} onClick={() => setActivePill(c)} style={{ padding: '8px 20px', borderRadius: '100px', fontSize: '13px', fontWeight: activePill === c ? 700 : 400, cursor: 'pointer', border: activePill === c ? 'none' : '1px solid rgba(186,202,197,0.2)', backgroundColor: activePill === c ? '#2dd4bf' : '#eef5f2', color: activePill === c ? '#0f9b8e' : '#3c4a46' }}>{c}</button>
+        <section style={{ marginBottom:'32px' }}>
+          <h2 style={{ fontWeight:900, fontSize:'14px', color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'16px' }}>BROWSE BY SPECIALTY</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'12px' }}>
+            {subCategories.map(sub=>(
+              <Link key={sub.slug} href={`/${locale}/jobs/construction/${sub.slug}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', borderRadius:'20px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s', aspectRatio:'1/1' }}
+                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.04)'}
+                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={sub.image} alt={sub.label} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.1))' }} />
+                  <div style={{ position:'absolute', bottom:'10px', left:'10px', right:'10px' }}>
+                    <p style={{ fontSize:'12px', fontWeight:800, color:'white', lineHeight:1.2, marginBottom:'2px' }}>{sub.label}</p>
+                    <p style={{ fontSize:'9px', color:'#62fae3', fontWeight:700 }}>{sub.count} jobs</p>
+                  </div>
+                </div>
+              </Link>
             ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3c4a46', fontSize: '13px', whiteSpace: 'nowrap' as const, cursor: 'pointer' }}>
-            Sort by: <span style={{ color: '#2dd4bf', fontWeight: 700 }}>Newest First</span> <ChevronDown size={16} />
-          </div>
-        </div>
-
-        {/* ROWS 1 + 2 */}
-        <JobGrid jobs={row1} />
-        <JobGrid jobs={row2} mb={64} />
-
-        {/* RECRUITER BANNER */}
-        <section style={{ marginBottom: '48px' }}>
-          <div style={{ position: 'relative', borderRadius: '2.5rem', overflow: 'hidden', height: '300px', display: 'flex', alignItems: 'center' }}>
-            <img src="https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&w=1400" alt="Construction company" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,107,95,0.4)', backdropFilter: 'blur(2px)' }} />
-            <div style={{ position: 'relative', zIndex: 1, padding: '0 48px', maxWidth: '580px' }}>
-              <h2 style={{ color: 'white', fontSize: '40px', fontWeight: 700, marginBottom: '16px', lineHeight: 1.1 }}>Are you a Construction Company?</h2>
-              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '18px', marginBottom: '32px', lineHeight: 1.6 }}>Find your next star talent — 100% Free with a SouKni Construction Pro account. Reach top Moroccan experts today.</p>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button style={{ backgroundColor: 'white', color: '#2dd4bf', padding: '12px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Get Started</button>
-                <button style={{ border: '2px solid white', color: 'white', padding: '12px 32px', borderRadius: '100px', backgroundColor: 'transparent', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Learn More</button>
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* ROWS 3, 4, 5 */}
-        <JobGrid jobs={row3} />
-        <JobGrid jobs={row4} />
-        <JobGrid jobs={row5} mb={64} />
-      </section>
+        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
+          {pills.map(p=><button key={p} onClick={()=>setActivePill(p)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap' as const, backgroundColor:activePill===p?'#161d1b':'#e8efec', color:activePill===p?'white':'#3c4a46' }}>{p}</button>)}
+        </div>
 
-      {/* ── APP DOWNLOAD ── */}
-      <section style={{ backgroundColor: '#e2eae7', padding: '64px 0', marginBottom: '0' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 40px', display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
-          <div style={{ maxWidth: '480px' }}>
-            <h2 style={{ fontSize: '42px', fontWeight: 700, color: '#161d1b', marginBottom: '20px', lineHeight: 1.1 }}>Join the SouKni Family</h2>
-            <p style={{ color: '#3c4a46', fontSize: '18px', lineHeight: 1.6, marginBottom: '40px' }}>Get the most powerful Moroccan construction job tool in your pocket. Real-time alerts, direct messaging, and advanced filters at your fingertips.</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '16px' }}>
-              {[{ label: 'Download on', store: 'App Store', icon: '🛒' }, { label: 'Get it on', store: 'Google Play', icon: '▶' }].map(s => (
-                <button key={s.store} style={{ backgroundColor: 'black', color: 'white', padding: '12px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '24px' }}>{s.icon}</span>
-                  <div style={{ textAlign: 'left' as const }}>
-                    <div style={{ fontSize: '10px', textTransform: 'uppercase' as const, fontWeight: 700 }}>{s.label}</div>
-                    <div style={{ fontWeight: 700 }}>{s.store}</div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'6px' }}>
+            {['All','Full-Time','Part-Time','Contract'].map(t=><button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:tab===t?'#dde4e1':'transparent', color:tab===t?'#161d1b':'#6b7a76' }}>{t}</button>)}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {[{emoji:'✨',label:'New Listings',active:true},{emoji:'💰',label:'Top Salaries',active:false},{emoji:'🏢',label:'Top Employers',active:false}].map(c=>(
+            <button key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46' }}>{c.emoji} {c.label}</button>
+          ))}
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+        </section>
+
+        <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles & Electro Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
+            <div style={{ display:'flex', gap:'12px' }}>
+              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Construction Collection</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
+            {bentoListings.slice(0,3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'17px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
                   </div>
-                </button>
-              ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {bentoListings.slice(3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Morocco's most exclusive real estate and rental spaces.</h3>
+            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
+              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
             </div>
           </div>
-          <div style={{ position: 'relative', width: '280px', flexShrink: 0 }}>
-            <div style={{ position: 'absolute', inset: '-16px', backgroundColor: 'rgba(0,107,95,0.1)', borderRadius: '50%', filter: 'blur(40px)' }} />
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '9/16', backgroundColor: '#eef5f2', borderRadius: '2.5rem', overflow: 'hidden', border: '8px solid #161d1b', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-              <img src="https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=400" alt="App preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
           </div>
         </div>
-      </section>
 
-      {/* ── AUTO PRO BANNER ── */}
-      <section style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 40px' }}>
-        <div style={{ position: 'relative', borderRadius: '2.5rem', overflow: 'hidden', height: '300px', display: 'flex', alignItems: 'center' }}>
-          <img src="https://images.pexels.com/photos/3806288/pexels-photo-3806288.jpeg?auto=compress&w=1400" alt="SouKni Auto Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }} />
-          <div style={{ position: 'relative', zIndex: 1, padding: '0 48px', maxWidth: '560px' }}>
-            <h2 style={{ color: 'white', fontSize: '40px', fontWeight: 700, marginBottom: '16px' }}>SouKni Auto Pro</h2>
-            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '18px', marginBottom: '32px', lineHeight: 1.6 }}>The ultimate platform for automotive professionals in Morocco. List your inventory and reach thousands of buyers.</p>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '12px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, cursor: 'pointer' }}>Get Started</button>
-              <button style={{ border: '2px solid white', color: 'white', padding: '12px 32px', borderRadius: '100px', backgroundColor: 'transparent', fontWeight: 700, cursor: 'pointer' }}>Learn More</button>
+        <section style={{ marginBottom:'40px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Construction Positions</h2>
+            <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
+          ))}
+          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
+        </div>
+
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>
+          <div>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>Post your construction job today for free and reach thousands of skilled workers and engineers across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
             </div>
           </div>
-          <Car size={180} color="white" style={{ position: 'absolute', right: '40px', bottom: '-10px', opacity: 0.08 }} />
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
+          </Link>
+        </section>
+      </div>
     </div>
   )
 }

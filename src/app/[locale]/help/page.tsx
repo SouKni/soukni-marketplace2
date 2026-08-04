@@ -2,12 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  Search, ChevronRight, MessageCircle, Mail,
-  Phone, Shield, Package, CreditCard, User,
-  Tag, AlertTriangle, ChevronDown, ChevronUp,
-  Zap, Star
-} from 'lucide-react'
+import { Search, ChevronRight, MessageCircle, Mail, Phone, Shield, Package, CreditCard, User, Tag, AlertTriangle, ChevronDown, ChevronUp, Zap, Star } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -256,7 +251,7 @@ export default function HelpPage({ params }: { params: Promise<{ locale: Locale 
                 </div>
                 <p style={{ fontSize: '14px', fontWeight: 800, color: '#161d1b', marginBottom: '2px' }}>{c.title}</p>
                 <p style={{ fontSize: '12px', color: '#6b7a76', marginBottom: '2px' }}>{c.desc}</p>
-                <p style={{ fontSize: '11px', color: '#6b7a76', marginBottom: '14px', fontWeight: 600, color: '#22d4a8' }}>{c.sub}</p>
+                <p style={{ fontSize: '11px', color: '#22d4a8', marginBottom: '14px', fontWeight: 600 }}>{c.sub}</p>
                 <button style={{ width: '100%', padding: '9px', borderRadius: '10px', border: 'none', background: c.primary ? '#22d4a8' : '#161d1b', color: 'white', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {c.action}
                 </button>

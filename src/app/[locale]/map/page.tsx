@@ -2,11 +2,7 @@
 
 import { useState, use, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import {
-  Search, MapPin, Filter, X, ChevronRight,
-  Heart, Eye, MessageCircle, ZoomIn, ZoomOut,
-  Locate, Layers, List
-} from 'lucide-react'
+import { Search, MapPin, Filter, X, ChevronRight, Heart, Eye, MessageCircle, ZoomIn, ZoomOut, Locate, Layers, List } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 

@@ -1,465 +1,417 @@
 'use client'
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useMarket } from '@/context/MarketContext'
 
-import { useState } from 'react'
-import React from 'react'
-import { Heart, Search, MapPin, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
-
-/* ─── IMAGES ────────────────────────────────────────────── */
 const I = {
-  hero:      'https://images.pexels.com/photos/1983037/pexels-photo-1983037.jpeg?auto=compress&w=1600',
-  sony:      'https://images.pexels.com/photos/51383/photo-camera-subject-photographer-51383.jpeg?auto=compress&w=600',
-  canon:     'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
-  film:      'https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&w=800',
-  lens1:     'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
-  lens2:     'https://images.pexels.com/photos/279906/pexels-photo-279906.jpeg?auto=compress&w=600',
-  lens3:     'https://images.pexels.com/photos/1983037/pexels-photo-1983037.jpeg?auto=compress&w=600',
-  gimbal:    'https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&w=600',
-  red:       'https://images.pexels.com/photos/2510428/pexels-photo-2510428.jpeg?auto=compress&w=600',
-  tripod:    'https://images.pexels.com/photos/1203819/pexels-photo-1203819.jpeg?auto=compress&w=600',
-  arri:      'https://images.pexels.com/photos/2510428/pexels-photo-2510428.jpeg?auto=compress&w=600',
-  pana:      'https://images.pexels.com/photos/279906/pexels-photo-279906.jpeg?auto=compress&w=600',
-  light:     'https://images.pexels.com/photos/1040160/pexels-photo-1040160.jpeg?auto=compress&w=600',
-  mic:       'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600',
-  drone:     'https://images.pexels.com/photos/1087180/pexels-photo-1087180.jpeg?auto=compress&w=600',
-  monitor:   'https://images.pexels.com/photos/1714207/pexels-photo-1714207.jpeg?auto=compress&w=600',
-  slider:    'https://images.pexels.com/photos/1983037/pexels-photo-1983037.jpeg?auto=compress&w=600',
-  teradek:   'https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&w=600',
-  gopro:     'https://images.pexels.com/photos/1697912/pexels-photo-1697912.jpeg?auto=compress&w=600',
-  osmo:      'https://images.pexels.com/photos/2510428/pexels-photo-2510428.jpeg?auto=compress&w=600',
-  insta:     'https://images.pexels.com/photos/279906/pexels-photo-279906.jpeg?auto=compress&w=600',
-  mavic:     'https://images.pexels.com/photos/1087180/pexels-photo-1087180.jpeg?auto=compress&w=600',
-  app:       'https://images.pexels.com/photos/1983037/pexels-photo-1983037.jpeg?auto=compress&w=400',
-  immo:      'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  hero:    'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=1600',
+  sony:    'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  canon:   'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  lens1:   'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  lens2:   'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  lens3:   'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  gimbal:  'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  red:     'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  tripod:  'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  arri:    'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  pana:    'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  light:   'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  mic:     'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  drone:   'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  monitor: 'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  slider:  'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  teradek: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  gopro:   'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  osmo:    'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&w=600',
+  insta:   'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600',
+  mavic:   'https://images.pexels.com/photos/225157/pexels-photo-225157.jpeg?auto=compress&w=600',
+  immo:    'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:    'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
 }
 
-type Badge = 'verified' | 'diamond' | 'certified' | 'both'
+type Badge = 'diamond' | 'certified' | 'pro' | null
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
 
-interface Item {
-  id: string; brand: string; title: string; price: number
-  location: string; image: string; badge: Badge
-  tags?: string[]; cta?: 'request'
+const featuredListings: Listing[] = [
+  { id:'m1', badge:'diamond',   title:'Sony Alpha a7R V Mirrorless Body',         price:28500, location:'Rabat, Souissi',    time:'Just now', image:I.sony },
+  { id:'m2', badge:'certified', title:'Canon EOS R5 Mirrorless Camera',            price:38900, location:'Rabat, Hay Riad',   time:'1h ago',   image:I.canon },
+  { id:'o1', badge:'certified', title:'Sony FE 50mm f/1.2 GM Lens',               price:24500, location:'Rabat, Souissi',    time:'2h ago',   image:I.lens1 },
+  { id:'o4', badge:'diamond',   title:'DJI RS 4 Pro Gimbal Stabilizer',            price:9400,  location:'Casablanca',        time:'3h ago',   image:I.gimbal },
+]
+
+const exclusiveListings: Listing[] = [
+  { id:'v1', badge:'diamond',   title:'Arri Alexa 35 Cinema Body',                price:1250000, location:'Casablanca',      time:'Just now', image:I.arri },
+  { id:'g1', badge:'diamond',   title:'DJI Inspire 3 Cinema Drone',               price:185000,  location:'Casablanca',      time:'1h ago',   image:I.drone },
+  { id:'c1', badge:'diamond',   title:'RED Komodo 6K Production Rig',             price:115000,  location:'Casablanca',      time:'2h ago',   image:I.red },
+  { id:'g4', badge:'certified', title:'Teradek Bolt 6 XT Wireless Video',         price:95000,   location:'Casablanca',      time:'3h ago',   image:I.teradek },
+]
+
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',   title:'Canon RF 70-200mm f/2.8L IS USM',         price:32800, location:'Rabat, Agdal',      time:'Just now', image:I.lens2 },
+  { id:'d2',  badge:'certified', title:'Nikon NIKKOR Z 85mm f/1.2 S',             price:31200, location:'Rabat, Hay Riad',   time:'1h ago',   image:I.lens3 },
+  { id:'d3',  badge:'diamond',   title:'Panavision Anamorphic Prime Lens',         price:450000,location:'Rabat',             time:'2h ago',   image:I.pana },
+  { id:'d4',  badge:'certified', title:'Aputure 600d Pro LED Light',               price:32500, location:'Tangier',           time:'3h ago',   image:I.light },
+  { id:'d5',  badge:'diamond',   title:'Sennheiser MKH 416 Mic Rig',              price:15400, location:'Marrakech',         time:'4h ago',   image:I.mic },
+  { id:'d6',  badge:'certified', title:'SmallHD 703 UltraBright Monitor',         price:28900, location:'Rabat',             time:'5h ago',   image:I.monitor },
+  { id:'d7',  badge:'diamond',   title:'Kessler Crane Motorized Slider',           price:42000, location:'Marrakech',         time:'6h ago',   image:I.slider },
+  { id:'d8',  badge:'certified', title:'Carbon Fiber Precision Tripod',            price:12400, location:'Rabat',             time:'7h ago',   image:I.tripod },
+  { id:'d9',  badge:'diamond',   title:'GoPro Hero 12 Black 5.3K',                price:4200,  location:'Rabat, Harhoura',   time:'8h ago',   image:I.gopro },
+  { id:'d10', badge:'certified', title:'DJI Osmo Action 4 Adventure Bundle',      price:3800,  location:'Temara',            time:'9h ago',   image:I.osmo },
+  { id:'d11', badge:'diamond',   title:'Insta360 X3 Waterproof 360 Camera',       price:5200,  location:'Rabat',             time:'10h ago',  image:I.insta },
+  { id:'d12', badge:'certified', title:'DJI Mavic 3 Pro Drone Fly More Combo',    price:22500, location:'Harhoura',          time:'11h ago',  image:I.mavic },
+]
+
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
+
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
+  if (type === 'diamond') return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
+    </span>
+  )
+  return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
+    </span>
+  )
 }
 
-/* ─── DATA ──────────────────────────────────────────────── */
-const mirrorless: Item[] = [
-  { id:'m1', brand:'Sony',  title:'Sony Alpha a7R V Mirrorless', price:28500, location:'Souissi, Rabat',  image:I.sony,  badge:'both' },
-  { id:'m2', brand:'Canon', title:'Canon EOS R5',                price:38900, location:'Hay Riad, Rabat', image:I.canon, badge:'verified' },
-]
-
-const optics: Item[] = [
-  { id:'o1', brand:'Sony',   title:'Sony FE 50mm f/1.2 GM Lens',     price:24500, location:'Souissi, Rabat',  image:I.lens1,  badge:'verified' },
-  { id:'o2', brand:'Canon',  title:'Canon RF 70-200mm f/2.8L IS USM', price:32800, location:'Agdal, Rabat',    image:I.lens2,  badge:'certified' },
-  { id:'o3', brand:'Nikon',  title:'Nikon NIKKOR Z 85mm f/1.2 S',     price:31200, location:'Hay Riad, Rabat', image:I.lens3,  badge:'verified' },
-  { id:'o4', brand:'DJI',    title:'DJI RS 4 Pro Gimbal Stabilizer',  price:9400,  location:'Casablanca',      image:I.gimbal, badge:'diamond' },
-]
-
-const cineGear: Item[] = [
-  { id:'c1', brand:'RED',       title:'RED Komodo 6K Production Rig',  price:115000, location:'Casablanca',      image:I.red,    badge:'both',  tags:['CINEMA GEAR','PRO RIG'],    cta:'request' },
-  { id:'c2', brand:'Manfrotto', title:'Carbon Fiber Precision Tripod', price:12400,  location:'Rabat',            image:I.tripod, badge:'certified', tags:['STABILITY','CARBON'], cta:'request' },
-]
-
-const cinema: Item[] = [
-  { id:'v1', brand:'Arri',       title:'Arri Alexa 35 Cinema Body',     price:1250000, location:'Casablanca', image:I.arri,  badge:'both' },
-  { id:'v2', brand:'Panavision', title:'Panavision Anamorphic Prime',   price:450000,  location:'Rabat',      image:I.pana,  badge:'verified' },
-  { id:'v3', brand:'Aputure',    title:'Aputure 600d Pro LED Light',    price:32500,   location:'Tangier',    image:I.light, badge:'verified' },
-  { id:'v4', brand:'Sennheiser', title:'Sennheiser MKH 416 Mic Rig',   price:15400,   location:'Marrakech',  image:I.mic,   badge:'verified' },
-]
-
-const grip: Item[] = [
-  { id:'g1', brand:'DJI',     title:'DJI Inspire 3 Cinema Drone',        price:185000, location:'Casablanca', image:I.drone,   badge:'both' },
-  { id:'g2', brand:'SmallHD', title:'SmallHD 703 UltraBright Monitor',   price:28900,  location:'Rabat',      image:I.monitor, badge:'verified' },
-  { id:'g3', brand:'Kessler', title:'Kessler Crane Motorized Slider',    price:42000,  location:'Marrakech',  image:I.slider,  badge:'verified' },
-  { id:'g4', brand:'Teradek', title:'Teradek Bolt 6 XT Wireless Video',  price:95000,  location:'Casablanca', image:I.teradek, badge:'verified' },
-]
-
-const action: Item[] = [
-  { id:'a1', brand:'GoPro',   title:'Premium 8K Adventure Action Camera', price:4200,  location:'Harhoura, Rabat', image:I.gopro, badge:'verified' },
-  { id:'a2', brand:'DJI',     title:'DJI Osmo Action 4',                  price:3800,  location:'Temara',          image:I.osmo,  badge:'verified' },
-  { id:'a3', brand:'Insta360',title:'Insta360 X3 Waterproof',             price:5200,  location:'Rabat',           image:I.insta, badge:'verified' },
-  { id:'a4', brand:'DJI',     title:'DJI Mavic 3 Pro Drone',              price:22500, location:'Harhoura',        image:I.mavic, badge:'verified' },
-]
-
-/* ─── BADGE ─────────────────────────────────────────────── */
-function BadgePill({ badge }: { badge: Badge }) {
-  const pills = []
-  if (badge === 'verified' || badge === 'both')
-    pills.push(<span key="v" style={{ backgroundColor:'#2dd4bf', color:'white', fontSize:'10px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', letterSpacing:'0.05em', textTransform:'uppercase' as const }}>Verified</span>)
-  if (badge === 'diamond' || badge === 'both')
-    pills.push(<span key="d" style={{ backgroundColor:'#ffdcc0', color:'#2d1600', fontSize:'10px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'3px', letterSpacing:'0.05em', textTransform:'uppercase' as const }}>◆ Diamond</span>)
-  if (badge === 'certified')
-    pills.push(<span key="c" style={{ backgroundColor:'rgba(221,228,225,0.88)', backdropFilter:'blur(8px)', color:'#3c4a46', fontSize:'10px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', border:'1px solid rgba(255,255,255,0.25)' }}>Certified</span>)
-  return <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' as const }}>{pills}</div>
-}
-
-/* ─── SQUARE CARD ───────────────────────────────────────── */
-function CamCard({ item }: { item: Item }) {
+function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
   const [saved, setSaved] = useState(false)
   const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
   return (
-    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid rgba(186,202,197,0.25)', boxShadow: hov?'0 20px 40px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', display:'flex', flexDirection:'column' as const, cursor:'pointer' }}>
-      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden' }}>
-        <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.1)':'scale(1)' }} />
-        <div style={{ position:'absolute', top:'14px', left:'14px', zIndex:10 }}><BadgePill badge={item.badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'12px', right:'12px', zIndex:10, width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', backdropFilter:'blur(8px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Heart size={15} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#ba1a1a'} />
-        </button>
-      </div>
-      <div style={{ padding:'24px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
-          <span style={{ fontSize:'10px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>{item.brand}</span>
-          <span style={{ fontSize:'18px', fontWeight:700, color:'#2dd4bf' }}>{item.price.toLocaleString()} MAD</span>
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-        <h4 style={{ fontSize:'18px', fontWeight:700, color:hov?'#2dd4bf':'#161d1b', marginBottom:'8px', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const, transition:'color 0.2s' }}>{item.title}</h4>
-        <p style={{ fontSize:'13px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px', marginBottom:'16px' }}>
-          <MapPin size={14} color="#2dd4bf" /> {item.location}
-        </p>
-        {item.tags && (
-          <div style={{ display:'flex', gap:'8px', marginBottom:'20px' }}>
-            {item.tags.map(tag=><span key={tag} style={{ backgroundColor:'#e8efec', padding:'4px 10px', borderRadius:'100px', fontSize:'9px', fontWeight:700, textTransform:'uppercase' as const, color:'#3c4a46', letterSpacing:'0.08em' }}>{tag}</span>)}
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
           </div>
-        )}
-        {item.cta === 'request'
-          ? <button style={{ width:'100%', backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'12px', borderRadius:'100px', fontSize:'13px', fontWeight:700, cursor:'pointer', transition:'filter 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.1)'}
-              onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-            >Request Details</button>
-          : <div style={{ display:'flex', gap:'8px' }}>
-              <button style={{ flex:1, padding:'10px', borderRadius:'100px', border:'1px solid #2dd4bf', backgroundColor:'transparent', color:'#2dd4bf', fontSize:'13px', fontWeight:700, cursor:'pointer', transition:'background 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(0,107,95,0.05)'}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >Message</button>
-              <button style={{ flex:1, padding:'10px', borderRadius:'100px', backgroundColor:'#25D366', color:'white', border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', transition:'filter 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-                onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-              >💬 WhatsApp</button>
-            </div>
-        }
-      </div>
-    </div>
+        </div>
+      </article>
+    </Link>
   )
 }
 
-/* ─── SECTION HEADER ────────────────────────────────────── */
-function SectionHeader({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:'28px' }}>
-      <div>
-        <h3 style={{ fontSize:'24px', fontWeight:600, color:'#161d1b', letterSpacing:'-0.01em', marginBottom: sub?'4px':'0' }}>{title}</h3>
-        {sub && <p style={{ fontSize:'16px', color:'#6b7a76' }}>{sub}</p>}
-      </div>
-      <a href="#" style={{ fontSize:'13px', fontWeight:700, color:'#2dd4bf', textDecoration:'none' }}
-        onMouseEnter={e=>e.currentTarget.style.textDecoration='underline'}
-        onMouseLeave={e=>e.currentTarget.style.textDecoration='none'}
-      >View All</a>
-    </div>
-  )
-}
-
-/* ─── PAGE ──────────────────────────────────────────────── */
-export default function CamerasPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function CamerasPage({ params }: { params: Promise<{ locale:string }> }) {
   const { locale } = React.use(params)
-  const [activeBrand, setActiveBrand] = useState('All Brands')
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamondFirst, setDiamondFirst] = useState(true)
-  const [keyword, setKeyword] = useState('')
-  const brands = ['All Brands','Sony','Canon','Nikon','DJI','Fujifilm','Panasonic','Leica']
+  const [activePill, setActivePill] = useState('All Cameras')
+  const [page, setPage] = useState(1)
+  const [viewGrid, setViewGrid] = useState(true)
+  const pills = [
+    { label:'All Cameras',     slug:'all-cameras'     },
+    { label:'Mirrorless',      slug:'mirrorless'      },
+    { label:'DSLRs',           slug:'dslrs'           },
+    { label:'Cinema Cameras',  slug:'cinema-cameras'  },
+    { label:'Lenses',          slug:'lenses'          },
+    { label:'Drones',          slug:'drones'          },
+    { label:'Action Cameras',  slug:'action-cameras'  },
+  ]
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh', color:'#161d1b' }}>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-      {/* ── HERO ── */}
-      <section style={{ position:'relative', width:'100%', height:'400px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', marginBottom:'64px' }}>
-        <img src={I.hero} alt="Camera Showroom" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', filter:'brightness(0.75)' }} />
-        <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:'860px', padding:'0 40px', display:'flex', flexDirection:'column' as const, alignItems:'center' }}>
-          <h2 style={{ fontSize:'48px', fontWeight:700, color:'white', marginBottom:'28px', textAlign:'center', letterSpacing:'-0.02em', lineHeight:1.1, textShadow:'0 2px 16px rgba(0,0,0,0.3)' }}>
-            Elite Imaging Equipment.<br />
-            <span style={{ color:'#62fae3' }}>Premium Visionaries in Rabat.</span>
-          </h2>
-          <div style={{ width:'100%', backgroundColor:'rgba(22,29,27,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'6px' }}>
-            <div style={{ display:'flex', alignItems:'center', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'6px 24px' }}>
-              <Search size={20} color="rgba(255,255,255,0.75)" style={{ marginRight:'12px', flexShrink:0 }} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search for premium cameras, lenses, or filmmaking gear..."
-                style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'16px', fontFamily:'Hanken Grotesk, sans-serif', color:'white', padding:'10px 0' }}
-              />
-              <button style={{ backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'12px 32px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', marginLeft:'12px', transition:'filter 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.1)'}
-                onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-              >Search</button>
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={I.hero} alt="Cameras" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            CAMERAS &amp;<br />CINEMA GEAR IN RABAT.
+          </h1>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="Sony, Canon, DJI, Arri, RED..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              Search
+            </button>
           </div>
         </div>
       </section>
 
-      {/* ── ADVANCED FILTER BAR ── */}
-      <div style={{ maxWidth:'1280px', margin:'-40px auto 48px', padding:'0 40px', position:'relative', zIndex:20 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.85)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', boxShadow:'0 20px 60px rgba(0,0,0,0.07)', display:'flex', alignItems:'center', padding:'6px' }}>
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
           {[
-            { label:'City',          val:'Rabat',             type:'select' },
-            { label:'Keyword',       val:'Search premium cameras...', type:'input' },
-            { label:'Neighborhood',  val:'Enter location',    type:'loc' },
-            { label:'Price (MAD)',   val:'Select',            type:'select' },
-            { label:'Filters',       val:'1 filter selected', type:'tune', highlight:true },
-          ].map((f,i,arr)=>(
-            <React.Fragment key={f.label}>
-              <div style={{ flex: f.type==='input' ? 2 : 1, padding:'8px 20px', borderRight: i<arr.length-1 ? '1px solid rgba(186,202,197,0.3)':'none', cursor: f.type!=='input'?'pointer':'default' }}>
-                <div style={{ fontSize:'9px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.12em', color:'#6b7a76', marginBottom:'3px' }}>{f.label}</div>
-                {f.type==='input'
-                  ? <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                      <input type="text" placeholder={f.val} style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'16px', fontFamily:'Hanken Grotesk, sans-serif', color:'#161d1b' }} />
-                      <Search size={18} color="#6b7a76" />
-                    </div>
-                  : f.type==='loc'
-                  ? <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span style={{ fontSize:'16px', color:'rgba(107,122,118,0.7)' }}>{f.val}</span>
-                      <MapPin size={18} color="#6b7a76" />
-                    </div>
-                  : f.type==='tune'
-                  ? <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span style={{ fontSize:'16px', fontWeight:700, color:'#2dd4bf' }}>{f.val}</span>
-                      <span style={{ fontSize:'18px' }}>🎚</span>
-                    </div>
-                  : <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span style={{ fontSize:'16px', fontWeight: f.val==='Rabat'?700:400, color: f.val==='Rabat'?'#161d1b':'rgba(107,122,118,0.7)' }}>{f.val}</span>
-                      <ChevronDown size={18} color="#2dd4bf" />
-                    </div>
-                }
-              </div>
-            </React.Fragment>
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'Sony, Canon, DJI, Arri...', w:2 },
+            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
+          ))}
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
+
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
+          <span style={{ color:C.ink }}>Cameras &amp; Cinema</span>
+        </nav>
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Cameras &amp; Cinema Gear in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+              Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Save Search
+            </button>
+          </div>
+        </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>1,840 Ads in Rabat District</p>
+
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {pills.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/electronics/cameras/${cat.slug}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{cat.label}</Link>
           ))}
         </div>
-      </div>
 
-      <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 40px' }}>
-
-        {/* ── BREADCRUMB + TITLE ── */}
-        <section style={{ marginBottom:'28px' }}>
-          <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'13px', color:'rgba(107,122,118,0.8)', marginBottom:'16px' }}>
-            {['Home','Electronics','Cameras & Imaging'].map((c,i,arr)=>(
-              <React.Fragment key={c}>
-                {i<arr.length-1
-                  ? <><a href="#" style={{ color:'rgba(107,122,118,0.8)', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#2dd4bf'} onMouseLeave={e=>e.currentTarget.style.color='rgba(107,122,118,0.8)'}>{c}</a><span>›</span></>
-                  : <span style={{ color:'#6b7a76' }}>{c}</span>
-                }
-              </React.Fragment>
-            ))}
-          </nav>
-
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'16px', flexWrap:'wrap' as const }}>
-            <div style={{ display:'flex', alignItems:'baseline', gap:'12px', flexWrap:'wrap' as const }}>
-              <h2 style={{ fontSize:'24px', fontWeight:600, color:'#161d1b', letterSpacing:'-0.01em' }}>New and Used Cameras & Imaging for sale in Rabat</h2>
-              <span style={{ fontSize:'16px', color:'#6b7a76' }}>• 4,597 Ads</span>
-            </div>
-            <div style={{ display:'flex', gap:'10px' }}>
-              {[{icon:'↕', label:'Sort: Default'},{icon:'🔖', label:'Save Search'}].map(btn=>(
-                <button key={btn.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'10px', backgroundColor:'#eef5f2', border:'none', cursor:'pointer', fontSize:'13px', fontWeight:700, color:'#161d1b', transition:'background 0.15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.backgroundColor='#e2eae7'}
-                  onMouseLeave={e=>e.currentTarget.style.backgroundColor='#eef5f2'}
-                >{btn.icon} {btn.label}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* Brand pills */}
-          <div style={{ display:'flex', gap:'10px', overflowX:'auto' as const, paddingBottom:'8px', marginBottom:'14px' }}>
-            {brands.map(brand=>(
-              <button key={brand} onClick={()=>setActiveBrand(brand)}
-                style={{ whiteSpace:'nowrap' as const, padding:'9px 22px', borderRadius:'100px', fontSize:'13px', fontWeight:700, border:'1px solid', cursor:'pointer', transition:'all 0.15s',
-                  backgroundColor: activeBrand===brand ? '#2dd4bf' : '#e8efec',
-                  color: activeBrand===brand ? '#0f9b8e' : '#6b7a76',
-                  borderColor: activeBrand===brand ? '#2dd4bf' : 'rgba(186,202,197,0.3)',
-                }}
-              >{brand}</button>
-            ))}
-            <button style={{ width:'40px', height:'40px', flexShrink:0, borderRadius:'50%', backgroundColor:'#e8efec', border:'1px solid rgba(186,202,197,0.3)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#2dd4bf', fontSize:'20px', fontWeight:700 }}>+</button>
-          </div>
-
-          {/* Seller toggles + diamond */}
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap' as const }}>
-            {['All Sellers','SouKni Members','SouKni Pro'].map(tab=>(
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
               <button key={tab} onClick={()=>setActiveSeller(tab)}
-                style={{ padding:'8px 20px', borderRadius:'10px', fontSize:'13px', fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:'1px solid',
-                  backgroundColor: activeSeller===tab ? '#2dd4bf' : 'transparent',
-                  color: activeSeller===tab ? 'white' : '#6b7a76',
-                  borderColor: activeSeller===tab ? '#2dd4bf' : 'rgba(186,202,197,0.4)',
-                }}
-              >{tab}</button>
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
+              </button>
             ))}
-            <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px', backgroundColor:'#eef5f2', border:'1px solid rgba(186,202,197,0.3)', padding:'8px 16px', borderRadius:'10px', cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
-              <span style={{ fontSize:'13px', fontWeight:700, color:'#6b7a76', whiteSpace:'nowrap' as const }}>Show Diamond Verified First</span>
-              <div style={{ width:'44px', height:'24px', borderRadius:'100px', backgroundColor: diamondFirst?'#2dd4bf':'#bacac5', position:'relative', transition:'background 0.25s', flexShrink:0 }}>
-                <div style={{ position:'absolute', top:'2px', left: diamondFirst?'22px':'2px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ── PROFESSIONAL MIRRORLESS ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <SectionHeader title="Professional Mirrorless Selection" />
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 2fr', gap:'16px' }}>
-            {mirrorless.map(item=><CamCard key={item.id} item={item} />)}
-            {/* Concierge panel */}
-            <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', cursor:'pointer' }}>
-              <img src={I.film} alt="Pro Filmmaking Concierge" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s' }}
-                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-              />
-              <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(22,29,27,0.75) 0%, rgba(22,29,27,0.2) 100%)' }} />
-              <div style={{ position:'relative', height:'100%', display:'flex', flexDirection:'column' as const, justifyContent:'flex-end', padding:'32px' }}>
-                <div style={{ backgroundColor:'rgba(255,255,255,0.88)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'40px', padding:'28px 32px' }}>
-                  <h3 style={{ fontSize:'24px', fontWeight:600, color:'#2dd4bf', marginBottom:'10px' }}>Pro Filmmaking Concierge</h3>
-                  <p style={{ fontSize:'16px', color:'#6b7a76', marginBottom:'20px', lineHeight:1.6 }}>Whether you're offloading premium gear or hunting for a rare cinematic setup, our expert agents handle the sourcing and verification for you.</p>
-                  <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' as const }}>
-                    <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer', transition:'filter 0.15s' }}
-                      onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-                      onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-                    >Post Your Gear</button>
-                    <button style={{ border:'2px solid #2dd4bf', color:'#2dd4bf', backgroundColor:'transparent', padding:'12px 24px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Request Sourcing</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── IMMO PRO BANNER ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'380px', display:'flex', alignItems:'center', padding:'48px', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
-            <img src={I.immo} alt="SouKni Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', filter:'brightness(0.42)', transition:'transform 0.7s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            />
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.62), transparent)' }} />
-            <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
-              <div style={{ fontSize:'13px', fontWeight:700, color:'#2dd4bf', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'16px' }}>SouKni Immo Pro</div>
-              <h3 style={{ fontSize:'36px', fontWeight:700, color:'white', marginBottom:'24px', lineHeight:1.2, letterSpacing:'-0.02em', textShadow:'0 2px 8px rgba(0,0,0,0.3)' }}>List your property where the elite browse.</h3>
-              <button style={{ backgroundColor:'white', color:'#2dd4bf', border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', boxShadow:'0 8px 24px rgba(0,0,0,0.15)', transition:'all 0.2s' }}
-                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#2dd4bf';e.currentTarget.style.color='#0f9b8e'}}
-                onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color='#2dd4bf'}}
-              >Explore Properties</button>
-            </div>
-          </div>
-        </section>
-
-        {/* ── PRO OPTICS ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <SectionHeader title="Pro Optics & Stabilizers" sub="Elite glass and precision control for every shot." />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {optics.map(item=><CamCard key={item.id} item={item} />)}
-          </div>
-        </section>
-
-        {/* ── CINEMATIC GEAR ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <SectionHeader title="Cinematic Filmmaking Gear" />
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 2fr', gap:'16px' }}>
-            {cineGear.map(item=><CamCard key={item.id} item={item} />)}
-            {/* Concierge panel 2 */}
-            <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', cursor:'pointer' }}>
-              <img src={I.film} alt="Pro Filmmaking" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-              <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(0,0,0,0.32)', backdropFilter:'blur(2px)' }} />
-              <div style={{ position:'relative', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', padding:'32px' }}>
-                <div style={{ backgroundColor:'rgba(255,255,255,0.88)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:'40px', padding:'32px', textAlign:'center' as const, maxWidth:'340px', boxShadow:'0 20px 40px rgba(0,0,0,0.15)' }}>
-                  <h3 style={{ fontSize:'24px', fontWeight:600, color:'#2dd4bf', marginBottom:'12px' }}>Pro Filmmaking Concierge</h3>
-                  <p style={{ fontSize:'16px', color:'#6b7a76', marginBottom:'24px', lineHeight:1.6 }}>Whether you're offloading premium gear or hunting for a rare cinematic setup, our expert agents handle the sourcing and verification for you.</p>
-                  <div style={{ display:'flex', justifyContent:'center', gap:'12px', flexWrap:'wrap' as const }}>
-                    <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Post Your Gear</button>
-                    <button style={{ border:'2px solid #2dd4bf', color:'#2dd4bf', backgroundColor:'transparent', padding:'12px 24px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Request Sourcing</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── CINEMA & VIDEO ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <SectionHeader title="Cinema & Video Production" />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {cinema.map(item=><CamCard key={item.id} item={item} />)}
-          </div>
-        </section>
-
-        {/* ── GRIP & MONITORING ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <SectionHeader title="Advanced Grip & Monitoring" />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {grip.map(item=><CamCard key={item.id} item={item} />)}
-          </div>
-        </section>
-
-        {/* ── DIAMOND BANNER ── */}
-        <section style={{ marginBottom:'64px' }}>
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'48px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'linear-gradient(135deg, #2dd4bf 0%, #2dd4bf 100%)', boxShadow:'0 20px 60px rgba(0,107,95,0.3)', gap:'32px' }}>
-            <div style={{ maxWidth:'560px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', color:'rgba(255,255,255,0.82)', fontWeight:700, marginBottom:'16px', fontSize:'13px', textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>
-                ◆ Exclusive Privilege
-              </div>
-              <h3 style={{ fontSize:'36px', fontWeight:700, color:'white', marginBottom:'20px', letterSpacing:'-0.02em', lineHeight:1.2 }}>Unlock the Power of Diamond Membership.</h3>
-              <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.7 }}>Priority placement, verified trust status, and direct WhatsApp marketing tools to sell 5x faster in the Rabat premium market.</p>
-              <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
-                <button style={{ backgroundColor:'white', color:'#2dd4bf', border:'none', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', transition:'transform 0.2s' }}
-                  onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-                  onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-                >Get Diamond Status</button>
-                <button style={{ backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.25)', color:'white', padding:'16px 36px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', transition:'background 0.2s' }}
-                  onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.22)'}
-                  onMouseLeave={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.15)'}
-                >Learn More</button>
-              </div>
-            </div>
-            <div style={{ position:'relative', width:'280px', height:'280px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(255,255,255,0.08)', borderRadius:'50%', animation:'pulse 2s infinite' }} />
-              <div style={{ width:'200px', height:'200px', backgroundColor:'rgba(45,212,191,0.3)', borderRadius:'40px', transform:'rotate(12deg)', border:'4px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <span style={{ fontSize:'80px' }}>◆</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── ACTION & ADVENTURE ── */}
-        <section style={{ marginBottom:'80px' }}>
-          <SectionHeader title="Action & Adventure Capture" />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {action.map(item=><CamCard key={item.id} item={item} />)}
-          </div>
-        </section>
-
-      </div>
-
-      {/* ── JOIN SOUKNI FAMILY ── */}
-      <section style={{ position:'relative', overflow:'hidden', marginBottom:'64px' }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto', padding:'0 40px' }}>
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', backgroundColor:'#2dd4bf', minHeight:'480px', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'64px', gap:'48px' }}>
-            <div style={{ maxWidth:'480px', position:'relative', zIndex:1 }}>
-              <h2 style={{ fontSize:'48px', fontWeight:700, color:'white', marginBottom:'16px', letterSpacing:'-0.02em', lineHeight:1.1 }}>Join the<br />SouKni Family</h2>
-              <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.9)', marginBottom:'36px', lineHeight:1.7, maxWidth:'400px' }}>Download our premium mobile experience for real-time alerts and exclusive marketplace deals.</p>
-              <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
-                {[{icon:'📱',store:'App Store',sub:'Download on the'},{icon:'🤖',store:'Google Play',sub:'Get it on'}].map(app=>(
-                  <a key={app.store} href="#" style={{ display:'flex', alignItems:'center', gap:'12px', backgroundColor:'#0f172a', color:'white', padding:'12px 22px', borderRadius:'14px', textDecoration:'none', transition:'filter 0.15s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
-                    onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.15)'}
-                    onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-                  >
-                    <span style={{ fontSize:'28px' }}>{app.icon}</span>
-                    <div>
-                      <div style={{ fontSize:'9px', fontWeight:700, opacity:0.6, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>{app.sub}</div>
-                      <div style={{ fontSize:'15px', fontWeight:700 }}>{app.store}</div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div style={{ position:'relative', flexShrink:0 }}>
-              <div style={{ width:'280px', height:'480px', position:'relative', transform:'translateY(20px)' }}>
-                <img src={I.app} alt="SouKni App" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'32px', boxShadow:'0 32px 80px rgba(0,0,0,0.25)' }} />
-              </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ── FOOTER ── */}
+        <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
+          {[
+            { emoji:'✨', label:'New Arrivals', active:true },
+            { emoji:'📉', label:'Price Drop Alert', active:false },
+            { emoji:'🛍️', label:'Shop Sellers', active:false },
+          ].map(chip=>(
+            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+              {chip.emoji} {chip.label}
+            </button>
+          ))}
+        </div>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM CAMERAS</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Cinema &amp; Camera Collection</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gridTemplateRows:'280px 280px', gap:16, marginBottom:16 }}>
+            <div style={{ gridRow:'span 2' }}>
+              <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
+                onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+                onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
+                <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
+              <img src={I.sony} alt="Electro Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 28px' }}>
+                <span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, fontWeight:900, padding:'4px 12px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:10, width:'fit-content' }}>SouKni Electro Pro</span>
+                <h3 style={{ ...UB, fontSize:18, color:'white', marginBottom:12, lineHeight:1.2 }}>Find your next<br/>certified camera today.</h3>
+                <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'9px 20px', borderRadius:100, fontSize:11, ...UB, cursor:'pointer' }}>Explore All</button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.auto} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Camera Discoveries</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
+            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
+            </button>
+          ))}
+          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+            Next <ChevronRight size={14} />
+          </button>
+        </div>
+
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={I.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Unlock the Power of Diamond.</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Priority placement, boosted visibility, and full access to Morocco's most serious camera buyers. Get started today.</p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Get early access to new drops, exclusive member deals, and Morocco's finest camera listings.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

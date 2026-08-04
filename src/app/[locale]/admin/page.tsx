@@ -2,14 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  LayoutDashboard, Users, Package, Shield, TrendingUp,
-  AlertTriangle, Check, X, Eye, MessageCircle, Sparkles,
-  ChevronRight, Search, Filter, MoreVertical, Ban,
-  CheckCircle, Clock, DollarSign, ArrowUp, ArrowDown,
-  Flag, Trash2, RefreshCw, Download, Bell, LogOut,
-  Star, MapPin, Calendar, Building2
-} from 'lucide-react'
+import { LayoutDashboard, Users, Package, Shield, TrendingUp, AlertTriangle, Check, X, Eye, MessageCircle, Sparkles, ChevronRight, Search, Filter, MoreVertical, Ban, CheckCircle, Clock, DollarSign, ArrowUp, ArrowDown, Flag, Trash2, RefreshCw, Download, Bell, LogOut, Star, MapPin, Calendar, Building2 } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type AdminTab = 'overview' | 'listings' | 'users' | 'diamond' | 'reports' | 'revenue'
@@ -546,7 +539,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
                 {['pending', 'approved', 'rejected'].map(f => (
                   <button key={f} onClick={() => setDiamondFilter(f)}
-                    style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 900, fontFamily: FONT, background: diamondFilter === f ? INK : 'white', color: diamondFilter === f ? 'white' : MUTED, border: `1px solid ${diamondFilter === f ? 'transparent' : '#e2eae6'}`, textTransform: 'capitalize', transition: 'all 0.15s' }}>
+                    style={{ padding: '8px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 900, fontFamily: FONT, background: diamondFilter === f ? INK : 'white', color: diamondFilter === f ? 'white' : MUTED, border: `1px solid ${diamondFilter === f ? 'transparent' : '#e2eae6'}`, textTransform: 'capitalize', transition: 'all 0.15s' }}>
                     {f} ({applications.filter(a => a.status === f).length})
                   </button>
                 ))}

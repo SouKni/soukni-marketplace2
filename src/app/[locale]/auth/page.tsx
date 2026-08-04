@@ -1,22 +1,26 @@
 'use client'
 
-import { useState, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, use, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Check, Chrome } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 type Mode = 'login' | 'register' | 'forgot'
 
-export default function AuthPage({ params }: { params: Promise<{ locale: string }> }) {
+function AuthPageInner({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
   const [showPass, setShowPass] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [agreed, setAgreed] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // form fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -30,6 +34,53 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
     'Get notified on price drops',
     'Become a Diamond Member',
   ]
+
+  const handleSignIn = async () => {
+    setError(null); setSubmitting(true)
+    try {
+      await signIn(email, password)
+      router.push(searchParams.get('next') || `/${locale}`)
+    } catch (e: any) {
+      setError(e.message || 'Could not sign in')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleRegister = async () => {
+    if (!agreed) return
+    if (password !== confirmPassword) { setError('Passwords do not match'); return }
+    setError(null); setSubmitting(true)
+    try {
+      await signUp(email, password, fullName, phone)
+      router.push(`/${locale}/welcome`)
+    } catch (e: any) {
+      setError(e.message || 'Could not create account')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleForgot = async () => {
+    setError(null); setSubmitting(true)
+    try {
+      await resetPassword(email)
+      setForgotSent(true)
+    } catch (e: any) {
+      setError(e.message || 'Could not send reset link')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleGoogle = async () => {
+    setError(null)
+    try {
+      await signInWithGoogle()
+    } catch (e: any) {
+      setError(e.message || 'Could not continue with Google')
+    }
+  }
 
   const InputField = ({
     icon, type, placeholder, value, onChange, right
@@ -65,6 +116,10 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
     </div>
   )
 
+  const ErrorBox = () => error ? (
+    <p style={{ background: '#fef2f2', color: '#dc2626', fontSize: '13px', padding: '10px 14px', borderRadius: '10px', marginBottom: '16px' }}>{error}</p>
+  ) : null
+
   return (
     <div style={{
       minHeight: '100vh', background: 'linear-gradient(135deg, #f4fbf8 0%, #e0faf6 50%, #f4fbf8 100%)',
@@ -78,20 +133,17 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
         boxShadow: '0 32px 80px rgba(0,0,0,0.12)', background: 'white'
       }}>
 
-        {/* LEFT PANEL — branding */}
         {mode !== 'forgot' && (
           <div style={{
             background: 'linear-gradient(160deg, #00D1B2 0%, #006b5f 100%)',
             padding: '56px 48px', display: 'flex', flexDirection: 'column',
             justifyContent: 'space-between', position: 'relative', overflow: 'hidden'
           }}>
-            {/* decorative circles */}
             <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '240px', height: '240px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
             <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
             <div style={{ position: 'absolute', top: '40%', right: '-20px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
 
             <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Logo */}
               <Link href={`/${locale}`} style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '48px' }}>
                   <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
@@ -110,7 +162,6 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                   : 'Buy, sell and discover amazing deals near you.'}
               </p>
 
-              {/* Benefits */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {benefits.map(b => (
                   <div key={b} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -123,7 +174,6 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
               </div>
             </div>
 
-            {/* Bottom stats */}
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '32px', paddingTop: '40px', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
               {[['2M+', 'Active Users'], ['500K+', 'Listings'], ['50+', 'Cities']].map(([num, label]) => (
                 <div key={label}>
@@ -135,14 +185,12 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
           </div>
         )}
 
-        {/* RIGHT PANEL — form */}
         <div style={{ padding: mode === 'forgot' ? '64px' : '56px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-          {/* Mode tabs */}
           {mode !== 'forgot' && (
             <div style={{ display: 'flex', background: '#F4FBF8', borderRadius: '14px', padding: '4px', marginBottom: '36px' }}>
               {(['login', 'register'] as const).map(m => (
-                <button key={m} onClick={() => setMode(m)} style={{
+                <button key={m} onClick={() => { setMode(m); setError(null) }} style={{
                   flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer',
                   background: mode === m ? 'white' : 'transparent',
                   color: mode === m ? '#1A1A1A' : '#7A7A7A',
@@ -156,7 +204,6 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
             </div>
           )}
 
-          {/* FORGOT PASSWORD */}
           {mode === 'forgot' && (
             <div style={{ maxWidth: '440px', margin: '0 auto', width: '100%', textAlign: 'center' }}>
               <Link href={`/${locale}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '40px' }}>
@@ -175,12 +222,14 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                   <p style={{ color: '#7A7A7A', fontSize: '15px', lineHeight: 1.6, marginBottom: '32px' }}>
                     Enter your email and we'll send you a link to reset your password.
                   </p>
+                  <ErrorBox />
                   <InputField icon={<Mail size={18} />} type="email" placeholder="Your email address" value={email} onChange={setEmail} />
                   <button
-                    onClick={() => setForgotSent(true)}
-                    style={{ width: '100%', marginTop: '16px', background: '#00D1B2', color: 'white', border: 'none', borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit' }}
+                    onClick={handleForgot}
+                    disabled={submitting}
+                    style={{ width: '100%', marginTop: '16px', background: '#00D1B2', color: 'white', border: 'none', borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700, cursor: submitting ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: submitting ? 0.7 : 1 }}
                   >
-                    Send Reset Link <ArrowRight size={16} />
+                    {submitting ? 'Sending...' : 'Send Reset Link'} <ArrowRight size={16} />
                   </button>
                 </>
               ) : (
@@ -195,33 +244,32 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                 </>
               )}
 
-              <button onClick={() => { setMode('login'); setForgotSent(false) }} style={{ marginTop: '24px', background: 'none', border: 'none', color: '#00D1B2', fontWeight: 600, fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={() => { setMode('login'); setForgotSent(false); setError(null) }} style={{ marginTop: '24px', background: 'none', border: 'none', color: '#00D1B2', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
                 ← Back to Sign In
               </button>
             </div>
           )}
 
-          {/* LOGIN FORM */}
           {mode === 'login' && (
             <>
               <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1A1A1A', marginBottom: '6px', letterSpacing: '-0.02em' }}>Sign in to SouKni</h1>
               <p style={{ color: '#7A7A7A', fontSize: '14px', marginBottom: '28px' }}>Good to see you again 👋</p>
 
-              {/* Social logins */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
-                {[
-                  { label: 'Google', bg: 'white', color: '#1A1A1A', border: '#E2EAE7', icon: <Chrome size={16} /> },
-                  { label: 'Phone', bg: '#25D366', color: 'white', border: '#25D366', icon: <Phone size={16} /> },
-                ].map(s => (
-                  <button key={s.label} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    background: s.bg, color: s.color, border: `1.5px solid ${s.border}`,
-                    borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'inherit'
-                  }}>
-                    {s.icon} Continue with {s.label}
-                  </button>
-                ))}
+                <button onClick={handleGoogle} style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: 'white', color: '#1A1A1A', border: '1.5px solid #E2EAE7',
+                  borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
+                }}>
+                  <Chrome size={16} /> Continue with Google
+                </button>
+                <button disabled title="Phone sign-in coming soon" style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: '#25D366', color: 'white', border: '1.5px solid #25D366', opacity: 0.5,
+                  borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600, cursor: 'not-allowed'
+                }}>
+                  <Phone size={16} /> Phone (soon)
+                </button>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -229,6 +277,8 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                 <span style={{ color: '#7A7A7A', fontSize: '12px', fontWeight: 500 }}>or with email</span>
                 <div style={{ flex: 1, height: '1px', background: '#E2EAE7' }} />
               </div>
+
+              <ErrorBox />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                 <InputField icon={<Mail size={18} />} type="email" placeholder="Email address" value={email} onChange={setEmail} />
@@ -243,50 +293,49 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
-                <button onClick={() => setMode('forgot')} style={{ background: 'none', border: 'none', color: '#00D1B2', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={() => { setMode('forgot'); setError(null) }} style={{ background: 'none', border: 'none', color: '#00D1B2', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                   Forgot password?
                 </button>
               </div>
 
-              <button style={{
+              <button onClick={handleSignIn} disabled={submitting} style={{
                 width: '100%', background: '#00D1B2', color: 'white', border: 'none',
                 borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: '8px', fontFamily: 'inherit', marginBottom: '20px'
+                cursor: submitting ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: '8px', marginBottom: '20px', opacity: submitting ? 0.7 : 1
               }}>
-                Sign In <ArrowRight size={16} />
+                {submitting ? 'Signing in...' : 'Sign In'} <ArrowRight size={16} />
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '13px', color: '#7A7A7A' }}>
                 Don't have an account?{' '}
-                <button onClick={() => setMode('register')} style={{ background: 'none', border: 'none', color: '#00D1B2', fontWeight: 700, cursor: 'pointer', fontSize: '13px', fontFamily: 'inherit' }}>
+                <button onClick={() => { setMode('register'); setError(null) }} style={{ background: 'none', border: 'none', color: '#00D1B2', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}>
                   Create one free
                 </button>
               </p>
             </>
           )}
 
-          {/* REGISTER FORM */}
           {mode === 'register' && (
             <>
               <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1A1A1A', marginBottom: '6px', letterSpacing: '-0.02em' }}>Create your account</h1>
               <p style={{ color: '#7A7A7A', fontSize: '14px', marginBottom: '28px' }}>Free forever. No credit card needed.</p>
 
-              {/* Social */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
-                {[
-                  { label: 'Google', bg: 'white', color: '#1A1A1A', border: '#E2EAE7', icon: <Chrome size={16} /> },
-                  { label: 'Phone', bg: '#25D366', color: 'white', border: '#25D366', icon: <Phone size={16} /> },
-                ].map(s => (
-                  <button key={s.label} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    background: s.bg, color: s.color, border: `1.5px solid ${s.border}`,
-                    borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'inherit'
-                  }}>
-                    {s.icon} {s.label}
-                  </button>
-                ))}
+                <button onClick={handleGoogle} style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: 'white', color: '#1A1A1A', border: '1.5px solid #E2EAE7',
+                  borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
+                }}>
+                  <Chrome size={16} /> Google
+                </button>
+                <button disabled title="Phone sign-in coming soon" style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  background: '#25D366', color: 'white', border: '1.5px solid #25D366', opacity: 0.5,
+                  borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: 600, cursor: 'not-allowed'
+                }}>
+                  <Phone size={16} /> Phone (soon)
+                </button>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -294,6 +343,8 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                 <span style={{ color: '#7A7A7A', fontSize: '12px', fontWeight: 500 }}>or with email</span>
                 <div style={{ flex: 1, height: '1px', background: '#E2EAE7' }} />
               </div>
+
+              <ErrorBox />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
                 <InputField icon={<User size={18} />} type="text" placeholder="Full name" value={fullName} onChange={setFullName} />
@@ -317,7 +368,6 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                 />
               </div>
 
-              {/* Password strength */}
               {password.length > 0 && (
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
@@ -336,7 +386,6 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
                 </div>
               )}
 
-              {/* Terms */}
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px', cursor: 'pointer' }}>
                 <div
                   onClick={() => setAgreed(!agreed)}
@@ -357,22 +406,23 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
               </label>
 
               <button
-                onClick={() => agreed && router.push(`/${locale}/welcome`)}
+                onClick={handleRegister}
+                disabled={!agreed || submitting}
                 style={{
                 width: '100%', background: agreed ? '#00D1B2' : '#E2EAE7',
                 color: agreed ? 'white' : '#7A7A7A', border: 'none',
                 borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700,
-                cursor: agreed ? 'pointer' : 'not-allowed',
+                cursor: agreed && !submitting ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: '8px', fontFamily: 'inherit', marginBottom: '16px',
+                gap: '8px', marginBottom: '16px', opacity: submitting ? 0.7 : 1,
                 transition: 'all 0.2s'
               }}>
-                Create Free Account <ArrowRight size={16} />
+                {submitting ? 'Creating account...' : 'Create Free Account'} <ArrowRight size={16} />
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '13px', color: '#7A7A7A' }}>
                 Already have an account?{' '}
-                <button onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: '#00D1B2', fontWeight: 700, cursor: 'pointer', fontSize: '13px', fontFamily: 'inherit' }}>
+                <button onClick={() => { setMode('login'); setError(null) }} style={{ background: 'none', border: 'none', color: '#00D1B2', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}>
                   Sign in
                 </button>
               </p>
@@ -381,5 +431,14 @@ export default function AuthPage({ params }: { params: Promise<{ locale: string 
         </div>
       </div>
     </div>
+  )
+}
+
+
+export default function AuthPage(props: any) {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
+      <AuthPageInner {...props} />
+    </Suspense>
   )
 }

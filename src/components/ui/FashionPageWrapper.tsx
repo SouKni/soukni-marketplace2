@@ -29,7 +29,7 @@ export function FashionBreadcrumb({ pageLabel }: { pageLabel: string }) {
   ]
 
   return (
-    <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em', color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing2:'0.12em', marginBottom:'12px' }}>
+    <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em', color:'#6b7a76', textTransform:'uppercase' as const, marginBottom:'12px' }}>
       {crumbs.map((c,i,arr)=>(
         <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
           {c.href
@@ -114,7 +114,7 @@ export function FashionFooter() {
           </div>
           {cols.map(col=>(
             <div key={col.title}>
-              <h4 style={{ fontSize:'10px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em', textTransform:'uppercase' as const, letterSpacing2:'0.15em', color:'#22d4a8', marginBottom:'20px' }}>{col.title}</h4>
+              <h4 style={{ fontSize:'10px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em', textTransform:'uppercase' as const, color:'#22d4a8', marginBottom:'20px' }}>{col.title}</h4>
               {col.links.map(link=>(
                 <Link key={link.label} href={link.href}
                   style={{ display:'block', fontSize:'13px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'rgba(255,255,255,0.65)', textDecoration:'none', marginBottom:'12px', transition:'color 0.15s' }}

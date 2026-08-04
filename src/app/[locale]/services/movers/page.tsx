@@ -1,117 +1,80 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
+import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, X, SlidersHorizontal } from 'lucide-react'
 
-const HERO = 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=1600'
+const HERO = 'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=1600'
+
+const SUBCATS = [
+  { slug:'local-moves',   label:'Local Moves',   image:'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=600' },
+  { slug:'long-distance', label:'Long Distance', image:'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&w=600' },
+  { slug:'office-moves',  label:'Office Moves',  image:'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=600' },
+  { slug:'international', label:'International', image:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=600' },
+  { slug:'storage',       label:'Storage',       image:'https://images.pexels.com/photos/3846022/pexels-photo-3846022.jpeg?auto=compress&w=600' },
+  { slug:'packing',       label:'Packing',       image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=600' },
+]
 
 const topChoices = [
-  {
-    id: 'm1',
-    title: 'Elite Home Relocation — Full-Service Moving Company',
-    desc: 'Morocco\'s most trusted relocation company. Full packing, transport, unpacking, and furniture assembly. Fleet of 12 trucks covering all major cities. Insurance included on every move.',
-    price: 2500,
-    location: 'Casablanca, Ain Diab',
-    rating: 4.9,
-    reviews: 524,
-    image: 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=800',
-  },
-  {
-    id: 'm2',
-    title: 'Pro Team Removals — Villa & Apartment Specialists',
-    desc: 'Specialist removal team for high-end villas, riads, and luxury apartments. White-glove service with climate-controlled vehicles for fragile and valuable items.',
-    price: 1800,
-    location: 'Rabat, Souissi',
-    rating: 4.8,
-    reviews: 312,
-    image: 'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=800',
-  },
-  {
-    id: 'm3',
-    title: 'Swift Move Solutions — Same-Day Emergency Moving',
-    desc: 'Available 7 days a week including public holidays. Guaranteed same-day service across Casablanca, Rabat, and Marrakech. Student and corporate rates available.',
-    price: 900,
-    location: 'Marrakech, Guéliz',
-    rating: 4.7,
-    reviews: 418,
-    image: 'https://images.pexels.com/photos/4246118/pexels-photo-4246118.jpeg?auto=compress&w=800',
-  },
+  { id:'m1', title:'Premium Full-Home Relocation', price:4800, location:'Casablanca', rating:4.9, reviews:62, image:'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=800', desc:'Morocco\'s most trusted full-service moving company. We handle packing, transport, and unpacking for your entire home with a dedicated team and full insurance cover.' },
+  { id:'m2', title:'Office Relocation Specialists', price:8500, location:'Rabat', rating:4.9, reviews:48, image:'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&w=800', desc:'Minimal downtime office relocations across Morocco. IT equipment handling, server migration coordination, and full furniture dismantling and reassembly.' },
+  { id:'m3', title:'International Relocation Europe and Beyond', price:18000, location:'Tangier', rating:4.8, reviews:34, image:'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=800', desc:'Door-to-door international moves from Morocco to Europe, the Gulf and beyond. Customs clearance, sea and air freight, and pet relocation included.' },
 ]
 
-const bentoListings = [
-  { id:'bm1', title:'Piano & Heavy Furniture Movers',    price:800,  location:'Casablanca', image:'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
-  { id:'bm2', title:'Office & Corporate Relocation',     price:3500, location:'Rabat',      image:'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=600' },
-  { id:'bm3', title:'International Shipping & Customs',  price:5000, location:'Tangier',    image:'https://images.pexels.com/photos/4246118/pexels-photo-4246118.jpeg?auto=compress&w=600' },
-  { id:'bm4', title:'Student & Small Moves Express',     price:450,  location:'Casablanca', image:'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
-  { id:'bm5', title:'Art & Antique Transport Specialist', price:1200, location:'Marrakech',  image:'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=600' },
+const allListings = [
+  { id:'mb1', title:'Same-Day Studio Apartment Move',    price:1200,  location:'Casablanca', image:'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=400' },
+  { id:'mb2', title:'Long Distance Rabat to Agadir',     price:3500,  location:'Rabat',      image:'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&w=400' },
+  { id:'mb3', title:'Climate-Controlled Storage Unit',   price:800,   location:'Casablanca', image:'https://images.pexels.com/photos/3846022/pexels-photo-3846022.jpeg?auto=compress&w=400' },
+  { id:'mb4', title:'Full Packing and Unpacking Service',price:2200,  location:'Marrakech',  image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=400' },
+  { id:'mb5', title:'Furniture-Only Move Villa',         price:2800,  location:'Rabat',      image:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=400' },
+  { id:'md1', title:'Student Move Package',              price:800,   location:'Casablanca', image:'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=400' },
+  { id:'md2', title:'Piano and Fragile Items Move',      price:1800,  location:'Rabat',      image:'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&w=400' },
+  { id:'md3', title:'Morocco to France Sea Freight',     price:12000, location:'Tangier',    image:'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=400' },
+  { id:'md4', title:'Document Archive Storage',          price:400,   location:'Casablanca', image:'https://images.pexels.com/photos/3846022/pexels-photo-3846022.jpeg?auto=compress&w=400' },
+  { id:'md5', title:'End-of-Tenancy Clean and Move',    price:2400,  location:'Marrakech',  image:'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&w=400' },
+  { id:'md6', title:'Emergency Same-Day Move',           price:1600,  location:'Casablanca', image:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=400' },
+  { id:'md7', title:'Vehicle Transport Cross-Country',   price:3200,  location:'Rabat',      image:'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=400' },
+  { id:'md8', title:'Art and Antique Packing Experts',  price:2600,  location:'Casablanca', image:'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&w=400' },
 ]
 
-const discoveryGrid = [
-  { id:'dm1',  title:'Careful Hands Logistics',           price:1500, location:'Casablanca', image:'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
-  { id:'dm2',  title:'Storage & Warehousing Solutions',   price:600,  location:'Rabat',      image:'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=600' },
-  { id:'dm3',  title:'Packing Materials & Supplies',      price:200,  location:'Casablanca', image:'https://images.pexels.com/photos/4246118/pexels-photo-4246118.jpeg?auto=compress&w=600' },
-  { id:'dm4',  title:'Furniture Disassembly & Assembly',  price:350,  location:'Tangier',    image:'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
-  { id:'dm5',  title:'Van Rental with Driver',            price:800,  location:'Agadir',     image:'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=600' },
-  { id:'dm6',  title:'Appliance Installation Service',    price:400,  location:'Rabat',      image:'https://images.pexels.com/photos/4246118/pexels-photo-4246118.jpeg?auto=compress&w=600' },
-  { id:'dm7',  title:'Cross-City Long Distance Moving',   price:2200, location:'Fès',        image:'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
-  { id:'dm8',  title:'Last-Minute Moving Team',           price:1100, location:'Casablanca', image:'https://images.pexels.com/photos/4246119/pexels-photo-4246119.jpeg?auto=compress&w=600' },
-]
-
-const pills = ['All Movers','Local Moves','Long Distance','Office Moves','International','Storage','Packing','View More']
+const BUDGETS = ['Any Budget','0-1000 MAD','1000-3000 MAD','3000-8000 MAD','8000+ MAD']
+const AVAILABILITIES = ['Anytime','This Week','This Month','Urgent Same-Day']
 
 function CertifiedBadge() {
-  return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase', letterSpacing:'0.08em' }}>
-      ✦ SOUKNI CERTIFIED
-    </span>
-  )
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
 }
-
 function Stars({ rating }: { rating: number }) {
-  return (
-    <div style={{ display:'flex', gap:'1px' }}>
-      {[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}
-    </div>
-  )
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
 }
-
-function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
+function TopCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
     <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hovered?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
-        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
-          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hovered?'scale(1.06)':'scale(1)' }} />
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:`1px solid ${hov?'#22d4a8':'#f1f5f9'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'280px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>
-        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-              <Stars rating={item.rating} />
-              <span style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'13px', color:'#161d1b' }}>{item.rating}</span>
-              <span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} reviews)</span>
-            </div>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} reviews)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
             <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
-            <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'12px', color:'#6b7a76' }}>
-              <MapPin size={12} /> {item.location}
-            </div>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
           </div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
-            <div>
-              <span style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'24px', color:'#22d4a8' }}>{item.price} MAD</span>
-              <span style={{ fontSize:'12px', color:'#6b7a76' }}> / move</span>
-            </div>
+            <span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span>
             <div style={{ display:'flex', gap:'8px' }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}>
-                <MessageCircle size={13} />Chat
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px', transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#22d4a8';e.currentTarget.style.color='white'}} onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color='#22d4a8'}}>
+                <MessageCircle size={13} />Message
               </button>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer', transition:'opacity 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>WhatsApp</button>
             </div>
           </div>
         </div>
@@ -119,27 +82,27 @@ function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: s
     </Link>
   )
 }
-
-function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
+function ListingCard({ item, locale }: { item: typeof allListings[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
     <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hovered?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:`1px solid ${hov?'#22d4a8':'#f1f5f9'}`, boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
         <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
-          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovered?'scale(1.06)':'scale(1)' }} />
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
         </div>
-        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
             <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
-            <h4 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
-            <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'18px', color:'#22d4a8' }}>{item.price} MAD</p>
+            <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+            <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
           </div>
           <div style={{ display:'flex', gap:'6px', marginTop:'12px' }}>
-            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Message</button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:saved?'#22d4a8':'#eef5f2', color:saved?'white':'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer', transition:'all 0.2s' }}>{saved?'Saved':'Message'}</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer', transition:'opacity 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>WhatsApp</button>
           </div>
         </div>
       </div>
@@ -149,247 +112,324 @@ function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale
 
 export default function MoversPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [city, setCity] = useState('')
-  const [keyword, setKeyword] = useState('')
-  const [activePill, setActivePill] = useState('All Movers')
-  const [activeSeller, setActiveSeller] = useState('All Sellers')
+
+  // Search state
+  const [heroCity, setHeroCity]       = useState('')
+  const [heroKeyword, setHeroKeyword] = useState('')
+  const [applied, setApplied]         = useState({ city:'', keyword:'' })
+
+  // Filter bar state
+  const [budget, setBudget]           = useState('Any Budget')
+  const [availability, setAvailability] = useState('Anytime')
+  const [budgetOpen, setBudgetOpen]   = useState(false)
+  const [availOpen, setAvailOpen]     = useState(false)
+
+  // UI state
+  const [tab, setTab]     = useState('All')
   const [diamond, setDiamond] = useState(true)
-  const [activePage, setActivePage] = useState(1)
-  const [viewMode, setViewMode] = useState<'grid'|'list'>('grid')
+  const [grid, setGrid]   = useState(true)
+  const [page, setPage]   = useState(1)
+  const [chip, setChip]   = useState('New Arrivals')
+
+  function applySearch() {
+    setApplied({ city: heroCity, keyword: heroKeyword })
+    setBudgetOpen(false)
+    setAvailOpen(false)
+  }
+
+  function clearAll() {
+    setHeroCity(''); setHeroKeyword('')
+    setApplied({ city:'', keyword:'' })
+    setBudget('Any Budget'); setAvailability('Anytime')
+  }
+
+  const filtered = useMemo(() => {
+    return allListings.filter(item => {
+      const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
+      const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
+      const mb = budget === 'Any Budget'      ? true
+               : budget === '0-1000 MAD'      ? item.price <= 1000
+               : budget === '1000-3000 MAD'   ? item.price > 1000 && item.price <= 3000
+               : budget === '3000-8000 MAD'   ? item.price > 3000 && item.price <= 8000
+               : item.price > 8000
+      return mc && mk && mb
+    })
+  }, [applied, budget])
+
+  const hasFilters = applied.city || applied.keyword || budget !== 'Any Budget' || availability !== 'Anytime'
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
 
-      <section style={{ position:'relative', height:'440px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src={HERO} alt="Movers & Removals" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(15,23,42,0.88), rgba(15,23,42,0.4))' }} />
+      {/* HERO */}
+      <section style={{ position:'relative', height:'400px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={HERO} alt="Movers & Storage" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
         <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
-          <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>
-            Find Trusted Movers &amp; Removal Experts Near You!
-          </h1>
-          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>6,183 verified moving professionals across Morocco</p>
-          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
-            <div style={{ display:'flex', flexDirection:'column', padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
-              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca"
-                style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
+          <p style={{ fontSize:'11px', fontWeight:800, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:'12px' }}>SOUKNI SERVICES</p>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(28px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Movers & Storage</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'28px' }}>Local moves, long distance, international relocation, storage and packing across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'620px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={heroCity} onChange={e=>setHeroCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Rabat, Casablanca..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <div style={{ display:'flex', flexDirection:'column', padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
-              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Local move, office, storage..."
-                style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Local move, storage, packing..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, flex:1 }} />
+                {heroKeyword && <button onClick={()=>setHeroKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.6)', display:'flex' }}><X size={13}/></button>}
+              </div>
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'}
-              onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
-              <Search size={16} /> Search
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 28px', fontWeight:800, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
+              <Search size={15} /> Search
             </button>
           </div>
+          {(heroCity||heroKeyword) && !applied.keyword && !applied.city &&
+            <p style={{ marginTop:'10px', fontSize:'12px', color:'rgba(255,255,255,0.55)' }}>Press Search or hit Enter to filter results</p>
+          }
         </div>
       </section>
 
-      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
-          {[
-            { label:'City', val:'Casablanca' },
-            { label:'Keyword', val:'What moving service do you need?' },
-            { label:'Neighborhood', val:'All Areas' },
-            { label:'Ads Posted', val:'Anytime' },
-            { label:'Filters', val:'All Filters' },
-          ].map((f,i)=>(
-            <div key={f.label} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column', cursor:'pointer', gap:'1px' }}>
-              <span style={{ fontSize:'9px', textTransform:'uppercase', fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{f.label}</span>
-              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{f.val}</span>
+      {/* FILTER BAR */}
+      <div style={{ maxWidth:'1440px', margin:'-24px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', display:'flex', alignItems:'stretch', height:'68px' }}>
+
+          {/* CITY */}
+          <div style={{ flex:1, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, justifyContent:'center', gap:'2px' }}>
+            <span style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>CITY</span>
+            <input value={heroCity} onChange={e=>setHeroCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Any city" style={{ fontSize:'14px', fontWeight:600, color:'#161d1b', border:'none', outline:'none', background:'none', width:'100%' }} />
+          </div>
+
+          {/* KEYWORD */}
+          <div style={{ flex:2, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, justifyContent:'center', gap:'2px' }}>
+            <span style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>KEYWORD</span>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+              <Search size={12} color="#6b7a76" />
+              <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Local move, storage, packing..." style={{ fontSize:'14px', fontWeight:600, color:'#161d1b', border:'none', outline:'none', background:'none', flex:1 }} />
+              {heroKeyword && <button onClick={()=>{setHeroKeyword('');setApplied(p=>({...p,keyword:''}))}} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7a76', display:'flex' }}><X size={13}/></button>}
             </div>
-          ))}
-          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
+          </div>
+
+          {/* BUDGET DROPDOWN */}
+          <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.3)' }}>
+            <button onClick={()=>{setBudgetOpen(!budgetOpen);setAvailOpen(false)}} style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+              <span style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>BUDGET</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:'14px', fontWeight:600, color:budget==='Any Budget'?'#6b7a76':'#161d1b' }}>{budget}</span>
+                <span style={{ color:'#22d4a8', fontSize:'10px', transition:'transform 0.2s', display:'inline-block', transform:budgetOpen?'rotate(180deg)':'rotate(0)' }}>▾</span>
+              </div>
+            </button>
+            {budgetOpen && (
+              <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'200px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0' }}>
+                {BUDGETS.map(b=>(
+                  <button key={b} onClick={()=>{setBudget(b);setBudgetOpen(false)}} style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', fontWeight:600, color:budget===b?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {b}{budget===b&&<span>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* AVAILABILITY DROPDOWN */}
+          <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.3)' }}>
+            <button onClick={()=>{setAvailOpen(!availOpen);setBudgetOpen(false)}} style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+              <span style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>AVAILABILITY</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:'14px', fontWeight:600, color:availability==='Anytime'?'#6b7a76':'#161d1b' }}>{availability}</span>
+                <span style={{ color:'#22d4a8', fontSize:'10px', transition:'transform 0.2s', display:'inline-block', transform:availOpen?'rotate(180deg)':'rotate(0)' }}>▾</span>
+              </div>
+            </button>
+            {availOpen && (
+              <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'200px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0' }}>
+                {AVAILABILITIES.map(a=>(
+                  <button key={a} onClick={()=>{setAvailability(a);setAvailOpen(false)}} style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', fontWeight:600, color:availability===a?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {a}{availability===a&&<span>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SEARCH BUTTON */}
+          <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 28px', borderRadius:'0 100px 100px 0', fontWeight:800, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
             <Search size={16} /> SEARCH
           </button>
         </div>
       </div>
 
-      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px' }}>
+      <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
 
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }}>Services</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Movers &amp; Removals</span>
+        {/* BREADCRUMB */}
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Home</Link><span>›</span>
+          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Services</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Movers & Storage</span>
         </nav>
 
-        <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b', marginBottom:'4px' }}>Movers &amp; Removal Companies in Rabat</h2>
-        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'16px' }}>6,183 Ads in Rabat District</p>
-
-        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
-          {pills.map(pill=>(
-            <button key={pill} onClick={()=>setActivePill(pill)}
-              style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap', transition:'all 0.15s', backgroundColor:activePill===pill?'#161d1b':'#e8efec', color:activePill===pill?'white':'#3c4a46' }}>
-              {pill}
-            </button>
-          ))}
+        {/* TITLE + ACTIVE FILTERS */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap' as const, gap:'12px' }}>
+          <div>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b', marginBottom:'4px' }}>Movers & Storage in Morocco</h2>
+            <p style={{ fontSize:'14px', color:'#6b7a76' }}>
+              {filtered.length} service{filtered.length!==1?'s':''} found
+              {applied.keyword && <span style={{ color:'#22d4a8' }}> for "{applied.keyword}"</span>}
+              {applied.city    && <span style={{ color:'#6b7a76' }}> in {applied.city}</span>}
+            </p>
+          </div>
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' as const, alignItems:'center' }}>
+            {applied.city && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'5px 12px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', fontSize:'12px', fontWeight:700 }}>
+                {applied.city}
+                <button onClick={()=>{setApplied(p=>({...p,city:''}));setHeroCity('')}} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button>
+              </span>
+            )}
+            {applied.keyword && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'5px 12px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', fontSize:'12px', fontWeight:700 }}>
+                "{applied.keyword}"
+                <button onClick={()=>{setApplied(p=>({...p,keyword:''}));setHeroKeyword('')}} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button>
+              </span>
+            )}
+            {budget !== 'Any Budget' && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'5px 12px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', fontSize:'12px', fontWeight:700 }}>
+                {budget}
+                <button onClick={()=>setBudget('Any Budget')} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button>
+              </span>
+            )}
+            {hasFilters && (
+              <button onClick={clearAll} style={{ padding:'5px 14px', borderRadius:'100px', border:'1px solid #ef4444', backgroundColor:'white', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#ef4444', transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#ef4444';e.currentTarget.style.color='white'}} onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color='#ef4444'}}>
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
 
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap', gap:'10px' }}>
-          <div style={{ display:'flex', gap:'6px' }}>
-            {['All Sellers','SouKni Members','SouKni Pro'].map(tab=>(
-              <button key={tab} onClick={()=>setActiveSeller(tab)}
-                style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?'#161d1b':'#6b7a76' }}>
-                {tab}
-              </button>
+        {/* SUB-CATEGORY TILES */}
+        <section style={{ marginBottom:'32px' }}>
+          <h2 style={{ fontWeight:900, fontSize:'14px', color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'16px' }}>BROWSE BY TYPE</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'12px' }}>
+            {SUBCATS.map(sub=>(
+              <Link key={sub.slug} href={`/${locale}/services/movers/${sub.slug}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', borderRadius:'20px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s', aspectRatio:'1/1' }}
+                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.04)'}
+                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={sub.image} alt={sub.label} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.82),rgba(0,0,0,0.1))' }} />
+                  <div style={{ position:'absolute', bottom:'10px', left:'10px', right:'10px' }}>
+                    <p style={{ fontSize:'11px', fontWeight:800, color:'white', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{sub.label}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* UTILITY BAR */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'#e8efec', borderRadius:'100px' }}>
+            {['All','Online','In-Person','Home Visit'].map(t=>(
+              <button key={t} onClick={()=>setTab(t)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'11px', fontWeight:700, cursor:'pointer', border:'none', transition:'all 0.2s', backgroundColor:tab===t?'#161d1b':'transparent', color:tab===t?'white':'#6b7a76', boxShadow:tab===t?'0 2px 8px rgba(0,0,0,0.15)':'none' }}>{t}</button>
             ))}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
-              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Diamond Verified First</span>
               <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
                 <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
-            <div style={{ display:'flex', gap:'6px', borderLeft:'1px solid rgba(186,202,197,0.3)', paddingLeft:'12px' }}>
-              {[{icon:'↕',label:'Sort: Default'},{icon:'🔔',label:'Save Search'}].map(btn=>(
-                <button key={btn.label} style={{ display:'flex', alignItems:'center', gap:'5px', padding:'7px 12px', borderRadius:'10px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
-                  {btn.icon} {btn.label}
-                </button>
-              ))}
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b', transition:'all 0.2s' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b', transition:'all 0.2s' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             </div>
           </div>
         </div>
 
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'32px', flexWrap:'wrap', gap:'10px' }}>
-          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-            {[
-              { emoji:'✨', label:'New Arrivals', active:true },
-              { emoji:'📉', label:'Price Drop Alert', active:false },
-              { emoji:'🛍️', label:'Shop Sellers', active:false },
-            ].map(chip=>(
-              <button key={chip.label}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?'#161d1b':'white', color:chip.active?'white':'#3c4a46' }}>
-                {chip.emoji} {chip.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display:'flex', gap:'6px' }}>
-            <button onClick={()=>setViewMode('grid')}
-              style={{ width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'10px', border:'none', cursor:'pointer', backgroundColor:viewMode==='grid'?'#161d1b':'#e8efec', color:viewMode==='grid'?'white':'#3c4a46' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            </button>
-            <button onClick={()=>setViewMode('list')}
-              style={{ width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'10px', border:'none', cursor:'pointer', backgroundColor:viewMode==='list'?'#161d1b':'#e8efec', color:viewMode==='list'?'white':'#3c4a46' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
-          </div>
+        {/* QUICK CHIPS */}
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {['New Arrivals','Top Rated','Best Price'].map(c=>(
+            <button key={c} onClick={()=>setChip(c)} style={{ padding:'8px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:chip===c?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip===c?'#161d1b':'white', color:chip===c?'white':'#3c4a46', transition:'all 0.15s' }}
+              onMouseEnter={e=>{if(chip!==c){e.currentTarget.style.borderColor='#22d4a8';e.currentTarget.style.color='#161d1b'}}}
+              onMouseLeave={e=>{if(chip!==c){e.currentTarget.style.borderColor='rgba(186,202,197,0.5)';e.currentTarget.style.color='#3c4a46'}}}>{c}</button>
+          ))}
         </div>
 
+        {/* TOP CHOICES */}
         <section style={{ marginBottom:'40px' }}>
-          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
-          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopCard key={item.id} item={item} locale={locale} />)}
         </section>
 
+        {/* DARK BANNER */}
         <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
           <div>
-            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles &amp; Electro Pro</p>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
-            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)', marginBottom:'24px', lineHeight:1.6 }}>Our certified SouKni network ensures you get the best tech deals across Morocco.</p>
-            <div style={{ display:'flex', gap:'12px' }}>
-              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button>
-              </Link>
-              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
-            </div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>List your luxury property where Morocco's elite browse.</h3>
+            <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer', transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>Explore Properties</button></Link>
           </div>
           <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
-            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
           </div>
         </div>
 
-        <section style={{ marginBottom:'40px' }}>
-          <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Movers Collection</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
-            {bentoListings.slice(0,3).map(item=>(
-              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
-                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
-                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
-                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
-                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
-                    <h3 style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
-                    <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'17px', color:'#22d4a8' }}>{item.price} MAD</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {bentoListings.slice(3).map(item=>(
-              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
-                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
-                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
-                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
-                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
-                    <h3 style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
-                    <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'18px', color:'#22d4a8' }}>{item.price} MAD</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
-          <div>
-            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Elevate your lifestyle with Morocco's most exclusive real estate and rental spaces.</h3>
-            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
-              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button>
-              </Link>
-              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
-            </div>
-          </div>
-          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
-            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-          </div>
-        </div>
-
+        {/* LISTINGS */}
         <section style={{ marginBottom:'40px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
-            <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Movers &amp; Removal Services</h2>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>
+              {filtered.length > 0 ? `${filtered.length} Moving Services` : 'No results found'}
+            </h2>
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
-          </div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign:'center' as const, padding:'60px 20px', backgroundColor:'white', borderRadius:'24px', border:'1px solid rgba(107,122,118,0.1)' }}>
+              <p style={{ fontSize:'18px', fontWeight:700, color:'#161d1b', marginBottom:'8px' }}>No services match your search</p>
+              <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'20px' }}>Try a different city, keyword or budget range</p>
+              <button onClick={clearAll} style={{ padding:'11px 28px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', border:'none', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Clear Filters</button>
+            </div>
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:grid?'1fr 1fr':'1fr', gap:'16px' }}>
+              {filtered.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            </div>
+          )}
         </section>
 
+        {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(page=>(
-            <button key={page} onClick={()=>setActivePage(page)}
-              style={{ width:'36px', height:'36px', borderRadius:'10px', border:activePage===page?'none':'1px solid #e2e8f0', backgroundColor:activePage===page?'#22d4a8':'white', color:activePage===page?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
-              {page}
-            </button>
-          ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>
-            Next <ChevronRight size={14} />
-          </button>
+          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', transition:'all 0.2s' }}>{p}</button>)}
         </div>
 
-        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap', marginBottom:'64px' }}>
+        {/* JOIN */}
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'48px' }}>
           <div>
-            <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
-            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>List your moving company today for free and reach thousands of families and businesses across Morocco.</p>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>List your moving or storage service for free and reach thousands of customers across Morocco.</p>
             <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
-              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
-              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer', transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#161d1b';e.currentTarget.style.color='white'}} onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color='#0f9b8e'}}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer', transition:'all 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.35)'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.2)'}>Google Play</button>
             </div>
           </div>
           <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
-            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' }}>Post Free Ad →</span>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s' }}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='#161d1b';(e.currentTarget as HTMLElement).style.color='white'}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='white';(e.currentTarget as HTMLElement).style.color='#0f9b8e'}}>Post Free Ad →</span>
           </Link>
         </section>
+
+        {/* BACK */}
+        <div style={{ textAlign:'center' as const }}>
+          <Link href={`/${locale}/services`}
+            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 40px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
+            ← Back to All Services
+          </Link>
+        </div>
 
       </div>
     </div>

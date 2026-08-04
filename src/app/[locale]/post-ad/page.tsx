@@ -2,10 +2,9 @@
 
 import { useState, use, useRef } from 'react'
 import Link from 'next/link'
-import {
-  ChevronRight, ChevronLeft, Check, Upload, X, MapPin,
-  Tag, FileText, Camera, DollarSign, Eye, Sparkles
-} from 'lucide-react'
+import AiPhotoEnhancer from '@/components/ui/AiPhotoEnhancer'
+import VideoUpload from '@/components/ui/VideoUpload'
+import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -240,8 +239,16 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
           {/* STEP 1 */}
           {step === 1 && (
             <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 900, color: INK, marginBottom: '6px', letterSpacing: '-0.05em' }}>What are you selling?</h2>
-              <p style={{ fontSize: '14px', color: MUTED, marginBottom: '28px', fontWeight: 700 }}>Choose the best category for your item.</p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '28px', flexWrap: 'wrap' }}>
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: INK, marginBottom: '6px', letterSpacing: '-0.05em' }}>What are you selling?</h2>
+                  <p style={{ fontSize: '14px', color: MUTED, fontWeight: 700 }}>Choose the best category for your item.</p>
+                </div>
+                <a href={`/${locale}/post-ad-voice`}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '100px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(34,212,168,0.3)' }}>
+                  🎤 Post by Voice Instead
+                </a>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '28px' }}>
                 {CATEGORIES.map(cat => (
                   <button key={cat.slug} onClick={() => { setCategory(cat.slug); setSubcategory(''); setShowAllSubs(false) }}
@@ -390,6 +397,17 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
                 </div>
                 <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>{photos.length === 0 ? 'Click to upload photos' : `Add more (${photos.length}/12)`}</p>
                 <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>JPG, PNG, WEBP — Max 10MB each</p>
+              </div>
+              {/* AI Photo Enhancer */}
+              <div style={{ marginTop: '12px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 900, color: INK, marginBottom: '8px' }}>✨ Enhance with AI</p>
+                <AiPhotoEnhancer onEnhanced={(url) => setPhotos(prev => [url, ...prev.slice(0, 11)])} />
+              </div>
+
+              {/* Video Upload */}
+              <div style={{ marginTop: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 900, color: INK, marginBottom: '8px' }}>🎥 Add a video (optional)</p>
+                <VideoUpload />
               </div>
               {photos.length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>

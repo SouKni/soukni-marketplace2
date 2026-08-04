@@ -202,8 +202,8 @@ export default function HeavyVehiclesPage({ params }: { params: Promise<{ locale
             <div key={f.label} style={{ flex:f.flex, padding:'8px 20px', borderRight: i<arr.length-1?'1px solid rgba(255,255,255,0.4)':'none', cursor:'pointer' }}>
               <div style={{ fontSize:'8px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:'rgba(22,29,27,0.55)', marginBottom:'3px' }}>{f.label}</div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'6px' }}>
-                <span style={{ fontSize:'13px', ...UB, color: f.btn?C.mintDk:C.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}
-                  style2={{ color: f.btn ? C.mint : C.ink } as any}
+                <span style={{ fontSize:'13px', ...UB, color: f.btn?C.mint:C.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}
+                  
                 >{f.val}</span>
                 {!f.btn && <span style={{ color:C.mint, flexShrink:0, fontSize:'13px' }}>▾</span>}
               </div>

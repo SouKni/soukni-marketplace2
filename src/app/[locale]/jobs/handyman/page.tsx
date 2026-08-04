@@ -1,297 +1,302 @@
 'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Search, MapPin, Globe, Bell, User, ChevronDown, MessageCircle, Car, Gem, Wrench, Zap, Wifi, Wind, Shield, Sun, Cpu, Droplets, Camera, Building2, Settings } from 'lucide-react'
+import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 
-const categoryPills = ['All Jobs', 'Elevator Tech', 'AC Tech', 'Internet Tech', 'Electrical Tech', 'Plumbing', 'CCTV Tech']
-
-type Job = {
-  id: string; badge: 'Verified' | 'Diamond' | null; category: string; title: string
-  location: string; salary: string; icon: any; image: string
+const HERO = 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800'
+const topChoices = [
+  { id:'hm1', title:'Senior Property Maintenance Technician', desc:'Luxury residential complex in Casablanca seeking a Senior Maintenance Technician for plumbing, electrical, and general repairs across 200 units. On-call availability and 7+ years experience required.', price:12000, location:'Casablanca, Ain Diab', rating:4.9, reviews:56, image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hm2', title:'Facilities Maintenance Manager — Office Campus', desc:'Corporate campus in Rabat hiring a Facilities Manager to oversee 15-person maintenance team covering HVAC, electrical, plumbing, and general repairs across 25,000sqm.', price:20000, location:'Rabat, Hay Riad', rating:4.8, reviews:42, image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hm3', title:'Multi-Skilled Handyman — Villa Compound', desc:'Exclusive villa compound in Marrakech seeking a Multi-Skilled Handyman for daily maintenance, minor repairs, and guest requests. Pool maintenance knowledge is a plus.', price:9000, location:'Marrakech, Palmeraie', rating:4.9, reviews:38, image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+]
+const bentoListings = [
+  { id:'hb1', title:'AC Installation & Repair Technician', price:10000, location:'Casablanca', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hb2', title:'Painter & Decorator — Residential', price:7000, location:'Rabat', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hb3', title:'Carpenter & Joinery Specialist', price:9000, location:'Casablanca', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hb4', title:'Tiler — Kitchen & Bathroom', price:8000, location:'Marrakech', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hb5', title:'General Handyman — Part Time', price:5500, location:'Tangier', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+]
+const discoveryGrid = [
+  { id:'hd1', title:'Appliance Repair Technician', price:8000, location:'Casablanca', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hd2', title:'Plumbing Repair Handyman', price:7500, location:'Rabat', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hd3', title:'Locksmith & Door Specialist', price:7000, location:'Casablanca', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hd4', title:'Garden & Outdoor Maintenance', price:6000, location:'Marrakech', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hd5', title:'Pool Maintenance Technician', price:8000, location:'Marrakech', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hd6', title:'CCTV & Alarm System Installer', price:9000, location:'Casablanca', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+  { id:'hd7', title:'Flooring Installation Specialist', price:8500, location:'Rabat', image:'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=800' },
+  { id:'hd8', title:'Solar Panel Maintenance Tech', price:10000, location:'Agadir', image:'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&w=800' },
+]
+const pills = ['All Handyman', 'Plumbing Repairs', 'Electrical Fixes', 'Painting', 'Carpentry', 'AC & Appliances', 'View More']
+const pillSlugs: Record<string,string> = {
+  'Plumbing Repairs':'plumbing-repairs',
+  'Electrical Fixes':'electrical-fixes',
+  'Painting':'painting',
+  'Carpentry':'carpentry',
+  'AC & Appliances':'ac-appliances',
 }
+const jobTabs = ['All', 'Full-Time', 'Part-Time', 'Freelance']
 
-const jobsRow1: Job[] = [
-  { id: '1', badge: 'Verified', category: 'Plumbing', title: 'Expert Plumber', location: 'Agdal, Rabat', salary: '6,500', icon: Droplets, image: 'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&w=600' },
-  { id: '2', badge: null, category: 'Electrical', title: 'Master Electrician', location: 'Hay Riad, Rabat', salary: '8,000', icon: Zap, image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600' },
-  { id: '3', badge: null, category: 'Tech', title: 'IT Support Specialist', location: 'Technopolis, Rabat', salary: '9,500', icon: Cpu, image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&w=600' },
-  { id: '4', badge: null, category: 'HVAC', title: 'HVAC Technician', location: 'Souissi, Rabat', salary: '7,200', icon: Wind, image: 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=600' },
-]
-
-const jobsRow2: Job[] = [
-  { id: '5', badge: null, category: 'Maintenance', title: 'Appliance Repair Pro', location: 'Hassan, Rabat', salary: '5,800', icon: Wrench, image: 'https://images.pexels.com/photos/4792733/pexels-photo-4792733.jpeg?auto=compress&w=600' },
-  { id: '6', badge: null, category: 'Tech', title: 'Smart Home Installer', location: 'Orangers, Rabat', salary: '10,000', icon: Wifi, image: 'https://images.pexels.com/photos/3183183/pexels-photo-3183183.jpeg?auto=compress&w=600' },
-  { id: '7', badge: null, category: 'Auto', title: 'Vehicle Diagnostic Tech', location: 'Akkari, Rabat', salary: '7,500', icon: Car, image: 'https://images.pexels.com/photos/3806288/pexels-photo-3806288.jpeg?auto=compress&w=600' },
-  { id: '8', badge: null, category: 'Garden', title: 'Irrigation Systems Pro', location: 'Embassies Area, Rabat', salary: '6,200', icon: Droplets, image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg?auto=compress&w=600' },
-]
-
-const jobsRow3: Job[] = [
-  { id: '9', badge: 'Verified', category: 'IT', title: 'Senior IT Architect', location: 'Hay Riad, Rabat', salary: '25,000', icon: Cpu, image: 'https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&w=600' },
-  { id: '10', badge: 'Diamond', category: 'Electrical', title: 'Industrial Electrician', location: 'Ain Sebaa, Rabat', salary: '12,500', icon: Zap, image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&w=600' },
-  { id: '11', badge: 'Verified', category: 'Design', title: 'UX/UI Designer', location: 'Technopolis, Rabat', salary: '18,000', icon: Settings, image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&w=600' },
-  { id: '12', badge: 'Verified', category: 'Solar', title: 'Solar Panel Tech', location: 'Souissi, Rabat', salary: '9,000', icon: Sun, image: 'https://images.pexels.com/photos/9799878/pexels-photo-9799878.jpeg?auto=compress&w=600' },
-]
-
-const jobsRow4: Job[] = [
-  { id: '13', badge: 'Verified', category: 'Network', title: 'Network Engineer', location: 'Agdal, Rabat', salary: '16,500', icon: Wifi, image: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&w=600' },
-  { id: '14', badge: 'Diamond', category: 'HVAC', title: 'HVAC Project Lead', location: 'Hassan, Rabat', salary: '14,000', icon: Wind, image: 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=600' },
-  { id: '15', badge: 'Verified', category: 'Data', title: 'Data Analyst', location: 'Technopolis, Rabat', salary: '15,000', icon: Cpu, image: 'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&w=600' },
-  { id: '16', badge: 'Verified', category: 'Engineering', title: 'Civil Engineer', location: 'Orangers, Rabat', salary: '19,000', icon: Building2, image: 'https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg?auto=compress&w=600' },
-]
-
-const jobsRow5: Job[] = [
-  { id: '17', badge: 'Verified', category: 'Management', title: 'Project Manager', location: 'Hay Riad, Rabat', salary: '22,000', icon: Settings, image: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=600' },
-  { id: '18', badge: 'Diamond', category: 'Automation', title: 'Automation Specialist', location: 'Technopolis, Rabat', salary: '17,500', icon: Cpu, image: 'https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg?auto=compress&w=600' },
-  { id: '19', badge: 'Verified', category: 'Security', title: 'Security Systems Pro', location: 'Agdal, Rabat', salary: '11,000', icon: Shield, image: 'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&w=600' },
-  { id: '20', badge: 'Verified', category: 'Cloud', title: 'Cloud Architect', location: 'Hay Riad, Rabat', salary: '28,000', icon: Wifi, image: 'https://images.pexels.com/photos/1181271/pexels-photo-1181271.jpeg?auto=compress&w=600' },
-]
-
-const jobsRow6: Job[] = [
-  { id: '21', badge: 'Verified', category: 'Solar', title: 'Solar EPC Manager', location: 'Rabat, Souissi', salary: '20,000', icon: Sun, image: 'https://images.pexels.com/photos/9799878/pexels-photo-9799878.jpeg?auto=compress&w=600' },
-  { id: '22', badge: 'Diamond', category: 'CCTV', title: 'CCTV Lead Technician', location: 'Hay Riad, Rabat', salary: '8,500', icon: Camera, image: 'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&w=600' },
-  { id: '23', badge: 'Verified', category: 'Plumbing', title: 'Plumbing Supervisor', location: 'Agdal, Rabat', salary: '10,500', icon: Droplets, image: 'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&w=600' },
-  { id: '24', badge: 'Diamond', category: 'Automation', title: 'PLC Programmer', location: 'Technopolis, Rabat', salary: '21,000', icon: Cpu, image: 'https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg?auto=compress&w=600' },
-]
-
-function badgeEl(badge: Job['badge']) {
-  if (!badge) return null
-  if (badge === 'Diamond') return (
-    <span style={{ backgroundColor: 'rgba(255,172,90,0.2)', backdropFilter: 'blur(8px)', color: '#8d4f00', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-      <Gem size={12} /> Diamond
-    </span>
-  )
-  return (
-    <span style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#2dd4bf', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-      ✓ Verified
-    </span>
-  )
+function CertifiedBadge() {
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
 }
-
-function JobCard({ job }: { job: Job }) {
+function Stars({ rating }: { rating: number }) {
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
+}
+function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
-    <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', display: 'flex', flexDirection: 'column' as const, transition: 'transform 0.3s, box-shadow 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)' }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)' }}
-    >
-      <div style={{ height: '192px', position: 'relative', overflow: 'hidden' }}>
-        <img src={job.image} alt={job.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-        />
-        <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '8px' }}>
-          <span style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#2dd4bf', fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px' }}>{job.category}</span>
-          {badgeEl(job.badge)}
-        </div>
-        <button onClick={() => setSaved(!saved)} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.8)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Heart size={16} color="#2dd4bf" fill={saved ? '#2dd4bf' : 'none'} />
-        </button>
-      </div>
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column' as const, flex: 1 }}>
-        <h4 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px', color: '#161d1b' }}>{job.title}</h4>
-        <p style={{ color: '#3c4a46', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
-          <MapPin size={14} color="#2dd4bf" /> {job.location}
-        </p>
-        <div style={{ fontSize: '22px', fontWeight: 800, color: '#2dd4bf', marginBottom: '24px' }}>
-          {job.salary} MAD <span style={{ fontSize: '14px', fontWeight: 400, color: '#3c4a46' }}>/ month</span>
-        </div>
-        <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-          <button style={{ flex: 1, backgroundColor: '#2dd4bf', color: 'white', padding: '12px', borderRadius: '12px', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>Apply Now</button>
-          <button style={{ padding: '12px', backgroundColor: '#eef5f2', borderRadius: '12px', border: 'none', cursor: 'pointer', color: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MessageCircle size={20} />
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function JobGrid({ jobs }: { jobs: Job[] }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
-      {jobs.map(job => <JobCard key={job.id} job={job} />)}
-    </div>
-  )
-}
-
-export default function HandymanJobsPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = React.use(params)
-  const [activePill, setActivePill] = useState('All Jobs')
-
-  return (
-    <div style={{ fontFamily: 'Hanken Grotesk, Inter, sans-serif', backgroundColor: '#f4fbf8', color: '#161d1b', minHeight: '100vh' }}>
-
-      {/* HEADER */}
-
-      {/* HERO */}
-      <section style={{ position: 'relative', height: '540px', paddingTop: '80px', overflow: 'hidden' }}>
-        <img src="https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&w=1600" alt="Technical workspace" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(22,29,27,0.4) 0%, rgba(22,29,27,0.2) 100%)' }} />
-        <div style={{ position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '0 40px', textAlign: 'center' as const }}>
-          <h1 style={{ color: 'white', fontSize: '48px', fontWeight: 700, marginBottom: '32px', textShadow: '0 4px 16px rgba(0,0,0,0.4)', maxWidth: '800px' }}>Expert Handyman &amp; Technician Jobs in Rabat</h1>
-          <div style={{ width: '100%', maxWidth: '900px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '1.5rem', padding: '16px', display: 'flex', gap: '16px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'white', borderRadius: '12px', padding: '12px 20px', border: '1px solid rgba(186,202,197,0.3)' }}>
-              <Search size={18} color="#2dd4bf" />
-              <input placeholder="What role are you looking for?" style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontFamily: 'inherit', fontSize: '15px', color: '#161d1b' }} />
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} applicants)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
+            <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span><span style={{ fontSize:'12px', color:'#6b7a76' }}> / month</span></div>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Apply Now</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
             </div>
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '16px 40px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '15px', whiteSpace: 'nowrap' as const }}>Search</button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  return (
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+        <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
+        </div>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
+          <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+          <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'6px' }}>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Apply</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+export default function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = React.use(params)
+  const [city, setCity] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [activePill, setActivePill] = useState(pills[0])
+  const [tab, setTab] = useState('All')
+  const [diamond, setDiamond] = useState(true)
+  const [page, setPage] = useState(1)
+  const [grid, setGrid] = useState(true)
+
+  return (
+    <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
+      <section style={{ position:'relative', height:'440px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={HERO} alt='Handyman & Technician' style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Find Top Handyman & Technician Jobs!</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>390 verified handyman & technician positions across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
 
-      {/* FILTER BAR + CATEGORY PILLS */}
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
-        <section style={{ marginTop: '-40px', position: 'relative', zIndex: 20, marginBottom: '32px' }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '100px', padding: '8px', display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.08)', border: '1px solid rgba(186,202,197,0.1)' }}>
-            {[
-              { icon: MapPin, label: 'City', value: 'Rabat' },
-              { icon: MapPin, label: 'Neighborhood', value: 'Agdal' },
-              { icon: null, label: 'Salary', value: 'Range' },
-              { icon: null, label: 'Filters', value: '2 Applied' },
-            ].map((f, i) => (
-              <div key={f.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRight: i < 3 ? '1px solid rgba(186,202,197,0.3)' : 'none', cursor: 'pointer' }}>
-                {f.icon && <f.icon size={16} color="#2dd4bf" />}
-                <div>
-                  <div style={{ fontSize: '10px', textTransform: 'uppercase' as const, color: '#6b7a76', fontWeight: 700, letterSpacing: '0.08em' }}>{f.label}</div>
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: '#161d1b' }}>{f.value}</div>
-                </div>
+      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
+          {[['City','Casablanca'],['Job Title','Search...'],['Experience','All Levels'],['Salary','Any Range'],['Filters','All']].map(([l,v],i)=>(
+            <div key={l} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
+              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
+            </div>
+          ))}
+          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}><Search size={16} /> SEARCH</button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Handyman & Technician</span>
+        </nav>
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Handyman & Technician Jobs in Morocco</h2>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Save Search
+            </button>
+          </div>
+        </div>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'16px' }}>390 Handyman & Technician positions across Morocco</p>
+
+        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
+          {pills.map(p=>
+            pillSlugs[p] ? (
+              <Link key={p} href={`/${locale}/jobs/handyman/${pillSlugs[p]}`} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}>{p}</Link>
+            ) : (
+              <button key={p} onClick={()=>setActivePill(p)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap' as const, backgroundColor:activePill===p?'#161d1b':'#e8efec', color:activePill===p?'white':'#3c4a46' }}>{p}</button>
+            )
+          )}
+        </div>
+
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'6px' }}>
+            {jobTabs.map(t=><button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:tab===t?'#dde4e1':'transparent', color:tab===t?'#161d1b':'#6b7a76' }}>{t}</button>)}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
               </div>
+            </div>
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {[{emoji:'✨',label:'New Listings',active:true},{emoji:'💰',label:'Top Salaries',active:false},{emoji:'🏢',label:'Top Employers',active:false}].map(c=>(
+            <button key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46' }}>{c.emoji} {c.label}</button>
+          ))}
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+        </section>
+
+        <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles & Electro Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
+            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)', marginBottom:'24px', lineHeight:1.6 }}>Our certified SouKni network ensures you get the best tech deals across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px' }}>
+              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Handyman & Technician Collection</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
+            {bentoListings.slice(0,3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'17px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {bentoListings.slice(3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
 
-        {/* CATEGORY PILLS */}
-        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '12px', marginBottom: '32px' }}>
-          {categoryPills.map(c => (
-            <button key={c} onClick={() => setActivePill(c)}
-              style={{ padding: '8px 24px', borderRadius: '100px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer',
-                backgroundColor: activePill === c ? '#2dd4bf' : 'rgba(45,212,191,0.15)', color: activePill === c ? 'white' : '#161d1b',
-                backdropFilter: 'blur(8px)', border: activePill === c ? 'none' : '1px solid rgba(45,212,191,0.3)' }}>
-              {c}
-            </button>
+        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Elevate your lifestyle with Morocco's most exclusive real estate.</h3>
+            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
+              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Handyman & Technician Positions</h2>
+            <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
           ))}
+          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
         </div>
 
-        {/* RECRUITER BANNER */}
-        <section style={{ marginBottom: '48px' }}>
-          <div style={{ backgroundColor: 'rgba(45,212,191,0.1)', border: '2px solid rgba(45,212,191,0.2)', borderRadius: '1.5rem', padding: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' as const }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <div style={{ width: '64px', height: '64px', backgroundColor: '#2dd4bf', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px rgba(45,212,191,0.3)', flexShrink: 0 }}>
-                <Wrench size={32} color="#0f9b8e" />
-              </div>
-              <div>
-                <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#0f9b8e', marginBottom: '4px' }}>Are you a Service Company?</h2>
-                <p style={{ color: '#3c4a46', fontSize: '15px' }}>Find Your Next Star Technician — 100% Free Ads for Recruiters.</p>
-              </div>
-            </div>
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '16px 40px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,107,95,0.3)', whiteSpace: 'nowrap' as const }}>
-              Post a FREE Recruitment Ad
-            </button>
-          </div>
-        </section>
-
-        {/* TOP OPPORTUNITIES HEADER */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '24px', fontWeight: 700 }}>Top Opportunities in Rabat</h3>
-          <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>View all 1,420 jobs →</a>
-        </div>
-
-        {/* ROW 1 + 2 */}
-        <JobGrid jobs={jobsRow1} />
-        <JobGrid jobs={jobsRow2} />
-
-        {/* DIAMOND BANNER */}
-        <section style={{ marginBottom: '16px' }}>
-          <div style={{ background: 'linear-gradient(90deg, #161d1b, #3c4a46)', borderRadius: '1.5rem', height: '128px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', overflow: 'hidden', position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(255,255,255,0.05), transparent)', pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', position: 'relative', zIndex: 1 }}>
-              <div style={{ width: '64px', height: '64px', border: '1px solid rgba(255,172,90,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Gem size={36} color="#ffac5a" />
-              </div>
-              <div>
-                <h4 style={{ color: 'white', fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>Diamond Recruitment Membership</h4>
-                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Get unlimited job posts and priority placement in search results.</p>
-              </div>
-            </div>
-            <button style={{ position: 'relative', zIndex: 1, backgroundColor: 'white', color: '#161d1b', padding: '12px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'transform 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-              Upgrade Now
-            </button>
-          </div>
-        </section>
-
-        {/* DUAL SPLIT: APP DOWNLOAD + AUTO PRO */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          {/* APP DOWNLOAD */}
-          <div style={{ backgroundColor: '#2dd4bf', borderRadius: '1.5rem', padding: '40px', minHeight: '220px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: '60%' }}>
-              <h4 style={{ color: 'white', fontSize: '28px', fontWeight: 700, marginBottom: '16px', lineHeight: 1.2 }}>Join the SouKni Family</h4>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', marginBottom: '24px' }}>Download the app for instant notifications on new technician jobs in Rabat.</p>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button style={{ backgroundColor: 'black', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  📱 App Store
-                </button>
-                <button style={{ backgroundColor: 'black', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  ▶ Play Store
-                </button>
-              </div>
-            </div>
-            <div style={{ position: 'absolute', right: '-32px', bottom: '-32px', width: '200px', height: '200px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '1.5rem', transform: 'rotate(12deg)' }} />
-          </div>
-          {/* AUTO PRO */}
-          <div style={{ backgroundColor: '#e8efec', borderRadius: '1.5rem', padding: '40px', minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
-            <div>
-              <h4 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px', color: '#161d1b' }}>SouKni Auto Pro</h4>
-              <p style={{ color: '#3c4a46', fontSize: '14px', marginBottom: '24px' }}>Professional car detailing and maintenance specialists across Rabat.</p>
-              <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '12px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>Discover More</button>
-            </div>
-            <div style={{ width: '120px', height: '120px', backgroundColor: 'rgba(0,107,95,0.1)', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Car size={56} color="#2dd4bf" />
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>
+          <div>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>Post your handyman & technician job today for free and reach thousands of qualified candidates across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
             </div>
           </div>
-        </section>
-
-        {/* ROWS 3, 4, 5, 6 */}
-        <div style={{ marginTop: '48px', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: '24px', fontWeight: 700 }}>Specialist Technical Roles</h3>
-          <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>View all →</a>
-        </div>
-        <JobGrid jobs={jobsRow3} />
-        <JobGrid jobs={jobsRow4} />
-        <JobGrid jobs={jobsRow5} />
-        <div style={{ marginBottom: '48px' }}><JobGrid jobs={jobsRow6} /></div>
-
-        {/* FINAL AUTO PRO CINEMATIC BANNER */}
-        <section style={{ marginBottom: '64px' }}>
-          <div style={{ position: 'relative', borderRadius: '1.5rem', overflow: 'hidden', height: '280px', display: 'flex', alignItems: 'center' }}>
-            <img src="https://images.pexels.com/photos/3806288/pexels-photo-3806288.jpeg?auto=compress&w=1400" alt="Auto Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }} />
-            <div style={{ position: 'relative', zIndex: 1, padding: '0 48px', maxWidth: '560px' }}>
-              <h2 style={{ color: 'white', fontSize: '32px', fontWeight: 700, marginBottom: '16px' }}>SouKni Auto Pro</h2>
-              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '17px', marginBottom: '32px', lineHeight: 1.6 }}>The ultimate platform for automotive professionals in Morocco. List your inventory and reach thousands of buyers.</p>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '14px 36px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'transform 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                  Get Started
-                </button>
-                <button style={{ border: '2px solid white', color: 'white', padding: '14px 36px', borderRadius: '100px', backgroundColor: 'transparent', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>Learn More</button>
-              </div>
-            </div>
-            <Car size={200} color="white" style={{ position: 'absolute', right: '40px', bottom: '-20px', opacity: 0.08 }} />
-          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
+          </Link>
         </section>
       </div>
-
-      {/* FOOTER */}
-
-      {/* FAB */}
-      <button style={{ position: 'fixed', bottom: '40px', right: '40px', width: '64px', height: '64px', backgroundColor: '#2dd4bf', color: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: '32px', boxShadow: '0 8px 32px rgba(0,107,95,0.4)', zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s' }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-        +
-      </button>
     </div>
   )
 }

@@ -1,352 +1,432 @@
-export default function MobilesPage() {
+'use client'
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useMarket } from '@/context/MarketContext'
 
-  const featuredPremium = [
-    { id: 1, badge: "diamond", spec: "NEW",       location: "Rabat, Agdal",    title: "iPhone 15 Pro Max 256GB Titanium",      price: "12,850 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLtcwe_yn3xQG2cu7cX6mS9Zkt3M5mipHIvnRV130OBhNUBu94rrOD_achOd0g0aHHMsVe5XTJUuWN6lRk30tngWZzaBXNY0istauba2Ai--A8vQcdNjVbqJCE4wrdJCvEPvf0H9ru-jBBZZ4YPrKt9cJRhfy_E1Ly7JmQsh5rBWSiooZ33ixEwwLet7lB5sA0NOkoziKMCorXrnxOa88AMHTBfQEEAm6BnFnAypVG_k0_v0ZhyqwE0kYg" },
-    { id: 2, badge: "pro",     spec: "NEW",       location: "Rabat, Souissi",  title: "Samsung Galaxy S24 Ultra 512GB",        price: "11,200 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvaktLxk2aAjxOO5k9dT7TxLTda6V30ATybH9rTJwXCViX_5beU3_p0I0QrLfm_CZjFqzCuRrAYpzYhWPFIZWBXgOhmUfp6AHQvlyOcAqQjpw0-1JfmxODvK_YZzeHAPvDPuqXdhQIyFKSNGclFXYss60C1FkgcAtChOif-m8MxwwwYLzS9aS7JW13IhA4ej2RhR1YysyG7eI9tkIFELak9IF99lqhqhXRhN0IwCkeEveI1WQGG8lUNjQ" },
-    { id: 3, badge: "diamond", spec: "IN STOCK",  location: "Rabat, Hassan",   title: "Google Pixel 8 Pro 128GB Obsidian",     price: "8,150 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLugRSaGggeoSN85zaabMpWOF00tUza48mwDj1o1JvJ2lvH-wya6BKzCcDJt7wN7O7rRKbpraIUT6gXT9_lR98GP2d6XotnxdnB7ncKHZhgR-3bij8CNmFOs6ubrg1zkTKzDadmytK4YRrlEUo4OMc98Tufjj09KXBIU0bZ_5gO6PaLBexHbBe_7_zt662c2cQUdjjmlsivDg8Tc3WoJp2eZFUnNHHU-p1yiFAZI0zkhuq8Sk8xemwRztA" },
-    { id: 4, badge: "verified",spec: "TOP CHOICE",location: "Rabat, Hay Riad", title: "Xiaomi 14 Ultra Photography Kit",        price: "13,250 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAnDrNWbVaQuwKe0Y4Y-4GW_pYLLjoQrudXAWA6PuK4J-PcJSHrPsUHnlQhQgRNxXsdg3E5HtVo9k72Tka1jQCNqIQSNNTYdjLFEyxIhDYMBydcW9dAGYnZjSKOqtfmhA-4zu39HuVTnOT5MEGhOUNSN2zQhntvlF942OKcpt_1rYsMdZK889dlLswwZfiM864uB6OUIoOQxOkZihNO8lqFTS95n_JvZyRPETNBRxtmYOtWDIPq4_7thZlkrAR6T8Vt1zN0ZA0QsA" },
+const I = {
+  hero:  'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=1600',
+  ph1:   'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=600',
+  ph2:   'https://images.pexels.com/photos/1042143/pexels-photo-1042143.jpeg?auto=compress&w=600',
+  ph3:   'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&w=600',
+  ph4:   'https://images.pexels.com/photos/1440727/pexels-photo-1440727.jpeg?auto=compress&w=600',
+  ph5:   'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=600',
+  ph6:   'https://images.pexels.com/photos/1042143/pexels-photo-1042143.jpeg?auto=compress&w=600',
+  ph7:   'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&w=600',
+  ph8:   'https://images.pexels.com/photos/1440727/pexels-photo-1440727.jpeg?auto=compress&w=600',
+  immo:  'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:  'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
+}
+
+type Badge = 'diamond' | 'certified' | 'pro' | null
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
+
+const featuredListings: Listing[] = [
+  { id:'f1', badge:'diamond',   title:'iPhone 15 Pro Max 256GB — Natural Titanium', price:16500, location:'Casablanca', time:'Just now',  image:I.ph1 },
+  { id:'f2', badge:'certified', title:'Samsung Galaxy S24 Ultra 512GB',             price:14000, location:'Rabat',      time:'1h ago',    image:I.ph2 },
+  { id:'f3', badge:'pro',       title:'Google Pixel 9 Pro XL 256GB',                price:11000, location:'Marrakech',  time:'2h ago',    image:I.ph3 },
+  { id:'f4', badge:'diamond',   title:'iPhone 15 Pro 128GB — Black Titanium',       price:13500, location:'Tangier',    time:'3h ago',    image:I.ph4 },
+]
+
+const exclusiveListings: Listing[] = [
+  { id:'e1', badge:'diamond',   title:'iPhone 15 Pro Max 512GB — White Titanium',   price:18500, location:'Casablanca', time:'Just now',  image:I.ph1 },
+  { id:'e2', badge:'certified', title:'Samsung Galaxy S24+ 256GB Titanium Gray',    price:9500,  location:'Rabat',      time:'1h ago',    image:I.ph2 },
+  { id:'e3', badge:'pro',       title:'Huawei Pura 70 Ultra 1TB',                   price:12000, location:'Agadir',     time:'2h ago',    image:I.ph3 },
+  { id:'e4', badge:'diamond',   title:'Google Pixel 9 Pro Fold 256GB',              price:15000, location:'Fès',        time:'3h ago',    image:I.ph4 },
+]
+
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',   title:'iPhone 14 Pro Max 256GB',                   price:9800,  location:'Casablanca', time:'Just now',  image:I.ph1 },
+  { id:'d2',  badge:'certified', title:'Samsung Galaxy A55 5G 256GB',               price:3200,  location:'Rabat',      time:'1h ago',    image:I.ph2 },
+  { id:'d3',  badge:'pro',       title:'Xiaomi 14 Ultra 512GB',                     price:8500,  location:'Tangier',    time:'2h ago',    image:I.ph3 },
+  { id:'d4',  badge:'diamond',   title:'OnePlus 12 16GB/512GB',                     price:5800,  location:'Marrakech',  time:'3h ago',    image:I.ph4 },
+  { id:'d5',  badge:'certified', title:'Samsung Galaxy S23 FE 128GB',               price:4200,  location:'Casablanca', time:'4h ago',    image:I.ph5 },
+  { id:'d6',  badge:'diamond',   title:'iPhone 13 128GB — Midnight',                price:6500,  location:'Rabat',      time:'5h ago',    image:I.ph6 },
+  { id:'d7',  badge:'pro',       title:'Realme GT 5 Pro 256GB',                     price:3800,  location:'Agadir',     time:'6h ago',    image:I.ph7 },
+  { id:'d8',  badge:'certified', title:'Nokia X30 5G 256GB',                        price:2900,  location:'Fès',        time:'7h ago',    image:I.ph8 },
+  { id:'d9',  badge:'diamond',   title:'iPhone 15 128GB — Pink',                    price:10500, location:'Casablanca', time:'8h ago',    image:I.ph1 },
+  { id:'d10', badge:'certified', title:'Samsung Galaxy Z Flip 5 256GB',             price:8900,  location:'Rabat',      time:'9h ago',    image:I.ph2 },
+  { id:'d11', badge:'pro',       title:'Xiaomi Redmi Note 13 Pro+ 256GB',           price:2400,  location:'Marrakech',  time:'10h ago',   image:I.ph3 },
+  { id:'d12', badge:'diamond',   title:'iPhone 15 Plus 256GB — Blue',               price:11800, location:'Casablanca', time:'11h ago',   image:I.ph4 },
+]
+
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
+
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
+  if (type === 'diamond') return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
+    </span>
+  )
+  return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
+    </span>
+  )
+}
+
+function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
+  return (
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
+        </div>
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </article>
+    </Link>
+  )
+}
+
+export default function MobilesPage({ params }: { params: Promise<{ locale:string }> }) {
+  const { locale } = React.use(params)
+  const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [diamondFirst, setDiamondFirst] = useState(true)
+  const [activePill, setActivePill] = useState('All Mobiles')
+  const [page, setPage] = useState(1)
+  const [viewGrid, setViewGrid] = useState(true)
+  const pills = [
+    { label:'All Mobiles', slug:'all-mobiles' },
+    { label:'Apple',       slug:'apple'       },
+    { label:'Samsung',     slug:'samsung'     },
+    { label:'Google',      slug:'google'      },
+    { label:'Xiaomi',      slug:'xiaomi'      },
+    { label:'Huawei',      slug:'huawei'      },
+    { label:'OnePlus',     slug:'oneplus'     },
   ]
-
-  const moreDeals = [
-    // Row 1
-    { id: 5,  badge: "diamond", title: "iPhone 16 Pro Max 512GB Desert",         price: "16,400 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLtcwe_yn3xQG2cu7cX6mS9Zkt3M5mipHIvnRV130OBhNUBu94rrOD_achOd0g0aHHMsVe5XTJUuWN6lRk30tngWZzaBXNY0istauba2Ai--A8vQcdNjVbqJCE4wrdJCvEPvf0H9ru-jBBZZ4YPrKt9cJRhfy_E1Ly7JmQsh5rBWSiooZ33ixEwwLet7lB5sA0NOkoziKMCorXrnxOa88AMHTBfQEEAm6BnFnAypVG_k0_v0ZhyqwE0kYg" },
-    { id: 6,  badge: "pro",     title: "Samsung Z Fold 6 1TB AI Enhanced",       price: "21,200 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvaktLxk2aAjxOO5k9dT7TxLTda6V30ATybH9rTJwXCViX_5beU3_p0I0QrLfm_CZjFqzCuRrAYpzYhWPFIZWBXgOhmUfp6AHQvlyOcAqQjpw0-1JfmxODvK_YZzeHAPvDPuqXdhQIyFKSNGclFXYss60C1FkgcAtChOif-m8MxwwwYLzS9aS7JW13IhA4ej2RhR1YysyG7eI9tkIFELak9IF99lqhqhXRhN0IwCkeEveI1WQGG8lUNjQ" },
-    { id: 7,  badge: "diamond", title: "Google Pixel 9 Pro Fold Porcelain",       price: "19,500 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLugRSaGggeoSN85zaabMpWOF00tUza48mwDj1o1JvJ2lvH-wya6BKzCcDJt7wN7O7rRKbpraIUT6gXT9_lR98GP2d6XotnxdnB7ncKHZhgR-3bij8CNmFOs6ubrg1zkTKzDadmytK4YRrlEUo4OMc98Tufjj09KXBIU0bZ_5gO6PaLBexHbBe_7_zt662c2cQUdjjmlsivDg8Tc3WoJp2eZFUnNHHU-p1yiFAZI0zkhuq8Sk8xemwRztA" },
-    { id: 8,  badge: "verified",title: "Oppo Mobile phone 512 GO",                price: "11,800 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA_aqj7Dd8z3o5uspcCdx-sYWlLvW2SN7s8Af3QznPuNQZx2aInO20A9r6PMTIeVCAezl3u0l9pLkdofbX91oVnUfNfwG5teEzkQEGD83YwZvTPWQUmip6xSH5j663YOMfErMaDjxy5IyPmXKMbg0AzQJJ4nqfrALb8nuAE2ERs-H8nDt2kzVTlzbGhM0eKDUMgaW0lEqI1dezMmcUCPPzxj6TO1PKTx4tglroRDZIuseAghTXNEwB-j2FYUh8V3PRdOroD3TNVKA" },
-    // Row 2
-    { id: 9,  badge: null,      title: "ASUS ROG Phone 8 Pro 16/512GB",           price: "10,450 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvOboLZuiQFTNM7AWXA5RbvUGtCNK4ujfWIdmVfhxhNUNlbVJiZhYmjKqOogZc9Vs3Qq5QNICYDskoYOgFbX-pEC2yHWp7xgEkQvUQbHocDIzW_aCzyzdBmszAmmA5Kpa_brdXGhzgPc8A-3khbiU3vfnGql1ETl1xyZDaZZV2l2u8OX_jHzHwqcz-NVa44u1wrV4Tj1pPbG-VTzMNyuPnxH6bermEubtry3-IsNfy1aYBVZOlhMRto7Q" },
-    { id: 10, badge: null,      title: "OnePlus 12 5G Silky Black 256GB",         price: "7,900 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLvF5npOe2ROayaYDzGt28JmV1vDcK8uLCCyF9wIvXvu_uro2AfBT-UpUohKmshl2MNazjO47T4LW-oSEml6kajlGQKk3NXesV4_BUeb-chdDd0wyPEbJzuecQ1g35GZKG1dcDu47XtlJo_b7YVMiIu83pKICVtY_OpxNKOJ3K04ehqCOUNBCjec98fzVEMgKHdVFeIhSCoLcU3vcdZ66Kf2StMpBWc1xGMUP6v1Sl2qb8FhTzHO2zQVFQ" },
-    { id: 11, badge: null,      title: "Sony Xperia 1 TERRA VI Next-Gen AF",      price: "12,900 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvL9BUCS-5QkBm5nXknpav4z0W6RBibh34X8GHw501GpdF8ZZEEdXKsBHalQ_mswN6lRv1DGtTIFhmJ4kOi-IG4hFvy4O8-orAF5eVSb1bSEzEHsk8VamDxgjtPE_BfLSEK_dObdnjDrfHDNnavGUerqVn7_--RCGRk0NRtGp-z_g-zgfqUk7uA_7kqgy5C4StQWR1VaxEyMeP4sspFO9JzuH6L2oSrhbvvTFWLgdAstsa-nhndrdt6tA" },
-    { id: 12, badge: null,      title: "Xiaomi 14 Mobile Pro Leica Optics",       price: "8,250 MAD",  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAnDrNWbVaQuwKe0Y4Y-4GW_pYLLjoQrudXAWA6PuK4J-PcJSHrPsUHnlQhQgRNxXsdg3E5HtVo9k72Tka1jQCNqIQSNNTYdjLFEyxIhDYMBydcW9dAGYnZjSKOqtfmhA-4zu39HuVTnOT5MEGhOUNSN2zQhntvlF942OKcpt_1rYsMdZK889dlLswwZfiM864uB6OUIoOQxOkZihNO8lqFTS95n_JvZyRPETNBRxtmYOtWDIPq4_7thZlkrAR6T8Vt1zN0ZA0QsA" },
-    // Row 3
-    { id: 13, badge: null,      title: "iPhone Pro Max 2024 USB-C Midnight",      price: "6,150 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLtcwe_yn3xQG2cu7cX6mS9Zkt3M5mipHIvnRV130OBhNUBu94rrOD_achOd0g0aHHMsVe5XTJUuWN6lRk30tngWZzaBXNY0istauba2Ai--A8vQcdNjVbqJCE4wrdJCvEPvf0H9ru-jBBZZ4YPrKt9cJRhfy_E1Ly7JmQsh5rBWSiooZ33ixEwwLet7lB5sA0NOkoziKMCorXrnxOa88AMHTBfQEEAm6BnFnAypVG_k0_v0ZhyqwE0kYg" },
-    { id: 14, badge: null,      title: "Apple iPhone 15 Titanium",                price: "8,400 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLtoIxuCRjAaxOJpjqJKZIKRBZ2AEL0z9iyoVJlOQDY2q9BD1LC_9bLtGoagumoaGVTVZxpWl97Zf4RXswDy5sGJ9KPWuS6jD2A7G9--wXt-z1SJfmSUWl0njKZxnP64YhgN0NnXBd33k43cWa_tX-_CuUFR11GUq-jesYSOFOAHQ2NcinDrUM2qRp_6M9OafbAaK8MkYoxfndipIT2UDzfPDZAodjnOXyfwtMaiDAdnAGkS1qNh-rLfKA" },
-    { id: 15, badge: null,      title: 'Galaxy S24 Ultra 14.6" 5G',               price: "12,500 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA0ohJVuMbcHzW7Nwo7OJJzk7POV2CJgYISJIlg1rWPLr1POWinvOTtU7MfMup7SuBSL_j_iL8UhL8Y0-vGjOqN9fzqxrNbVqZ0iEXhWgOkFHLmh34fn59lUHU2NnP5JeFebGm-NfD4yollvw8bhVCCnLTOc7r7sN_fMLkBxOe-l_uLD5IfYWCHLyD0P489PZ-_eVVPj0ZBnOWNQdTnPDXOkVEYN01W0l5Tmy4jlLMBcciu8_hHsjdD2ggHOYZ52qEfleFB_L-gxA" },
-    { id: 16, badge: null,      title: "iPhone 12 Mini 2020 256GB",               price: "7,200 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLvjTVcsqg9amFR70JtiiYaQM8XHiEGl2Rn456gd6IGYNwXni8zU4BEQEiPLUwaN9aVcA8_D6cbnvtgWu0ifGSAL3ycVMNfQWTVNGnsFxcq_-l8EeU5tFgxvLmGJ7-9vljK3EUhuQgJyJcimBC1EBo2QOl4asFxrw2Bg8oLTvD9xFOJpQnjQX1Ig6sRyPFMARTYpHfFVv6tj3Ddb_NaHaur1cVqbRnGYOqYoBj4leKzFfglKT2hjZdp9-Q" },
-    // Row 4
-    { id: 17, badge: null,      title: "Nothing Phone (2a) White 128GB",          price: "3,850 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLtuVZwdOoQBikcR_HajLTCdl0m0GNW_LbUwD6TO7VD5JYHB9NS9BbTS-gQ4_f-HqGFY4qUpt4RW6VTxqz1Ul9WDJytJtawaWn7W8z920eo58Z9YOND3xTJc4QBJ321X9f4yv6eeHuEcDSz2DS64FtUP-AxdY7HCnQ_EhLuOyzOYIfwjBmN64_egCXjTTkhOYrg73CoDQ4DsOWYIMJHEz8uxeM3_xRDm7W7wqlDn2PglF-rjWnc17XM2" },
-    { id: 18, badge: null,      title: "Google Pixel 8a Obsidian Unlocked",       price: "4,950 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLuZdnFX4QTfkzOLV1mFtwIn5yEghLtV2PvYxjw74aV3ZNLEe5t4qLRdOZe2_LVUHWK9jd0wBZjFin0lTvcp0atxk9FXLpcft2GDv9NL0Ve-9aM4QTp48_nN1YEt7QxDrYyqSZoeBgp8N4VkvOfusM9DSOISVkySEguOxZFwuuca4Kh0jm0XV9BfP1hZLeWJ2U6TFrjAAKBGh7xaAArGJGkuHGi27D8Rt7D0EfVG9ic8nE5WuV3cgSkrZA" },
-    { id: 19, badge: null,      title: "iPhone 14 Plus 128GB Blue",               price: "6,800 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLtcwe_yn3xQG2cu7cX6mS9Zkt3M5mipHIvnRV130OBhNUBu94rrOD_achOd0g0aHHMsVe5XTJUuWN6lRk30tngWZzaBXNY0istauba2Ai--A8vQcdNjVbqJCE4wrdJCvEPvf0H9ru-jBBZZ4YPrKt9cJRhfy_E1Ly7JmQsh5rBWSiooZ33ixEwwLet7lB5sA0NOkoziKMCorXrnxOa88AMHTBfQEEAm6BnFnAypVG_k0_v0ZhyqwE0kYg" },
-    { id: 20, badge: null,      title: "Apple iPhone X 64 GB",                    price: "450 MAD",    img: "https://lh3.googleusercontent.com/aida/AP1WRLtcwe_yn3xQG2cu7cX6mS9Zkt3M5mipHIvnRV130OBhNUBu94rrOD_achOd0g0aHHMsVe5XTJUuWN6lRk30tngWZzaBXNY0istauba2Ai--A8vQcdNjVbqJCE4wrdJCvEPvf0H9ru-jBBZZ4YPrKt9cJRhfy_E1Ly7JmQsh5rBWSiooZ33ixEwwLet7lB5sA0NOkoziKMCorXrnxOa88AMHTBfQEEAm6BnFnAypVG_k0_v0ZhyqwE0kYg" },
-  ]
-
-  const brands = ["Apple","Samsung","Google","Nokia","Huawei","Xiaomi"]
-
-  const FeatBadge = ({ badge }: { badge?: string | null }) => {
-    if (badge === "diamond") return <span style={{ background:"#006b5f", color:"white", fontSize:"10px", fontWeight:900, padding:"6px 12px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase", boxShadow:"0 4px 16px rgba(0,0,0,.3)" }}>◆ DIAMOND MEMBER</span>
-    if (badge === "pro") return <span style={{ background:"#62fae3", color:"#00201c", fontSize:"10px", fontWeight:900, padding:"6px 12px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase", boxShadow:"0 4px 16px rgba(0,0,0,.2)" }}>✓ PRO SELLER</span>
-    if (badge === "verified") return <span style={{ background:"#dde4e1", color:"#3c4a46", fontSize:"10px", fontWeight:900, padding:"6px 12px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase", border:"1px solid rgba(186,202,197,.3)" }}>✓ VERIFIED</span>
-    if (badge === "diamond-sm") return <span style={{ background:"#006b5f", color:"white", fontSize:"10px", fontWeight:900, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase" }}>◆ DIAMOND</span>
-    if (badge === "pro-sm") return <span style={{ background:"#62fae3", color:"#00201c", fontSize:"10px", fontWeight:900, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase" }}>✓ PRO</span>
-    if (badge === "verified-sm") return <span style={{ background:"#dde4e1", color:"#3c4a46", fontSize:"10px", fontWeight:900, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase" }}>✓ VERIFIED</span>
-    return null
-  }
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily:"'Hanken Grotesk',sans-serif", backgroundColor:"#f4fbf8", minHeight:"100vh", color:"#161d1b" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-        .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle;display:inline-block;line-height:1;}
-        .ms-fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-        .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.4);}
-        .no-scroll::-webkit-scrollbar{display:none;}.no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
-        .card-feat{transition:all .5s;}.card-feat:hover{transform:translateY(-8px);}
-        .card-sm{transition:all .5s;}.card-sm:hover{transform:translateY(-8px);}
-        .img-zoom img{transition:transform .7s;}.img-zoom:hover img{transform:scale(1.1);}
-      `}</style>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-      {/* HERO */}
-      <section style={{ position:"relative", height:"450px", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
-        <div style={{ position:"absolute", inset:0 }}>
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAm2hhVjd1MfggKhTWwUAc7A9P8BhkT0eqd5rjgS0Xn-gHLomPVpraBhUUacYCy4pjLdCyLnI_t_IlzY4WnGDg8pKsJ_R4m34gYzjczfSlVI-FDeoPeBRuJwhVaO5yiAmYci5oK8kFA-WPL6Sao4MniYMxWn3MUZFZxvX7i80GPSemx2A8gZsVogTFEra9Nvlx9p9Bi8B-25bTyMIymvAkfQnT2IhO5ccPjiUb_UPLZqr31hyki2g350yXc8T7vo-v2nzVeIlIw" alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom,rgba(0,0,0,.4),rgba(244,251,248,.2),#f4fbf8)" }}></div>
-        </div>
-        <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:"896px", margin:"0 auto", padding:"0 20px", display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <h1 style={{ fontSize:"48px", fontWeight:900, color:"white", marginBottom:"32px", textAlign:"center", lineHeight:1.1, letterSpacing:"-0.02em", textShadow:"0 4px 24px rgba(0,0,0,.5)", textTransform:"uppercase" }}>Discover Your Next Mobile Device in Rabat</h1>
-          <div style={{ width:"100%", display:"flex", gap:"8px", padding:"8px", borderRadius:"3rem", background:"rgba(255,255,255,.1)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,.3)", boxShadow:"0 20px 60px rgba(0,0,0,.2)" }}>
-            <div style={{ flex:1, display:"flex", alignItems:"center", borderRadius:"9999px", padding:"14px 20px", background:"rgba(244,251,248,.9)" }}>
-              <span className="ms" style={{ color:"#3c4a46", marginRight:"12px" }}>search</span>
-              <input style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px" }} placeholder="Search for iPhone 16 Pro, Samsung S24..." />
+      {/* CINEMATIC HERO */}
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={I.hero} alt="Mobiles" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            MOBILES &amp;<br />SMARTPHONES IN RABAT.
+          </h1>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
-            <div style={{ flex:1, display:"flex", alignItems:"center", borderRadius:"9999px", padding:"14px 20px", background:"rgba(244,251,248,.9)" }}>
-              <span className="ms" style={{ color:"#3c4a46", marginRight:"12px" }}>location_on</span>
-              <select style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px", appearance:"none" }}>
-                <option>Rabat</option><option>Casablanca</option>
-              </select>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="iPhone 15, Galaxy S24, Pixel 9..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ background:"#006b5f", color:"white", border:"none", borderRadius:"9999px", padding:"0 40px", fontWeight:900, fontSize:"14px", cursor:"pointer", display:"flex", alignItems:"center", gap:"8px", textTransform:"uppercase", letterSpacing:".05em", boxShadow:"0 4px 16px rgba(0,107,95,.4)" }}>
-              <span className="ms">manage_search</span> Search
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              Search
             </button>
           </div>
         </div>
       </section>
 
-      {/* FILTER BAR */}
-      <div style={{ maxWidth:"1440px", margin:"-40px auto 32px", padding:"0 40px", position:"relative", zIndex:20 }}>
-        <div style={{ display:"flex", alignItems:"center", padding:"8px", borderRadius:"9999px", background:"rgba(255,255,255,.95)", backdropFilter:"blur(16px)", border:"1px solid rgba(186,202,197,.3)", boxShadow:"0 8px 32px rgba(0,0,0,.1)" }}>
-          {[["CITY","Rabat"],["CONDITION","Select Condition"],["PRICE (MAD)","Any Price"],["FILTERS","All Filters"]].map(([label,val],i)=>(
-            <div key={label} style={{ flex:1, padding:"8px 16px", borderRight:i<3?"1px solid rgba(186,202,197,.2)":"none", cursor:"pointer" }}>
-              <div style={{ fontSize:"9px", fontWeight:900, color:"#3c4a46", textTransform:"uppercase", letterSpacing:".15em" }}>{label}</div>
-              <div style={{ fontSize:"16px", fontWeight:label==="FILTERS"?700:500, color:"#161d1b", display:"flex", alignItems:"center", gap:"4px" }}>{val}
-                <span className="ms" style={{ fontSize:label==="FILTERS"?20:18, color:label==="FILTERS"?"#006b5f":"#3c4a46" }}>{label==="FILTERS"?"tune":"expand_more"}</span>
-              </div>
+      {/* ADVANCED FILTER BAR */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {[
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'iPhone, Galaxy, Pixel...', w:2 },
+            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
             </div>
           ))}
-          <div style={{ flex:2, padding:"8px 16px", borderRight:"1px solid rgba(186,202,197,.2)" }}>
-            <div style={{ fontSize:"9px", fontWeight:900, color:"#3c4a46", textTransform:"uppercase", letterSpacing:".15em" }}>KEYWORD</div>
-            <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-              <input style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px" }} placeholder="Model, Brand, Specs..." />
-              <span className="ms" style={{ color:"#006b5f" }}>search</span>
-            </div>
-          </div>
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
         </div>
       </div>
 
-      {/* BREADCRUMBS */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 24px", padding:"0 40px" }}>
-        <nav style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"13px", fontWeight:600, color:"rgba(60,74,70,.7)" }}>
-          {["Rabat","Vault","Electronics"].map(c=>(
-            <span key={c} style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-              <a href="#" style={{ textDecoration:"none", color:"inherit" }}>{c}</a>
-              <span className="ms" style={{ fontSize:"16px" }}>chevron_right</span>
-            </span>
-          ))}
-          <span style={{ fontWeight:900, color:"#161d1b" }}>Mobiles</span>
-        </nav>
-      </div>
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
-      {/* TITLE + CONTROLS */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 32px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"24px" }}>
-          <div>
-            <h1 style={{ fontSize:"24px", fontWeight:700, color:"#161d1b", marginBottom:"4px" }}>New and Used Mobile Phones in Rabat</h1>
-            <p style={{ fontSize:"16px", color:"#3c4a46" }}>5,876 Ads found in Rabat District</p>
+        {/* BREADCRUMB */}
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
+          <span style={{ color:C.ink }}>Mobiles &amp; Smartphones</span>
+        </nav>
+
+        {/* TITLE + SORT/SAVE on same line */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Mobiles &amp; Smartphones in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+              Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Save Search
+            </button>
           </div>
-          <div style={{ display:"flex", gap:"12px" }}>
-            {[["sort","Sort: Default"],["notifications_active","Save Search"]].map(([icon,label])=>(
-              <button key={label} style={{ display:"flex", alignItems:"center", gap:"8px", padding:"10px 24px", borderRadius:"12px", background:"white", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer", boxShadow:"0 2px 8px rgba(0,0,0,.04)" }}>
-                <span className="ms" style={{ fontSize:"18px" }}>{icon}</span>{label}
+        </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>8,420 Ads in Rabat District</p>
+
+        {/* PILLS */}
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {pills.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/electronics/mobiles/${cat.slug}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{cat.label}</Link>
+          ))}
+        </div>
+
+        {/* UTILITY BAR */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
               </button>
             ))}
           </div>
-        </div>
-
-        {/* BRANDS */}
-        <div className="no-scroll" style={{ display:"flex", gap:"12px", overflowX:"auto", padding:"8px 0", marginBottom:"24px" }}>
-          <button style={{ whiteSpace:"nowrap", padding:"12px 32px", borderRadius:"9999px", background:"#006b5f", color:"white", fontSize:"13px", fontWeight:900, border:"none", cursor:"pointer", textTransform:"uppercase", boxShadow:"0 4px 14px rgba(0,107,95,.35)" }}>All Brands</button>
-          {brands.map(b=><button key={b} style={{ whiteSpace:"nowrap", padding:"12px 32px", borderRadius:"9999px", background:"white", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer", textTransform:"uppercase" }}>{b}</button>)}
-          <button style={{ whiteSpace:"nowrap", padding:"12px 24px", color:"#006b5f", fontWeight:900, fontSize:"13px", background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase" }}>More <span className="ms">expand_more</span></button>
-        </div>
-
-        {/* UTILITY ROW */}
-        <div style={{ display:"flex", flexDirection:"column", gap:"16px", padding:"24px 0", borderTop:"1px solid rgba(186,202,197,.2)", borderBottom:"1px solid rgba(186,202,197,.2)", marginBottom:"32px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:"16px" }}>
-            <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"16px" }}>
-              <span style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"13px", fontWeight:900, color:"#006b5f", background:"rgba(45,212,191,.15)", padding:"6px 16px", borderRadius:"9999px", border:"1px solid rgba(0,107,95,.1)", textTransform:"uppercase" }}><span className="ms" style={{ fontSize:"18px" }}>bolt</span> NEW ARRIVALS</span>
-              <span style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"13px", fontWeight:900, color:"#605e58", background:"rgba(96,94,88,.1)", padding:"6px 16px", borderRadius:"9999px", border:"1px solid rgba(96,94,88,.1)", textTransform:"uppercase" }}><span className="ms" style={{ fontSize:"18px" }}>trending_down</span> PRICE DROP</span>
-              <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-                <span style={{ fontSize:"13px", fontWeight:700, color:"#3c4a46", textTransform:"uppercase", letterSpacing:".05em" }}>Diamond Verified First</span>
-                <div style={{ width:"44px", height:"24px", background:"#006b5f", borderRadius:"9999px", display:"flex", alignItems:"center", padding:"0 3px", cursor:"pointer", justifyContent:"flex-end" }}>
-                  <div style={{ width:"18px", height:"18px", background:"white", borderRadius:"9999px" }}></div>
-                </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
-            <div style={{ display:"flex", gap:"8px" }}>
-              <button style={{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 20px", borderRadius:"9999px", background:"rgba(0,107,95,.1)", color:"#006b5f", border:"1px solid rgba(0,107,95,.2)", fontSize:"13px", fontWeight:900, cursor:"pointer", textTransform:"uppercase" }}><span className="ms" style={{ fontSize:"20px" }}>groups</span> ALL SELLERS (5,876)</button>
-              <button style={{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 20px", borderRadius:"9999px", background:"#eef5f2", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer", textTransform:"uppercase" }}><span className="ms" style={{ fontSize:"20px" }}>verified_user</span> PRO ONLY</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth:"1440px", margin:"0 auto", padding:"0 40px" }}>
-
-        {/* FEATURED PREMIUM MOBILES */}
-        <div style={{ marginBottom:"64px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"32px" }}>
-            <h2 style={{ fontSize:"24px", fontWeight:900, color:"#006b5f", display:"flex", alignItems:"center", gap:"12px", textTransform:"uppercase", letterSpacing:"-.01em" }}>
-              <span className="ms ms-fill" style={{ fontSize:"32px" }}>diamond</span> Featured Premium Mobiles
-            </h2>
-            <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#006b5f", fontWeight:900, fontSize:"13px", textDecoration:"none", textTransform:"uppercase" }}>View all Featured <span className="ms" style={{ fontSize:"20px" }}>chevron_right</span></a>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px" }}>
-            {featuredPremium.map(item=>(
-              <article key={item.id} className="card-feat glass img-zoom" style={{ borderRadius:"2.5rem", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 8px 40px rgba(0,0,0,.1)", border:"1px solid rgba(186,202,197,.5)" }}>
-                <div style={{ position:"relative", aspectRatio:"4/5", overflow:"hidden", background:"#d4dcd9" }}>
-                  <div style={{ position:"absolute", top:"16px", left:"16px", zIndex:10 }}><FeatBadge badge={item.badge} /></div>
-                  <button style={{ position:"absolute", top:"16px", right:"16px", zIndex:10, width:"44px", height:"44px", borderRadius:"9999px", background:"rgba(255,255,255,.9)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(0,0,0,.15)", transition:"all .2s" }}>
-                    <span className="ms" style={{ fontSize:"22px" }}>favorite</span>
-                  </button>
-                  <img src={item.img} alt={item.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                </div>
-                <div style={{ padding:"24px", display:"flex", flexDirection:"column", flex:1, background:"white" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"12px" }}>
-                    <span style={{ fontSize:"13px", fontWeight:900, color:"#006b5f", textTransform:"uppercase", letterSpacing:"-.02em" }}>{item.spec}</span>
-                    <span style={{ width:"6px", height:"6px", background:"rgba(186,202,197,.8)", borderRadius:"9999px" }}></span>
-                    <span style={{ fontSize:"13px", fontWeight:500, color:"#3c4a46" }}>{item.location}</span>
-                  </div>
-                  <h3 style={{ fontSize:"20px", fontWeight:700, color:"#161d1b", marginBottom:"12px", lineHeight:1.3 }}>{item.title}</h3>
-                  <p style={{ fontSize:"24px", fontWeight:900, color:"#006b5f", marginBottom:"24px" }}>{item.price}</p>
-                  <div style={{ marginTop:"auto", paddingTop:"24px", borderTop:"1px solid rgba(186,202,197,.1)", display:"flex", gap:"8px" }}>
-                    <button style={{ flex:1, padding:"12px", borderRadius:"16px", border:"2px solid rgba(186,202,197,.5)", background:"none", fontSize:"13px", fontWeight:900, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", textTransform:"uppercase" }}><span className="ms" style={{ fontSize:"20px" }}>chat_bubble</span> Message</button>
-                    <button style={{ flex:1, padding:"12px", borderRadius:"16px", background:"#25D366", color:"white", border:"none", fontSize:"13px", fontWeight:900, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", textTransform:"uppercase", boxShadow:"0 4px 12px rgba(37,211,102,.3)" }}><span className="ms" style={{ fontSize:"20px" }}>call</span> WhatsApp</button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        {/* INTERSTITIAL */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px", marginBottom:"64px" }}>
-          <div style={{ borderRadius:"2.5rem", padding:"48px", minHeight:"350px", display:"flex", flexDirection:"column", justifyContent:"center", background:"#006b5f", color:"white", boxShadow:"0 16px 48px rgba(0,107,95,.3)", position:"relative", overflow:"hidden" }}>
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAm2hhVjd1MfggKhTWwUAc7A9P8BhkT0eqd5rjgS0Xn-gHLomPVpraBhUUacYCy4pjLdCyLnI_t_IlzY4WnGDg8pKsJ_R4m34gYzjczfSlVI-FDeoPeBRuJwhVaO5yiAmYci5oK8kFA-WPL6Sao4MniYMxWn3MUZFZxvX7i80GPSemx2A8gZsVogTFEra9Nvlx9p9Bi8B-25bTyMIymvAkfQnT2IhO5ccPjiUb_UPLZqr31hyki2g350yXc8T7vo-v2nzVeIlIw" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.2 }} />
-            <div style={{ position:"relative", zIndex:1, maxWidth:"450px" }}>
-              <h2 style={{ fontSize:"42px", fontWeight:900, marginBottom:"24px", lineHeight:1.1, textTransform:"uppercase", letterSpacing:"-.02em" }}>JOIN THE SOUKNI FAMILY</h2>
-              <p style={{ fontSize:"18px", marginBottom:"40px", opacity:.9, lineHeight:1.6, fontWeight:500 }}>Start selling your tech items today for free and reach millions of buyers across Morocco.</p>
-              <button style={{ background:"white", color:"#006b5f", padding:"16px 40px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".15em", boxShadow:"0 8px 24px rgba(0,0,0,.2)" }}>Register as Individual</button>
-            </div>
-          </div>
-          <div style={{ borderRadius:"2.5rem", padding:"48px", minHeight:"350px", display:"flex", flexDirection:"column", justifyContent:"center", background:"white", border:"2px solid rgba(0,107,95,.2)", boxShadow:"0 16px 48px rgba(0,0,0,.08)", position:"relative", overflow:"hidden" }}>
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAm2hhVjd1MfggKhTWwUAc7A9P8BhkT0eqd5rjgS0Xn-gHLomPVpraBhUUacYCy4pjLdCyLnI_t_IlzY4WnGDg8pKsJ_R4m34gYzjczfSlVI-FDeoPeBRuJwhVaO5yiAmYci5oK8kFA-WPL6Sao4MniYMxWn3MUZFZxvX7i80GPSemx2A8gZsVogTFEra9Nvlx9p9Bi8B-25bTyMIymvAkfQnT2IhO5ccPjiUb_UPLZqr31hyki2g350yXc8T7vo-v2nzVeIlIw" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.1 }} />
-            <div style={{ position:"relative", zIndex:1, maxWidth:"450px" }}>
-              <div style={{ display:"inline-flex", marginBottom:"16px" }}>
-                <span style={{ fontSize:"12px", fontWeight:900, color:"#006b5f", textTransform:"uppercase", letterSpacing:".2em", background:"rgba(0,107,95,.1)", padding:"6px 16px", borderRadius:"9999px" }}>Solutions for agents</span>
-              </div>
-              <h2 style={{ fontSize:"42px", fontWeight:900, color:"#161d1b", marginBottom:"24px", lineHeight:1.1, textTransform:"uppercase", letterSpacing:"-.02em" }}>SouKni Electro Pro</h2>
-              <p style={{ fontSize:"18px", color:"#3c4a46", marginBottom:"40px", lineHeight:1.6, fontWeight:500 }}>Boost your mobile store visibility with our premium listing dashboard, analytics, and CRM tools.</p>
-              <button style={{ background:"#006b5f", color:"white", padding:"16px 40px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".15em", boxShadow:"0 8px 24px rgba(0,107,95,.3)" }}>Discover Pro Tools</button>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* MORE EXCEPTIONAL DEALS */}
-        <div style={{ marginBottom:"64px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"32px" }}>
-            <h2 style={{ fontSize:"24px", fontWeight:900, color:"#006b5f", textTransform:"uppercase", letterSpacing:"-.01em" }}>More Exceptional Deals in Rabat</h2>
-            <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#006b5f", fontWeight:900, fontSize:"13px", textDecoration:"none", textTransform:"uppercase" }}>Explore All <span className="ms" style={{ fontSize:"20px" }}>chevron_right</span></a>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px" }}>
-            {moreDeals.map(item=>{
-              const smBadge = item.badge === "diamond" ? "diamond-sm" : item.badge === "pro" ? "pro-sm" : item.badge === "verified" ? "verified-sm" : null
-              return (
-                <article key={item.id} className="card-sm glass img-zoom" style={{ borderRadius:"2.5rem", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 4px 24px rgba(0,0,0,.08)", border:"1px solid rgba(186,202,197,.5)" }}>
-                  <div style={{ position:"relative", aspectRatio:"4/5", overflow:"hidden", background:"#d4dcd9" }}>
-                    {smBadge && <div style={{ position:"absolute", top:"12px", left:"12px", zIndex:10 }}><FeatBadge badge={smBadge} /></div>}
-                    <img src={item.img} alt={item.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                  </div>
-                  <div style={{ padding:"20px", display:"flex", flexDirection:"column", flex:1 }}>
-                    <h3 style={{ fontSize:"18px", fontWeight:700, color:"#161d1b", marginBottom:"8px", lineHeight:1.3 }}>{item.title}</h3>
-                    <p style={{ fontSize:"22px", fontWeight:900, color:"#006b5f", marginBottom:"16px" }}>{item.price}</p>
-                    <div style={{ marginTop:"auto", display:"flex", gap:"8px" }}>
-                      <button style={{ flex:1, padding:"10px", borderRadius:"12px", border:"1px solid rgba(186,202,197,.5)", background:"none", fontSize:"13px", fontWeight:900, cursor:"pointer", textTransform:"uppercase" }}>Message</button>
-                      <button style={{ flex:1, padding:"10px", borderRadius:"12px", background:"#25D366", color:"white", border:"none", fontSize:"13px", fontWeight:900, cursor:"pointer", textTransform:"uppercase" }}>WhatsApp</button>
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* PAGINATION */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", marginBottom:"64px" }}>
-          {["chevron_left","1","2","3","...","48","chevron_right"].map((p,i)=>(
-            <button key={i} style={{ width:"48px", height:"48px", borderRadius:"9999px", border:p==="1"?"none":"1px solid rgba(186,202,197,.3)", background:p==="1"?"#006b5f":"none", color:p==="1"?"white":"#161d1b", fontWeight:900, fontSize:"14px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:p==="1"?"0 4px 16px rgba(0,107,95,.3)":"0 2px 8px rgba(0,0,0,.04)" }}>
-              {p==="chevron_left"||p==="chevron_right"?<span className="ms">{p}</span>:p}
+        {/* QUICK FILTER CHIPS */}
+        <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
+          {[
+            { emoji:'✨', label:'New Arrivals', active:true },
+            { emoji:'📉', label:'Price Drop Alert', active:false },
+            { emoji:'🛍️', label:'Shop Sellers', active:false },
+          ].map(chip=>(
+            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+              {chip.emoji} {chip.label}
             </button>
           ))}
         </div>
 
-        {/* DIAMOND BANNER */}
-        <div style={{ borderRadius:"2.5rem", padding:"64px", textAlign:"center", color:"white", marginBottom:"64px", background:"linear-gradient(135deg,#006b5f 0%,#2dd4bf 100%)", boxShadow:"0 16px 64px rgba(0,107,95,.4)", position:"relative", overflow:"hidden" }}>
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAm2hhVjd1MfggKhTWwUAc7A9P8BhkT0eqd5rjgS0Xn-gHLomPVpraBhUUacYCy4pjLdCyLnI_t_IlzY4WnGDg8pKsJ_R4m34gYzjczfSlVI-FDeoPeBRuJwhVaO5yiAmYci5oK8kFA-WPL6Sao4MniYMxWn3MUZFZxvX7i80GPSemx2A8gZsVogTFEra9Nvlx9p9Bi8B-25bTyMIymvAkfQnT2IhO5ccPjiUb_UPLZqr31hyki2g350yXc8T7vo-v2nzVeIlIw" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.1 }} />
-          <div style={{ position:"relative", zIndex:1 }}>
-            <h2 style={{ fontSize:"48px", fontWeight:900, marginBottom:"24px", textTransform:"uppercase", letterSpacing:"-.02em" }}>Become a Diamond Member</h2>
-            <p style={{ fontSize:"18px", opacity:.9, maxWidth:"600px", margin:"0 auto 40px", lineHeight:1.6, fontWeight:500 }}>Enjoy zero listing fees, unlimited highlighted ads, and a dedicated account manager for your mobile business in Rabat and beyond.</p>
-            <button style={{ background:"white", color:"#006b5f", padding:"20px 48px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".2em", boxShadow:"0 8px 32px rgba(0,0,0,.2)" }}>Upgrade to Diamond</button>
+        {/* FEATURED PREMIUM MOBILES */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM MOBILES</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
           </div>
-        </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
 
-        {/* MOBILE PRO BANNER */}
-        <div style={{ position:"relative", height:"400px", borderRadius:"2.5rem", overflow:"hidden", marginBottom:"64px", boxShadow:"0 16px 64px rgba(0,0,0,.2)" }}>
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUAm2hhVjd1MfggKhTWwUAc7A9P8BhkT0eqd5rjgS0Xn-gHLomPVpraBhUUacYCy4pjLdCyLnI_t_IlzY4WnGDg8pKsJ_R4m34gYzjczfSlVI-FDeoPeBRuJwhVaO5yiAmYci5oK8kFA-WPL6Sao4MniYMxWn3MUZFZxvX7i80GPSemx2A8gZsVogTFEra9Nvlx9p9Bi8B-25bTyMIymvAkfQnT2IhO5ccPjiUb_UPLZqr31hyki2g350yXc8T7vo-v2nzVeIlIw" alt="" style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 1s" }} />
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right,rgba(0,0,0,.8),rgba(0,0,0,.4),transparent)" }}></div>
-          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 80px" }}>
-            <div style={{ maxWidth:"600px" }}>
-              <span style={{ color:"#3cddc7", fontWeight:900, fontSize:"12px", textTransform:"uppercase", letterSpacing:".3em", marginBottom:"24px", display:"block", background:"rgba(0,107,95,.2)", backdropFilter:"blur(8px)", padding:"6px 16px", borderRadius:"9999px", width:"fit-content" }}>Premier Partnership</span>
-              <h2 style={{ color:"white", fontSize:"56px", fontWeight:900, marginBottom:"16px", lineHeight:1.05, letterSpacing:"-.02em", textTransform:"uppercase" }}>SouKni Mobile Pro</h2>
-              <p style={{ color:"rgba(255,255,255,.9)", fontSize:"18px", lineHeight:1.6, fontStyle:"italic", maxWidth:"450px", marginBottom:"32px" }}>The Gold Standard for Mobile Sales in Rabat. Verified Business Excellence.</p>
-              <button style={{ background:"#2dd4bf", color:"#006b5f", padding:"20px 48px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".15em", boxShadow:"0 8px 32px rgba(45,212,191,.4)" }}>Discover Pro Benefits</button>
+        {/* IMMO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* FOOTER */}
-      <footer style={{ background:"#7A7A7A", color:"rgba(255,255,255,.9)", paddingTop:"80px", paddingBottom:"40px" }}>
-        <div style={{ maxWidth:"1440px", margin:"0 auto", padding:"0 40px" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"64px", marginBottom:"80px" }}>
-            <div>
-              <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"32px" }}>
-                <div style={{ width:"48px", height:"48px", background:"#006b5f", borderRadius:"14px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(0,107,95,.4)" }}>
-                  <span style={{ color:"white", fontWeight:900, fontSize:"22px" }}>S</span>
-                </div>
-                <span style={{ fontSize:"28px", fontWeight:900, color:"white", letterSpacing:"-.02em" }}>SouKni</span>
-              </div>
-              <p style={{ fontSize:"18px", fontWeight:700, color:"rgba(255,255,255,.9)", fontStyle:"italic", marginBottom:"16px" }}>The Market in your Pocket</p>
-              <p style={{ fontSize:"14px", color:"rgba(255,255,255,.7)", lineHeight:1.6, marginBottom:"32px" }}>Morocco's leading premium marketplace for high-tech mobiles, real estate, and unique lifestyle deals.</p>
-              <div style={{ display:"flex", gap:"16px" }}>
-                {["public","alternate_email"].map(icon=>(
-                  <div key={icon} style={{ width:"48px", height:"48px", borderRadius:"9999px", background:"rgba(255,255,255,.1)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                    <span className="ms" style={{ color:"white", fontSize:"24px" }}>{icon}</span>
+        {/* EXCLUSIVE MOBILES COLLECTION — CLEAN BENTO */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Mobiles Collection</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          {/* Bento: tall left spanning 2 rows + 2 stacked right */}
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gridTemplateRows:'280px 280px', gap:16, marginBottom:16 }}>
+            <div style={{ gridRow:'span 2' }}>
+              <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
+                onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+                onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
+                <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
-            <div>
-              <h4 style={{ color:"white", fontWeight:900, marginBottom:"24px", textTransform:"uppercase", letterSpacing:".2em", fontSize:"14px" }}>Marketplace</h4>
-              <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:"16px" }}>
-                {["Motors","Property","Mobiles & Computers","The Vault"].map(l=>(
-                  <li key={l}><a href="#" style={{ color:"rgba(255,255,255,.6)", textDecoration:"none", fontSize:"14px", fontWeight:700, display:"flex", alignItems:"center", gap:"8px" }}>{l} <span className="ms" style={{ fontSize:"14px" }}>arrow_outward</span></a></li>
-                ))}
-              </ul>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
+              </div>
             </div>
-            <div>
-              <h4 style={{ color:"white", fontWeight:900, marginBottom:"24px", textTransform:"uppercase", letterSpacing:".2em", fontSize:"14px" }}>Support</h4>
-              <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:"16px" }}>
-                {["About Us","Help Center","Safety Tips","Terms of Service","Privacy Policy"].map(l=><li key={l}><a href="#" style={{ color:"rgba(255,255,255,.6)", textDecoration:"none", fontSize:"14px", fontWeight:700 }}>{l}</a></li>)}
-              </ul>
-            </div>
-            <div>
-              <h4 style={{ color:"white", fontWeight:900, marginBottom:"24px", textTransform:"uppercase", letterSpacing:".2em", fontSize:"14px" }}>Get the App</h4>
-              <p style={{ fontSize:"14px", color:"rgba(255,255,255,.6)", marginBottom:"24px", fontWeight:500 }}>Experience the hub on your mobile device for the fastest deals.</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
-                {[["play_store","GET IT ON","Google Play"],["laptop_mac","DOWNLOAD ON THE","App Store"]].map(([icon,sub,name])=>(
-                  <button key={name} style={{ background:"black", color:"white", borderRadius:"16px", padding:"16px", display:"flex", alignItems:"center", gap:"16px", border:"1px solid rgba(255,255,255,.1)", cursor:"pointer", boxShadow:"0 4px 16px rgba(0,0,0,.3)" }}>
-                    <span className="ms" style={{ fontSize:"36px" }}>{icon}</span>
-                    <div style={{ textAlign:"left" }}>
-                      <div style={{ fontSize:"10px", fontWeight:900, textTransform:"uppercase", opacity:.6 }}>{sub}</div>
-                      <div style={{ fontSize:"20px", fontWeight:900 }}>{name}</div>
-                    </div>
-                  </button>
-                ))}
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
               </div>
             </div>
           </div>
-          <div style={{ paddingTop:"40px", borderTop:"1px solid rgba(255,255,255,.1)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <p style={{ fontSize:"14px", fontWeight:700, color:"rgba(255,255,255,.4)" }}>© 2026 SouKni Marketplace. All rights reserved. Designed for Rabat Hub</p>
-            <div style={{ display:"flex", gap:"40px", alignItems:"center" }}>
-              {["Cookie Policy","Site Map"].map(l=><a key={l} href="#" style={{ color:"rgba(255,255,255,.4)", fontSize:"14px", fontWeight:700, textDecoration:"none" }}>{l}</a>)}
-              <div style={{ display:"flex", alignItems:"center", gap:"12px", color:"rgba(255,255,255,.4)", fontSize:"10px", fontWeight:900, textTransform:"uppercase", letterSpacing:".15em" }}>
-                <div style={{ width:"8px", height:"8px", borderRadius:"9999px", background:"#2dd4bf", animation:"pulse 2s infinite" }}></div>
-                System Operational
+          {/* Bottom row */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
+              <img src={I.ph5} alt="Electro Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 28px' }}>
+                <span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, fontWeight:900, padding:'4px 12px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:10, width:'fit-content' }}>SouKni Electro Pro</span>
+                <h3 style={{ ...UB, fontSize:18, color:'white', marginBottom:12, lineHeight:1.2 }}>Find your next<br/>certified smartphone today.</h3>
+                <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'9px 20px', borderRadius:100, fontSize:11, ...UB, cursor:'pointer' }}>Explore All</button>
+                </Link>
               </div>
             </div>
           </div>
+        </section>
+
+        {/* AUTO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.auto} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PRO DISCOVERY GRID — 3 rows of 4 */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Mobile Discoveries</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
+            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PAGINATION */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
+            </button>
+          ))}
+          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+            Next <ChevronRight size={14} />
+          </button>
         </div>
-      </footer>
+
+        {/* DIAMOND BANNER */}
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={I.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>
+              ✦ SOUKNI CERTIFIED
+            </span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>
+              Unlock the Power of Diamond.
+            </h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>
+              Priority placement, boosted visibility, and full access to Morocco's most serious mobile buyers. Get started today.
+            </p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+            </div>
+          </div>
+        </section>
+
+        {/* JOIN THE SOUKNI FAMILY */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Get early access to new drops, exclusive member deals, and Morocco's finest mobile listings.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
+                🍎 App Store
+              </button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
+                ▶ Google Play
+              </button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

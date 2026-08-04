@@ -1,488 +1,346 @@
 'use client'
-
-import { useState } from 'react'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
-import { Heart, Search, MapPin, ChevronDown, ChevronLeft, ChevronRight, MessageCircle, SlidersHorizontal, Bookmark, ArrowUpDown, Zap, TrendingDown } from 'lucide-react'
 
-/* ─── PRODUCT IMAGES ───────────────────────────────────────── */
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
+
+type Badge = 'diamond' | 'certified' | 'pro' | null
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; brand:string }
+
 const IMGS = {
-  bose:      'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=600',
-  sonos:     'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600',
-  gopro:     'https://images.pexels.com/photos/1697912/pexels-photo-1697912.jpeg?auto=compress&w=600',
-  logitech:  'https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&w=600',
-  airpurif:  'https://images.pexels.com/photos/7319303/pexels-photo-7319303.jpeg?auto=compress&w=600',
-  magsafe:   'https://images.pexels.com/photos/4526467/pexels-photo-4526467.jpeg?auto=compress&w=600',
-  ecoflow:   'https://images.pexels.com/photos/159397/solar-panel-array-power-sun-159397.jpeg?auto=compress&w=600',
-  samsung:   'https://images.pexels.com/photos/1476321/pexels-photo-1476321.jpeg?auto=compress&w=600',
-  belkin:    'https://images.pexels.com/photos/4526407/pexels-photo-4526407.jpeg?auto=compress&w=600',
-  dualsense: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&w=600',
-  elgato:    'https://images.pexels.com/photos/1714209/pexels-photo-1714209.jpeg?auto=compress&w=600',
-  tplink:    'https://images.pexels.com/photos/2881229/pexels-photo-2881229.jpeg?auto=compress&w=600',
-  xiaomi:    'https://images.pexels.com/photos/7319303/pexels-photo-7319303.jpeg?auto=compress&w=600',
-  canon:     'https://images.pexels.com/photos/1203819/pexels-photo-1203819.jpeg?auto=compress&w=600',
-  richard:   'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&w=600',
-  necklace:  'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=600',
-  cartier:   'https://images.pexels.com/photos/2735970/pexels-photo-2735970.jpeg?auto=compress&w=600',
-  patek:     'https://images.pexels.com/photos/280250/pexels-photo-280250.jpeg?auto=compress&w=600',
-  ruby:      'https://images.pexels.com/photos/1448849/pexels-photo-1448849.jpeg?auto=compress&w=600',
-  bulgari:   'https://images.pexels.com/photos/2735970/pexels-photo-2735970.jpeg?auto=compress&w=600',
-  ap:        'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&w=600',
-  hero:      'https://images.pexels.com/photos/1714207/pexels-photo-1714207.jpeg?auto=compress&w=600',
+  hero:     'https://images.pexels.com/photos/1714207/pexels-photo-1714207.jpeg?auto=compress&w=1600',
+  bose:     'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=600',
+  sonos:    'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600',
+  gopro:    'https://images.pexels.com/photos/1697912/pexels-photo-1697912.jpeg?auto=compress&w=600',
+  logitech: 'https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&w=600',
+  airpurif: 'https://images.pexels.com/photos/7319303/pexels-photo-7319303.jpeg?auto=compress&w=600',
+  magsafe:  'https://images.pexels.com/photos/4526467/pexels-photo-4526467.jpeg?auto=compress&w=600',
+  ecoflow:  'https://images.pexels.com/photos/159397/solar-panel-array-power-sun-159397.jpeg?auto=compress&w=600',
+  samsung:  'https://images.pexels.com/photos/1476321/pexels-photo-1476321.jpeg?auto=compress&w=600',
+  belkin:   'https://images.pexels.com/photos/4526407/pexels-photo-4526407.jpeg?auto=compress&w=600',
+  dualsense:'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&w=600',
+  elgato:   'https://images.pexels.com/photos/1714209/pexels-photo-1714209.jpeg?auto=compress&w=600',
+  tplink:   'https://images.pexels.com/photos/2881229/pexels-photo-2881229.jpeg?auto=compress&w=600',
+  immo:     'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:     'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
 }
 
-/* ─── DATA ──────────────────────────────────────────────────── */
-type BadgeType = 'diamond' | 'pro' | 'verified'
+const featuredListings: Listing[] = [
+  { id:'a1', badge:'diamond',  title:'Bose Noise Cancelling Headphones 700',        price:3850, location:'Rabat, Agdal',    time:'Just now', image:IMGS.bose,     brand:'Bose' },
+  { id:'a2', badge:'pro',      title:'Sonos Beam Gen 2 Premium Soundbar',           price:5200, location:'Rabat, Souissi',  time:'1h ago',   image:IMGS.sonos,    brand:'Sonos' },
+  { id:'a3', badge:'diamond',  title:'GoPro HERO12 Black 5.3K Action Camera',       price:4150, location:'Rabat, Hassan',   time:'2h ago',   image:IMGS.gopro,    brand:'GoPro' },
+  { id:'a4', badge:'certified',title:'Logitech G915 TKL Wireless Keyboard',         price:2250, location:'Rabat, Hay Riad', time:'3h ago',   image:IMGS.logitech, brand:'Logitech' },
+]
 
-interface Product {
-  id: string; badge: BadgeType; tag: string; location: string
-  title: string; price: number; image: string; aspect?: string
+const exclusiveListings: Listing[] = [
+  { id:'e1', badge:'diamond',  title:'EcoFlow Delta 2 Portable Power Station',      price:9800, location:'Témara',          time:'Just now', image:IMGS.ecoflow,  brand:'EcoFlow' },
+  { id:'e2', badge:'certified',title:'Samsung T7 Shield 2TB Portable SSD',          price:1850, location:'Rabat, Souissi',  time:'1h ago',   image:IMGS.samsung,  brand:'Samsung' },
+  { id:'e3', badge:'pro',      title:'DualSense Edge Wireless Controller',          price:2100, location:'Salé',            time:'2h ago',   image:IMGS.dualsense,brand:'Sony' },
+  { id:'e4', badge:'diamond',  title:'Elgato Stream Deck MK.2 Production Hub',      price:1600, location:'Rabat, Hay Riad', time:'3h ago',   image:IMGS.elgato,   brand:'Elgato' },
+]
+
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',  title:'Smart Air Purifier with HEPA Filter',        price:2450, location:'Rabat Center',   time:'Just now', image:IMGS.airpurif, brand:'Xiaomi' },
+  { id:'d2',  badge:'certified',title:'Apple MagSafe Duo Wireless Charger',         price:1250, location:'Rabat Center',   time:'1h ago',   image:IMGS.magsafe,  brand:'Apple' },
+  { id:'d3',  badge:'pro',      title:'Belkin 3-in-1 Wireless Charging Stand',      price:1150, location:'Rabat Center',   time:'2h ago',   image:IMGS.belkin,   brand:'Belkin' },
+  { id:'d4',  badge:'diamond',  title:'TP-Link Deco BE85 Mesh Wi-Fi 7',             price:4200, location:'Rabat, Agdal',   time:'3h ago',   image:IMGS.tplink,   brand:'TP-Link' },
+  { id:'d5',  badge:'certified',title:'Bose SoundLink Flex Bluetooth Speaker',      price:1650, location:'Casablanca',     time:'4h ago',   image:IMGS.bose,     brand:'Bose' },
+  { id:'d6',  badge:'diamond',  title:'Sonos Move 2 Portable Speaker',              price:4400, location:'Rabat',          time:'5h ago',   image:IMGS.sonos,    brand:'Sonos' },
+  { id:'d7',  badge:'pro',      title:'GoPro Hero 11 Mini Waterproof',              price:3200, location:'Marrakech',      time:'6h ago',   image:IMGS.gopro,    brand:'GoPro' },
+  { id:'d8',  badge:'certified',title:'Logitech MX Master 3S Mouse',                price:950,  location:'Tangier',        time:'7h ago',   image:IMGS.logitech, brand:'Logitech' },
+  { id:'d9',  badge:'diamond',  title:'EcoFlow River 2 Max Power Station',          price:5200, location:'Casablanca',     time:'8h ago',   image:IMGS.ecoflow,  brand:'EcoFlow' },
+  { id:'d10', badge:'certified',title:'Samsung 65W GaN Fast Charger',               price:450,  location:'Rabat',          time:'9h ago',   image:IMGS.samsung,  brand:'Samsung' },
+  { id:'d11', badge:'pro',      title:'Belkin BoostCharge Pro 3-in-1 Pad',          price:1350, location:'Marrakech',      time:'10h ago',  image:IMGS.belkin,   brand:'Belkin' },
+  { id:'d12', badge:'diamond',  title:'Elgato Facecam Pro 4K Webcam',               price:2900, location:'Casablanca',     time:'11h ago',  image:IMGS.elgato,   brand:'Elgato' },
+]
+
+const brands = [
+  { name:'Bose',     count:'640', image:IMGS.bose },
+  { name:'Sonos',    count:'380', image:IMGS.sonos },
+  { name:'GoPro',    count:'520', image:IMGS.gopro },
+  { name:'Logitech', count:'910', image:IMGS.logitech },
+  { name:'Samsung',  count:'780', image:IMGS.samsung },
+  { name:'EcoFlow',  count:'260', image:IMGS.ecoflow },
+  { name:'Elgato',   count:'340', image:IMGS.elgato },
+]
+
+const pills = ['All Accessories','Headphones','Soundbars & Speakers','Action Cameras','Gaming Gear','Portable Power','Chargers & Cables']
+const pillSlugs: Record<string,string> = {
+    'All Accessories':'all-accessories',
+    'Headphones':'headphones',
+    'Soundbars & Speakers':'soundbars-speakers',
+    'Action Cameras':'action-cameras',
+    'Gaming Gear':'gaming-gear',
+    'Portable Power':'portable-power',
+    'Chargers & Cables':'chargers-cables',
 }
 
-const featuredPremium: Product[] = [
-  { id:'f1', badge:'diamond', tag:'New', location:'Rabat, Agdal',   title:'Bose Noise Cancelling Headphones 700',          price:3850,  image:IMGS.bose,      aspect:'4/5' },
-  { id:'f2', badge:'pro',     tag:'In Stock', location:'Rabat, Souissi', title:'Sonos Beam Gen 2 Premium Compact Soundbar',     price:5200,  image:IMGS.sonos,     aspect:'4/5' },
-  { id:'f3', badge:'diamond', tag:'Flash Sale', location:'Rabat, Hassan', title:'GoPro HERO12 Black 5.3K Action Camera',         price:4150,  image:IMGS.gopro,     aspect:'4/5' },
-  { id:'f4', badge:'verified',tag:'Top Choice', location:'Rabat, Hay Riad', title:'Logitech G915 TKL Wireless Mechanical Keyboard', price:2250,  image:IMGS.logitech,  aspect:'4/5' },
-]
-
-const newArrivals: Product[] = [
-  { id:'n1', badge:'diamond', tag:'New',       location:'Rabat Center',  title:'Smart Air Purifier with HEPA Filter',        price:2450,  image:IMGS.airpurif,  aspect:'4/5' },
-  { id:'n2', badge:'verified',tag:'Like New',  location:'Rabat Center',  title:'Apple MagSafe Duo Wireless Charger',         price:1250,  image:IMGS.magsafe,   aspect:'4/5' },
-  { id:'n3', badge:'pro',     tag:'New',       location:'Témara',         title:'EcoFlow Delta 2 Portable Power Station',     price:9800,  image:IMGS.ecoflow,   aspect:'4/5' },
-  { id:'n4', badge:'diamond', tag:'New',       location:'Rabat, Souissi', title:'Samsung T7 Shield 2TB Portable SSD',         price:1850,  image:IMGS.samsung,   aspect:'4/5' },
-  { id:'n5', badge:'verified',tag:'Used',      location:'Rabat Center',   title:'Belkin 3-in-1 Wireless Charging Stand',      price:1150,  image:IMGS.belkin,    aspect:'4/5' },
-  { id:'n6', badge:'diamond', tag:'New',       location:'Salé',           title:'DualSense Edge Wireless Controller',          price:2100,  image:IMGS.dualsense, aspect:'4/5' },
-  { id:'n7', badge:'pro',     tag:'New',       location:'Rabat, Hay Riad',title:'Elgato Stream Deck MK.2 White',              price:1600,  image:IMGS.elgato,    aspect:'4/5' },
-  { id:'n8', badge:'diamond', tag:'New',       location:'Rabat, Agdal',   title:'TP-Link Deco BE85 Mesh Wi-Fi 7',             price:4200,  image:IMGS.tplink,    aspect:'4/5' },
-]
-
-const gridRow1: Product[] = [
-  { id:'g1', badge:'diamond', tag:'New',      location:'Rabat Center',   title:'Xiaomi Smart Air Purifier 4 Pro',           price:2450,  image:IMGS.xiaomi },
-  { id:'g2', badge:'pro',     tag:'New',      location:'Témara',          title:'EcoFlow Delta 2 Portable Power Station',    price:9800,  image:IMGS.ecoflow },
-  { id:'g3', badge:'verified',tag:'New',      location:'Rabat, Agdal',    title:'TP-Link Deco BE85 Mesh Wi-Fi 7 Router',     price:4200,  image:IMGS.tplink },
-  { id:'g4', badge:'diamond', tag:'New',      location:'Salé',            title:'DualSense Edge Wireless Controller PS5',    price:2100,  image:IMGS.dualsense },
-  { id:'g5', badge:'verified',tag:'Like New', location:'Rabat Center',    title:'Apple MagSafe Duo Wireless Charger',        price:1250,  image:IMGS.magsafe },
-  { id:'g6', badge:'diamond', tag:'New',      location:'Rabat, Souissi',  title:'Samsung T7 Shield 2TB Portable SSD',        price:1850,  image:IMGS.samsung },
-  { id:'g7', badge:'verified',tag:'Used',     location:'Rabat Center',    title:'Belkin 3-in-1 Wireless Charging Stand',     price:1150,  image:IMGS.belkin },
-  { id:'g8', badge:'pro',     tag:'New',      location:'Rabat, Hay Riad', title:'Elgato Stream Deck MK.2 Production Hub',    price:1600,  image:IMGS.elgato },
-]
-
-const gridRow2: Product[] = [
-  { id:'h1', badge:'verified',tag:'New', location:'Rabat, Agdal',    title:'Canon EOS R1',         price:85000,    image:IMGS.canon },
-  { id:'h2', badge:'diamond', tag:'New', location:'Rabat, Souissi',  title:'Richard Mille McLaren',price:1200000,  image:IMGS.richard },
-  { id:'h3', badge:'verified',tag:'New', location:'Rabat Center',    title:'Pink Pearl Necklace',  price:12000,    image:IMGS.necklace },
-  { id:'h4', badge:'pro',     tag:'New', location:'Rabat, Hay Riad', title:'Cartier Panthère',     price:95000,    image:IMGS.cartier },
-]
-
-const gridRow3: Product[] = [
-  { id:'j1', badge:'diamond', tag:'New', location:'Rabat, Souissi',  title:'Patek Philippe',       price:1450000,  image:IMGS.patek },
-  { id:'j2', badge:'verified',tag:'New', location:'Rabat Center',    title:'Ruby Brooch',          price:45000,    image:IMGS.ruby },
-  { id:'j3', badge:'pro',     tag:'New', location:'Rabat, Agdal',    title:'Bulgari Serpenti',     price:185000,   image:IMGS.bulgari },
-  { id:'j4', badge:'diamond', tag:'New', location:'Rabat, Hay Riad', title:'AP Royal Oak Ghost',   price:540000,   image:IMGS.ap },
-]
-
-/* ─── BADGE ─────────────────────────────────────────────────── */
-function Badge({ type }: { type: BadgeType }) {
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
   if (type === 'diamond') return (
-    <span style={{ backgroundColor:'#2dd4bf', color:'white', fontSize:'9px', fontWeight:900, padding:'4px 10px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'3px', textTransform:'uppercase' as const, letterSpacing:'0.06em', boxShadow:'0 2px 8px rgba(0,107,95,0.3)' }}>
-      ◆ Diamond Member
-    </span>
-  )
-  if (type === 'pro') return (
-    <span style={{ backgroundColor:'#62fae3', color:'#00201c', fontSize:'9px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'3px', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>
-      ✓ Pro Seller
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
     </span>
   )
   return (
-    <span style={{ backgroundColor:'#dde4e1', color:'#3c4a46', fontSize:'9px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'3px', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>
-      ✓ Verified
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
     </span>
   )
 }
 
-/* ─── TALL CARD (featured/arrivals — 4:5 aspect) ──────────── */
-function TallCard({ item }: { item: Product }) {
+function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
   const [saved, setSaved] = useState(false)
   const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
   return (
-    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ backgroundColor:'rgba(255,255,255,0.72)', backdropFilter:'blur(16px)', border:'1px solid rgba(255,255,255,0.45)', borderRadius:'40px', overflow:'hidden', boxShadow:hov?'0 20px 40px rgba(0,0,0,0.1)':'0 4px 16px rgba(0,107,95,0.05)', transition:'all 0.3s', transform:hov?'translateY(-4px)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer' }}>
-      <div style={{ position:'relative', aspectRatio:'4/5', overflow:'hidden', backgroundColor:'#d4dcd9' }}>
-        <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.1)':'scale(1)' }} />
-        <div style={{ position:'absolute', top:'12px', left:'12px', zIndex:10 }}><Badge type={item.badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', zIndex:10, width:'38px', height:'38px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', backdropFilter:'blur(8px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#161d1b'} />
-        </button>
-      </div>
-      <div style={{ padding:'20px', flex:1, display:'flex', flexDirection:'column' as const }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
-          <span style={{ fontSize:'12px', fontWeight:700, color:'#2dd4bf' }}>{item.tag}</span>
-          <span style={{ width:'4px', height:'4px', borderRadius:'50%', backgroundColor:'#6b7a76' }} />
-          <span style={{ fontSize:'12px', color:'#6b7a76' }}>{item.location}</span>
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-        <h3 style={{ fontSize:'18px', fontWeight:600, color:hov?'#2dd4bf':'#161d1b', marginBottom:'8px', lineHeight:1.35, transition:'color 0.2s', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const, overflow:'hidden', minHeight:'48px' }}>{item.title}</h3>
-        <p style={{ fontSize:'22px', fontWeight:800, color:'#2dd4bf', marginBottom:'16px' }}>{item.price.toLocaleString()} MAD</p>
-        <div style={{ marginTop:'auto', paddingTop:'16px', borderTop:'1px solid rgba(186,202,197,0.15)', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, backgroundColor:'#e8efec', border:'none', padding:'10px', borderRadius:'14px', fontSize:'12px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', color:'#161d1b', transition:'background 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(0,107,95,0.1)'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='#e8efec'}
-          >💬 Message</button>
-          <button style={{ flex:1, backgroundColor:'rgba(37,211,102,0.1)', border:'none', padding:'10px', borderRadius:'14px', fontSize:'12px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', color:'#25D366', transition:'background 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(37,211,102,0.2)'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='rgba(37,211,102,0.1)'}
-          >📞 WhatsApp</button>
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:9, ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.08em', marginBottom:3 }}>{item.brand}</p>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   )
 }
 
-/* ─── SQUARE CARD (grid rows) ──────────────────────────────── */
-function SquareCard({ item }: { item: Product }) {
-  const [saved, setSaved] = useState(false)
-  const [hov, setHov] = useState(false)
-  return (
-    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ backgroundColor:'rgba(255,255,255,0.72)', backdropFilter:'blur(16px)', border:'1px solid rgba(186,202,197,0.35)', borderRadius:'40px', overflow:'hidden', boxShadow:hov?'0 12px 30px rgba(0,0,0,0.08)':'0 2px 8px rgba(0,107,95,0.04)', transition:'all 0.3s', transform:hov?'translateY(-4px)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer' }}>
-      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:'#d4dcd9' }}>
-        <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.05)':'scale(1)' }} />
-        <div style={{ position:'absolute', bottom:'8px', left:'8px', backgroundColor:'rgba(255,255,255,0.85)', backdropFilter:'blur(6px)', padding:'3px 8px', borderRadius:'6px' }}>
-          <span style={{ fontSize:'9px', fontWeight:700, color:'#2dd4bf', textTransform:'uppercase' as const }}>{item.tag}</span>
-        </div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#3c4a46'} />
-        </button>
-      </div>
-      <div style={{ padding:'20px', flex:1, display:'flex', flexDirection:'column' as const }}>
-        <h4 style={{ fontSize:'16px', fontWeight:700, color:hov?'#2dd4bf':'#161d1b', marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const, transition:'color 0.2s' }}>{item.title}</h4>
-        <p style={{ fontSize:'12px', color:'#6b7a76', marginBottom:'10px' }}>{item.location}</p>
-        <p style={{ fontSize:'18px', fontWeight:900, color:'#2dd4bf', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
-        <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, padding:'8px', borderRadius:'10px', border:'1px solid rgba(186,202,197,0.5)', backgroundColor:'transparent', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b', transition:'background 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#e8efec'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >Message</button>
-          <button style={{ flex:1, padding:'8px', borderRadius:'10px', backgroundColor:'rgba(0,107,95,0.08)', border:'none', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#2dd4bf', transition:'background 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(0,107,95,0.15)'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='rgba(0,107,95,0.08)'}
-          >Call</button>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-/* ─── PAGE ──────────────────────────────────────────────────── */
-export default function AccessoriesPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function AccessoriesPage({ params }: { params: Promise<{ locale:string }> }) {
   const { locale } = React.use(params)
-  const [activeBrand, setActiveBrand] = useState('All Brands')
-  const [activeSeller, setActiveSeller] = useState('All Sellers (4,812)')
+  const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamondFirst, setDiamondFirst] = useState(true)
+  const [activePill, setActivePill] = useState('All Accessories')
+  const [activeBrand, setActiveBrand] = useState('')
   const [page, setPage] = useState(1)
-  const [keyword, setKeyword] = useState('')
-
-  const brands = ['All Brands','Bose','Sony','JBL','GoPro','Logitech','Samsung','Apple','Sennheiser']
-  const categoryCards = [
-    { icon:'🎧', label:'Headphones' },
-    { icon:'🔊', label:'Soundbars' },
-    { icon:'📷', label:'Action Cams' },
-    { icon:'🎮', label:'Gaming Gear' },
-    { icon:'🔋', label:'Portable Power' },
-  ]
+  const [viewGrid, setViewGrid] = useState(true)
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh', color:'#161d1b' }}>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-      {/* ── HERO ── */}
-      <section style={{ position:'relative', width:'100%', height:'400px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src={IMGS.hero} alt="Electronics Hero"
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.6 }}
-        />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 0%, rgba(244,251,248,0.4) 50%, #f4fbf8 100%)' }} />
-        <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:'900px', padding:'0 40px', display:'flex', flexDirection:'column' as const, alignItems:'center' }}>
-          <h1 style={{ fontSize:'48px', fontWeight:700, color:'white', marginBottom:'28px', textAlign:'center', letterSpacing:'-0.02em', lineHeight:1.1, textShadow:'0 2px 12px rgba(0,0,0,0.3)' }}>
-            Discover Your Best Accessories in Rabat
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={IMGS.hero} alt="Accessories" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            ELECTRONIC<br />ACCESSORIES IN RABAT.
           </h1>
-          {/* Hero search */}
-          <div style={{ width:'100%', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.35)', borderRadius:'48px', padding:'8px', display:'flex', gap:'8px' }}>
-            <div style={{ flex:1, display:'flex', alignItems:'center', backgroundColor:'rgba(244,251,248,0.55)', borderRadius:'100px', padding:'0 20px', transition:'background 0.2s' }}>
-              <Search size={20} color="#6b7a76" style={{ marginRight:'10px', flexShrink:0 }} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search for headphones, gaming gear, chargers..."
-                style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'16px', fontFamily:'Hanken Grotesk, sans-serif', color:'#161d1b', padding:'14px 0' }}
-              />
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
-            <div style={{ flex:1, display:'flex', alignItems:'center', backgroundColor:'rgba(244,251,248,0.55)', borderRadius:'100px', padding:'0 20px' }}>
-              <MapPin size={20} color="#6b7a76" style={{ marginRight:'10px', flexShrink:0 }} />
-              <select style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'16px', fontFamily:'Hanken Grotesk, sans-serif', color:'#161d1b', cursor:'pointer', padding:'14px 0', appearance:'none' as const }}>
-                <option>All Morocco</option>
-                <option selected>Rabat</option>
-                <option>Casablanca</option>
-              </select>
-              <ChevronDown size={18} color="#6b7a76" />
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="Headphones, GoPro, power bank..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'14px 36px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', transition:'all 0.2s' }}
-              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#2dd4bf'}
-              onMouseLeave={e=>e.currentTarget.style.backgroundColor='#2dd4bf'}
-            ><Search size={18} /> Search</button>
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0 }}>Search</button>
           </div>
         </div>
       </section>
 
-      {/* ── ADVANCED FILTER BAR ── */}
-      <div style={{ maxWidth:'1440px', margin:'-40px auto 28px', padding:'0 40px', position:'relative', zIndex:20 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.85)', backdropFilter:'blur(16px)', border:'1px solid rgba(186,202,197,0.35)', borderRadius:'100px', boxShadow:'0 8px 32px rgba(0,107,95,0.06)', display:'flex', alignItems:'center', padding:'6px 6px' }}>
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
           {[
-            { label:'CITY', val:'Rabat', type:'select' },
-            { label:'KEYWORD', val:'Gaming, Audio, Smart Home...', type:'input' },
-            { label:'CONDITION', val:'Select', type:'select' },
-            { label:'PRICE (MAD)', val:'Select', type:'select' },
-            { label:'FILTERS', val:'All Filters', type:'tune' },
-          ].map((f, i, arr) => (
-            <React.Fragment key={f.label}>
-              <div style={{ flex: f.type==='input' ? 2 : 1, padding:'8px 16px', borderRight: i < arr.length-1 ? '1px solid rgba(186,202,197,0.25)' : 'none' }}>
-                <div style={{ fontSize:'9px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.12em', color:'#6b7a76', marginBottom:'3px' }}>{f.label}</div>
-                {f.type === 'input'
-                  ? <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                      <input type="text" placeholder={f.val} style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'15px', fontFamily:'Hanken Grotesk, sans-serif', color:'#161d1b' }} />
-                      <Search size={16} color="#2dd4bf" />
-                    </div>
-                  : f.type === 'tune'
-                  ? <div style={{ display:'flex', alignItems:'center', gap:'6px', cursor:'pointer' }}>
-                      <span style={{ fontSize:'15px', color:'#161d1b' }}>{f.val}</span>
-                      <SlidersHorizontal size={16} color="#6b7a76" />
-                    </div>
-                  : <div style={{ display:'flex', alignItems:'center', gap:'4px', cursor:'pointer' }}>
-                      <span style={{ fontSize:'15px', color: f.val==='Rabat'?'#161d1b':'rgba(22,29,27,0.5)' }}>{f.val}</span>
-                      <ChevronDown size={16} color="#6b7a76" />
-                    </div>
-                }
-              </div>
-            </React.Fragment>
+            { label:'City', val:'Rabat', w:1 },
+            { label:'Keyword', val:'Headphones, GoPro, power bank...', w:2 },
+            { label:'Condition', val:'Select', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
           ))}
-        </div>
-      </div>
-
-      <div style={{ maxWidth:'1440px', margin:'0 auto', padding:'0 40px' }}>
-
-        {/* ── BREADCRUMB ── */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'13px', color:'rgba(60,74,70,0.7)', marginBottom:'20px' }}>
-          {['Rabat','Vault','Electronics','Accessories'].map((crumb, i, arr) => (
-            <React.Fragment key={crumb}>
-              {i < arr.length-1
-                ? <><a href="#" style={{ color:'rgba(60,74,70,0.7)', textDecoration:'none', transition:'color 0.15s' }} onMouseEnter={e=>e.currentTarget.style.color='#2dd4bf'} onMouseLeave={e=>e.currentTarget.style.color='rgba(60,74,70,0.7)'}>{crumb}</a><span style={{ fontSize:'14px' }}>›</span></>
-                : <span style={{ fontWeight:600, color:'#161d1b' }}>{crumb}</span>
-              }
-            </React.Fragment>
-          ))}
-        </nav>
-
-        {/* ── TITLE + SORT ── */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'16px', flexWrap:'wrap' as const }}>
-          <div>
-            <h1 style={{ fontSize:'24px', fontWeight:600, color:'#161d1b', letterSpacing:'-0.01em', marginBottom:'4px' }}>New and Used Electronic Accessories in Rabat</h1>
-            <p style={{ fontSize:'16px', color:'#6b7a76' }}>4,812 Ads in Rabat District</p>
-          </div>
-          <div style={{ display:'flex', gap:'10px' }}>
-            {[{icon:<ArrowUpDown size={16}/>, label:'Sort: Default'},{icon:<Bookmark size={16}/>, label:'Save Search'}].map(btn=>(
-              <button key={btn.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 18px', borderRadius:'14px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', cursor:'pointer', fontSize:'13px', fontWeight:600, color:'#161d1b', transition:'background 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor='#e2eae7'}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='#eef5f2'}
-              >{btn.icon}{btn.label}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── CATEGORY ICON GRID ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'16px', marginBottom:'28px' }}>
-          {categoryCards.map(cat=>(
-            <a key={cat.label} href="#" style={{ backgroundColor:'white', padding:'24px', borderRadius:'40px', display:'flex', flexDirection:'column' as const, alignItems:'center', gap:'12px', border:'1px solid rgba(186,202,197,0.25)', textDecoration:'none', boxShadow:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.2s' }}
-              onMouseEnter={e=>{(e.currentTarget as HTMLAnchorElement).style.borderColor='rgba(0,107,95,0.4)';(e.currentTarget as HTMLAnchorElement).style.transform='translateY(-2px)'}}
-              onMouseLeave={e=>{(e.currentTarget as HTMLAnchorElement).style.borderColor='rgba(186,202,197,0.25)';(e.currentTarget as HTMLAnchorElement).style.transform='none'}}
-            >
-              <span style={{ fontSize:'40px' }}>{cat.icon}</span>
-              <span style={{ fontSize:'13px', fontWeight:700, color:'#161d1b' }}>{cat.label}</span>
-            </a>
-          ))}
-        </div>
-
-        {/* ── BRAND PILLS ── */}
-        <div style={{ display:'flex', gap:'10px', overflowX:'auto' as const, paddingBottom:'8px', marginBottom:'8px' }}>
-          {brands.map(brand=>(
-            <button key={brand} onClick={()=>setActiveBrand(brand)}
-              style={{ whiteSpace:'nowrap' as const, padding:'10px 22px', borderRadius:'100px', fontSize:'13px', fontWeight:600, border:'1px solid', cursor:'pointer', transition:'all 0.15s',
-                backgroundColor: activeBrand===brand ? '#2dd4bf' : '#e8efec',
-                color: activeBrand===brand ? 'white' : '#161d1b',
-                borderColor: activeBrand===brand ? '#2dd4bf' : 'rgba(186,202,197,0.4)',
-                boxShadow: activeBrand===brand ? '0 2px 8px rgba(0,107,95,0.25)' : 'none',
-              }}
-            >{brand}</button>
-          ))}
-          <button style={{ whiteSpace:'nowrap' as const, padding:'10px 16px', borderRadius:'100px', fontSize:'13px', fontWeight:700, border:'none', backgroundColor:'transparent', cursor:'pointer', color:'#2dd4bf', display:'flex', alignItems:'center', gap:'4px' }}>
-            View More <ChevronDown size={16} />
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
           </button>
         </div>
-
-        {/* ── DISCOVERY CONTROLS ── */}
-        <div style={{ padding:'16px 0', borderTop:'1px solid rgba(186,202,197,0.25)', marginBottom:'32px' }}>
-          {/* Row 1: New Arrivals + Price Drop + Diamond */}
-          <div style={{ display:'flex', alignItems:'center', gap:'14px', marginBottom:'14px', flexWrap:'wrap' as const }}>
-            <span style={{ backgroundColor:'rgba(45,212,191,0.15)', color:'#2dd4bf', fontSize:'13px', fontWeight:600, padding:'6px 14px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'4px' }}>
-              <Zap size={14} /> New Arrivals
-            </span>
-            <span style={{ backgroundColor:'rgba(96,94,88,0.1)', color:'#605e58', fontSize:'13px', fontWeight:600, padding:'6px 14px', borderRadius:'100px', display:'flex', alignItems:'center', gap:'4px' }}>
-              <TrendingDown size={14} /> Price Drop Alert
-            </span>
-            <div style={{ width:'1px', height:'16px', backgroundColor:'rgba(186,202,197,0.4)' }} />
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
-              <span style={{ fontSize:'13px', fontWeight:600, color:'#6b7a76' }}>Show Diamond Verified First</span>
-              <div style={{ width:'36px', height:'20px', borderRadius:'100px', backgroundColor:diamondFirst?'#2dd4bf':'#bacac5', position:'relative', transition:'background 0.25s' }}>
-                <div style={{ position:'absolute', top:'2px', left:diamondFirst?'18px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
-              </div>
-            </div>
-          </div>
-          {/* Row 2: Seller tabs + sort */}
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap' as const }}>
-            {['All Sellers (4,812)','SouKni Members (3,110)','SouKni Pro (1,702)'].map(tab=>(
-              <button key={tab} onClick={()=>setActiveSeller(tab)}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'13px', fontWeight:600, cursor:'pointer', transition:'all 0.15s', border:'1px solid',
-                  backgroundColor: activeSeller===tab ? 'rgba(45,212,191,0.18)' : '#e8efec',
-                  borderColor: activeSeller===tab ? '#2dd4bf' : 'rgba(186,202,197,0.4)',
-                  color: activeSeller===tab ? '#2dd4bf' : '#6b7a76',
-                }}
-              >{tab==='All Sellers (4,812)'?'👥':tab.includes('Members')?'👤':'🛡'} {tab}</button>
-            ))}
-            <div style={{ marginLeft:'auto', display:'flex', gap:'10px' }}>
-              {[{icon:<ArrowUpDown size={15}/>, label:'Sort: Featured'},{icon:<Bookmark size={15}/>, label:'Save Search'}].map(btn=>(
-                <button key={btn.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', cursor:'pointer', fontSize:'13px', fontWeight:600, color:'#161d1b', transition:'background 0.15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.backgroundColor='#e2eae7'}
-                  onMouseLeave={e=>e.currentTarget.style.backgroundColor='#eef5f2'}
-                >{btn.icon}{btn.label}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── FEATURED PREMIUM ELECTRONICS ── */}
-        <div style={{ marginBottom:'48px' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
-            <h2 style={{ fontSize:'24px', fontWeight:700, color:'#2dd4bf', letterSpacing:'-0.01em' }}>Featured Premium Electronics</h2>
-            <a href="#" style={{ fontSize:'13px', fontWeight:700, color:'#2dd4bf', textDecoration:'none', display:'flex', alignItems:'center', gap:'4px' }}>View all Featured <ChevronRight size={16} /></a>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {featuredPremium.map(item=><TallCard key={item.id} item={item} />)}
-          </div>
-        </div>
-
-        {/* ── NEW ARRIVALS ── */}
-        <div style={{ marginBottom:'48px' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
-            <h2 style={{ fontSize:'24px', fontWeight:700, color:'#2dd4bf', letterSpacing:'-0.01em' }}>New Arrivals in Rabat</h2>
-            <a href="#" style={{ fontSize:'13px', fontWeight:700, color:'#2dd4bf', textDecoration:'none', display:'flex', alignItems:'center', gap:'4px' }}>View all New <ChevronRight size={16} /></a>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
-            {newArrivals.map(item=><TallCard key={item.id} item={item} />)}
-          </div>
-        </div>
-
-        {/* ── DUAL BANNERS: Join SouKni + Electro Pro ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'48px' }}>
-          {/* Join SouKni Family */}
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'300px', backgroundColor:'#2dd4bf' }}>
-            <img src={IMGS.hero} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.3 }} />
-            <div style={{ position:'relative', zIndex:1, maxWidth:'340px' }}>
-              <h2 style={{ fontSize:'36px', fontWeight:700, color:'white', marginBottom:'16px', letterSpacing:'-0.02em', lineHeight:1.2 }}>Join the SouKni Family</h2>
-              <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.6 }}>Start selling your tech items today for free and reach millions of buyers in Morocco.</p>
-              <button style={{ backgroundColor:'white', color:'#2dd4bf', border:'none', padding:'16px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', letterSpacing:'0.08em', textTransform:'uppercase' as const, boxShadow:'0 8px 24px rgba(0,0,0,0.15)', transition:'transform 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-              >Register as Individual</button>
-            </div>
-          </div>
-          {/* Electro Pro */}
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'300px', backgroundColor:'#dde4e1', border:'2px solid rgba(0,107,95,0.18)' }}>
-            <img src={IMGS.hero} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.2 }} />
-            <div style={{ position:'relative', zIndex:1, maxWidth:'340px' }}>
-              <div style={{ fontSize:'11px', fontWeight:900, color:'#2dd4bf', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'12px' }}>Solutions for agents</div>
-              <h2 style={{ fontSize:'36px', fontWeight:700, color:'#161d1b', marginBottom:'16px', letterSpacing:'-0.02em', lineHeight:1.2 }}>SouKni Electro Pro</h2>
-              <p style={{ fontSize:'18px', color:'#6b7a76', marginBottom:'28px', lineHeight:1.6 }}>Boost your electronics store visibility with our premium listing dashboard and analytics.</p>
-              <button style={{ backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'16px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', letterSpacing:'0.08em', textTransform:'uppercase' as const, boxShadow:'0 8px 24px rgba(0,107,95,0.25)', transition:'transform 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-              >Discover Pro Tools</button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── GRID ROW 1 (8 square cards) ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'48px' }}>
-          {gridRow1.map(item=><SquareCard key={item.id} item={item} />)}
-        </div>
-
-        {/* ── GRID ROW 2 (4 square cards — cameras & timepieces) ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'16px' }}>
-          {gridRow2.map(item=><SquareCard key={item.id} item={item} />)}
-        </div>
-
-        {/* ── GRID ROW 3 (4 more) ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'48px' }}>
-          {gridRow3.map(item=><SquareCard key={item.id} item={item} />)}
-        </div>
-
-        {/* ── PAGINATION ── */}
-        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'64px' }}>
-          <button style={{ width:'40px', height:'40px', borderRadius:'50%', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6b7a76' }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
-            <button key={p} onClick={()=>setPage(p)}
-              style={{ width:'40px', height:'40px', borderRadius:'50%', border:'1px solid', cursor:'pointer', fontSize:'13px', fontWeight:700, transition:'all 0.15s',
-                backgroundColor: page===p ? '#2dd4bf' : 'transparent',
-                color: page===p ? 'white' : '#161d1b',
-                borderColor: page===p ? '#2dd4bf' : 'rgba(186,202,197,0.4)',
-                boxShadow: page===p ? '0 2px 8px rgba(0,107,95,0.3)' : 'none',
-              }}
-            >{p}</button>
-          ))}
-          <span style={{ padding:'0 4px', color:'rgba(22,29,27,0.4)', fontSize:'16px' }}>...</span>
-          <button style={{ width:'40px', height:'40px', borderRadius:'50%', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'transparent', cursor:'pointer', fontSize:'13px', fontWeight:700, color:'#161d1b' }}>21</button>
-          <button style={{ width:'40px', height:'40px', borderRadius:'50%', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#6b7a76' }}><ChevronRight size={18} /></button>
-        </div>
-
-        {/* ── BECOME DIAMOND MEMBER BANNER ── */}
-        <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'48px', textAlign:'center', background:'linear-gradient(135deg, #2dd4bf 0%, #2dd4bf 100%)', marginBottom:'16px', boxShadow:'0 20px 60px rgba(0,107,95,0.25)' }}>
-          <img src={IMGS.hero} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.2 }} />
-          <div style={{ position:'relative', zIndex:1 }}>
-            <h2 style={{ fontSize:'40px', fontWeight:700, color:'white', marginBottom:'16px', letterSpacing:'-0.02em', lineHeight:1.15 }}>Become a Diamond Member</h2>
-            <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.92)', marginBottom:'28px', maxWidth:'640px', margin:'0 auto 28px', lineHeight:1.7 }}>Enjoy zero listing fees, unlimited highlighted ads, and a dedicated account manager for your tech business.</p>
-            <button style={{ backgroundColor:'white', color:'#2dd4bf', border:'none', padding:'16px 40px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', letterSpacing:'0.1em', textTransform:'uppercase' as const, boxShadow:'0 8px 24px rgba(0,0,0,0.15)', transition:'transform 0.2s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            >Upgrade to Diamond</button>
-          </div>
-        </div>
-
-        {/* ── ELECTRO PRO SYNERGY BANNER ── */}
-        <div style={{ position:'relative', width:'100%', height:'320px', borderRadius:'40px', overflow:'hidden', marginBottom:'64px' }}>
-          <img src={IMGS.hero} alt="SouKni Electro Pro"
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s' }}
-            onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-          />
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right, rgba(0,0,0,0.72), rgba(0,0,0,0.42) 55%, transparent)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 64px' }}>
-            <div style={{ maxWidth:'580px' }}>
-              <span style={{ fontSize:'11px', fontWeight:900, color:'#3cddc7', textTransform:'uppercase' as const, letterSpacing:'0.2em', display:'block', marginBottom:'16px' }}>Premier Partnership</span>
-              <h2 style={{ fontSize:'48px', fontWeight:700, color:'white', marginBottom:'8px', letterSpacing:'-0.02em', lineHeight:1.1 }}>SouKni Electro Pro</h2>
-              <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.9)', lineHeight:1.6 }}>The Gold Standard for Electronics & Accessories in Rabat.</p>
-            </div>
-            <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'16px 36px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer', letterSpacing:'0.08em', textTransform:'uppercase' as const, boxShadow:'0 8px 24px rgba(45,212,191,0.35)', transition:'filter 0.2s', whiteSpace:'nowrap' as const }}
-              onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-              onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-            >Discover Pro Benefits</button>
-          </div>
-        </div>
-
       </div>
 
-      {/* ── FOOTER ── */}
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
+
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
+          <span style={{ color:C.ink }}>Accessories</span>
+        </nav>
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Used Accessories in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>Sort: Default</button>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>Save Search</button>
+          </div>
+        </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>4,812 Ads in Rabat District</p>
+
+        <section style={{ marginBottom:32 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <h2 style={{ ...UB, fontSize:16, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>SHOP BY BRAND</h2>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:12 }}>
+            {brands.map(brand=>(
+              <button key={brand.name} onClick={()=>setActiveBrand(activeBrand===brand.name?'':brand.name)}
+                style={{ position:'relative', borderRadius:20, overflow:'hidden', border:`2px solid ${activeBrand===brand.name?C.mint:'transparent'}`, cursor:'pointer', transition:'all 0.2s', background:'none', padding:0 }}>
+                <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden' }}>
+                  <img src={brand.image} alt={brand.name} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.4s', transform:activeBrand===brand.name?'scale(1.06)':'scale(1)' }} />
+                  <div style={{ position:'absolute', inset:0, background:activeBrand===brand.name?'linear-gradient(to top,rgba(34,212,168,0.7),rgba(0,0,0,0.2))':'linear-gradient(to top,rgba(0,0,0,0.7),rgba(0,0,0,0.1))' }} />
+                  <div style={{ position:'absolute', bottom:10, left:0, right:0, textAlign:'center' }}>
+                    <p style={{ ...UB, fontSize:12, color:'white', marginBottom:2 }}>{brand.name}</p>
+                    <p style={{ fontSize:9, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{brand.count} ads</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {pills.map(p=>(
+            <Link key={p} href={`/${locale}/electronics/accessories/${pillSlugs[p]}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{p}</Link>
+          ))}
+        </div>
+
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>⊞</button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>☰</button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
+          {[
+            { emoji:'✨', label:'New Arrivals', active:true },
+            { emoji:'📉', label:'Price Drop Alert', active:false },
+          ].map(chip=>(
+            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+              {chip.emoji} {chip.label}
+            </button>
+          ))}
+        </div>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM ACCESSORIES</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={IMGS.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Electro Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Certified dealers.<br/>Guaranteed warranty.</h2>
+              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
+                <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Pro Deals</button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Accessories Collection</h2>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+            {exclusiveListings.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+          </div>
+        </section>
+
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Accessory Discoveries</h2>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
+            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={IMGS.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Become a SouKni Diamond Member.</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Unlock priority listings, verified badge, and exclusive buyer access.</p>
+            <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Verified Now</button>
+            </Link>
+          </div>
+        </section>
+
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>SELL YOUR ACCESSORIES TODAY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Post for free and reach millions of buyers across Morocco.</p>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ export interface Listing {
   images: string[]
   isPremium?: boolean
   isVerified?: boolean
+  badge?: 'diamond' | 'verified' | 'certified' | null
   seller?: {
     name: string
     type: 'owner' | 'agent' | 'dealer'

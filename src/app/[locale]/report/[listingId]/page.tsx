@@ -3,10 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  Flag, ChevronRight, Check, Shield, AlertTriangle,
-  Camera, X, ArrowRight, Clock, Eye, Phone
-} from 'lucide-react'
+import { Flag, ChevronRight, Check, Shield, AlertTriangle, Camera, X, ArrowRight, Clock, Eye, Phone } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 

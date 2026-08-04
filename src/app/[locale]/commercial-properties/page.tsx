@@ -104,7 +104,7 @@ function ProjectCard({ project }: { project: Project }) {
   )
 }
 
-function ListingCard({ item }: { item: Listing }) {
+function ListingCard({ item, viewMode }: { item: Listing, viewMode?: 'grid' | 'list' }) {
   const [saved, setSaved] = useState(false)
   return (
     <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid rgba(186,202,197,0.1)', transition: 'all 0.3s' }}

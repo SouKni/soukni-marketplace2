@@ -1,240 +1,578 @@
 'use client'
-import React, { useState } from 'react'
+
+import { useState } from 'react'
+import React from 'react'
+import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { MapPin, Search } from 'lucide-react'
-import { useMarket } from '@/context/MarketContext'
 
-const subCategories = ['All Parts', 'Wheels & Tyres', 'Engine Parts', 'Exhaust', 'Suspension', 'Interior', 'Exterior', 'Electronics', 'View More']
+const C = {
+  mint:   '#22d4a8',
+  mintDk: '#006c53',
+  ink:    '#161d1b',
+  surface:'#f4fbf8',
+  cream:  '#f5ede0',
+  muted:  '#6b7a76',
+}
+const UB: React.CSSProperties = { fontFamily:'Inter,sans-serif',            fontWeight:900, letterSpacing:'-0.05em' }
+const CB: React.CSSProperties = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' }
 
-const performance = [
-  { title: 'Brembo GT Braking System', price: 12400, cat: 'Performance', cond: 'Brand New', location: 'Casablanca', time: '1 hour ago', badge: 'verified', image: 'https://images.pexels.com/photos/4489749/pexels-photo-4489749.jpeg?auto=compress&w=600' },
-  { title: 'Garrett G-Series Turbo Kit', price: 15500, cat: 'Engine', cond: 'Brand New', location: 'Casablanca', time: '3 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/1482516/pexels-photo-1482516.jpeg?auto=compress&w=600' },
-  { title: 'Akrapovic Titanium Exhaust', price: 42000, cat: 'Exhaust', cond: 'Brand New', location: 'Marrakech', time: 'Just now', badge: 'diamond', image: 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&w=600' },
-  { title: 'KW Coilover Suspension V3', price: 18500, cat: 'Suspension', cond: 'Brand New', location: 'Casablanca', time: '5 hours ago', badge: 'verified', image: 'https://images.pexels.com/photos/4489749/pexels-photo-4489749.jpeg?auto=compress&w=600' },
-]
+const I = {
+  hero:    'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&w=1600',
+  c1:      'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=600',
+  c2:      'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=600',
+  c3:      'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&w=600',
+  c4:      'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=600',
+  bento1:  'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=900',
+  bento2:  'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=600',
+  bento3:  'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&w=600',
+  bento4:  'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=600',
+  verify:  'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=1200',
+  sellcta: 'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&w=1200',
+  g1:      'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=400',
+  g2:      'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg?auto=compress&w=400',
+  g3:      'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&w=400',
+  g4:      'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&w=400',
+  g5:      'https://images.pexels.com/photos/892522/pexels-photo-892522.jpeg?auto=compress&w=400',
+}
 
-const wheels = [
-  { title: 'Vossen HF-5 Forged Wheels', price: 28000, cat: 'Wheels', cond: 'Used (Excellent)', location: 'Rabat', time: '2 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/244553/pexels-photo-244553.jpeg?auto=compress&w=600' },
-  { title: 'HRE Performance Wheels Set', price: 35000, cat: 'Wheels', cond: 'Brand New', location: 'Tangier', time: '4 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/244553/pexels-photo-244553.jpeg?auto=compress&w=600' },
-  { title: 'Michelin Pilot Sport 5 Set', price: 8400, cat: 'Tyres', cond: 'Brand New', location: 'Agadir', time: '1 day ago', badge: 'verified', image: 'https://images.pexels.com/photos/1482516/pexels-photo-1482516.jpeg?auto=compress&w=600' },
-  { title: 'BBS CH-R Gold Wheels 20"', price: 31000, cat: 'Wheels', cond: 'Brand New', location: 'Casablanca', time: '6 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/244553/pexels-photo-244553.jpeg?auto=compress&w=600' },
-]
+type CondT = 'new'|'used'|'refurbished'
+function CondBadge({ type }: { type: CondT }) {
+  const map: Record<CondT,{bg:string;color:string;label:string}> = {
+    new:         { bg:C.mint, color:C.ink,  label:'New'         },
+    used:        { bg:'white', color:C.muted, label:'Used'      },
+    refurbished: { bg:C.ink,  color:C.mint, label:'Refurbished' },
+  }
+  const s = map[type]
+  return (
+    <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block', boxShadow:'0 2px 6px rgba(0,0,0,0.15)', whiteSpace:'nowrap' as const, border: type==='used' ? `1px solid ${C.muted}40` : 'none' }}>
+      {s.label}
+    </span>
+  )
+}
 
-const interior = [
-  { title: 'Recaro Sport Seats Pair', price: 22000, cat: 'Interior', cond: 'Brand New', location: 'Rabat', time: '1 day ago', badge: 'verified', image: 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&w=600' },
-  { title: 'Alcantara Steering Wheel', price: 4500, cat: 'Interior', cond: 'Brand New', location: 'Casablanca', time: '2 days ago', badge: 'verified', image: 'https://images.pexels.com/photos/1482516/pexels-photo-1482516.jpeg?auto=compress&w=600' },
-  { title: 'Pioneer CarPlay Head Unit', price: 6800, cat: 'Electronics', cond: 'Brand New', location: 'Marrakech', time: '3 hours ago', badge: 'verified', image: 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&w=600' },
-  { title: 'LED Interior Ambient Kit', price: 1200, cat: 'Electronics', cond: 'Brand New', location: 'Tangier', time: '5 hours ago', badge: 'verified', image: 'https://images.pexels.com/photos/4489749/pexels-photo-4489749.jpeg?auto=compress&w=600' },
-]
-
-function AccessoryCard({ item }: { item: typeof performance[0] }) {
+function FeaturedCard({ brand, title, price, location, img, condition }: any) {
+  const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const { formatPrice } = useMarket()
   return (
-    <article onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ backgroundColor: 'white', borderRadius: '28px', overflow: 'hidden', boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.12)' : '0 4px 16px rgba(0,0,0,0.06)', border: '1px solid rgba(241,245,249,0.8)', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', transform: hovered ? 'translateY(-4px)' : 'translateY(0)' }}>
-      <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s', transform: hovered ? 'scale(1.1)' : 'scale(1)' }} />
-        {item.badge === 'diamond' && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #2dd4bf, #2dd4bf)', color: 'white', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 4px 12px rgba(45,212,191,0.4)' }}>💎 Diamond Member</div>
-        )}
-        {item.badge === 'verified' && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: '#2dd4bf', fontSize: '9px', fontWeight: 800, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>✓ Verified</div>
-        )}
-        <button onClick={e => { e.stopPropagation(); setSaved(!saved) }}
-          style={{ position: 'absolute', top: '12px', right: '12px', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', transition: 'all 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'white' }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)' }}>
-          {saved ? '❤️' : '🤍'}
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'24px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, boxShadow:hov?`0 20px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', overflow:'hidden', transition:'all 0.3s', cursor:'pointer' }}>
+      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s', transform:hov?'scale(1.1)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'12px', left:'12px' }}><CondBadge type={condition as CondT} /></div>
+        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
-        <div style={{ position: 'absolute', bottom: '12px', left: '12px', backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: 'white', fontSize: '10px', fontWeight: 600, padding: '3px 10px', borderRadius: '100px' }}>{item.time}</div>
       </div>
-      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: '9px', fontWeight: 800, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>{item.cat}</div>
-        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '20px', fontWeight: 800, color: '#2dd4bf' }}>{formatPrice(item.price)}</span>
-          <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>📦 {item.cond}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #f8fafc', paddingTop: '12px', marginBottom: '14px' }}>
-          <MapPin size={11} />{item.location}
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-          <button style={{ flex: 1, padding: '11px', borderRadius: '100px', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: '#f4fbf8', color: '#3c4a46', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#e8efec' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#f4fbf8' }}>
-            💬 Message
-          </button>
-          <button style={{ flex: 1, padding: '11px', borderRadius: '100px', border: 'none', backgroundColor: '#25D366', color: 'white', fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'opacity 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            WhatsApp
-          </button>
+      <div style={{ padding:'18px 20px' }}>
+        <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>{brand}</p>
+        <h4 style={{ fontSize:'14px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+        <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>MAD {price.toLocaleString()}</p>
+        {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >Message</button>
+          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
         </div>
       </div>
-    </article>
+    </div>
   )
 }
 
-function SectionRow({ title, items }: { title: string, items: typeof performance }) {
+function GridCard({ brand, title, price, img, condition }: any) {
+  const [saved, setSaved] = useState(false)
+  const [hov,   setHov  ] = useState(false)
   return (
-    <section style={{ marginBottom: '56px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>{title}</h2>
-        <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>View All →</a>
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'28px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, boxShadow:hov?`0 16px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', overflow:'hidden', transition:'all 0.3s', cursor:'pointer' }}>
+      <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s', transform:hov?'scale(1.1)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'10px', left:'10px' }}><CondBadge type={condition as CondT} /></div>
+        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Heart size={12} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
+        </button>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-        {items.map((item, i) => <AccessoryCard key={i} item={item} />)}
+      <div style={{ padding:'14px 16px' }}>
+        <p style={{ fontSize:'9px', ...CB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.08em', marginBottom:'2px' }}>{brand}</p>
+        <h4 style={{ fontSize:'12px', ...CB, color:hov?C.mint:C.ink, marginBottom:'8px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+        <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>MAD {price.toLocaleString()}</p>
+        <div style={{ display:'flex', gap:'6px' }}>
+          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
+          >Message</button>
+          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
+
+const featuredItems = [
+  { brand:'Bosch',      title:'Alternator — Fits Golf/Passat',      price:1200, location:'Casablanca', img:I.c1, condition:'new'         },
+  { brand:'Michelin',   title:'Set of 4 Tires 225/45 R17',           price:3400, location:'Rabat',      img:I.c2, condition:'new'         },
+  { brand:'OEM',        title:'BMW 3 Series Headlight Assembly',     price:1850, location:'Marrakech',  img:I.c3, condition:'refurbished' },
+  { brand:'Pioneer',    title:'Touchscreen Multimedia Head Unit',    price:2200, location:'Tangier',    img:I.c4, condition:'used'        },
+]
+
+function makeGrid(count: number) {
+  const brands = ['Bosch','Michelin','OEM','Pioneer','Brembo','Sachs','Denso','Continental']
+  const titles = ['Brake Disc Set','Timing Belt Kit','Side Mirror Assembly','Alloy Wheel Set','Suspension Strut','Air Filter','Battery 70Ah','Cabin Filter Kit']
+  const imgs   = [I.g1,I.g2,I.g3,I.g4,I.g5]
+  const conds: CondT[] = ['new','used','refurbished','new','used']
+  return Array.from({length:count},(_,i)=>({
+    brand: brands[i%brands.length],
+    title: titles[i%titles.length],
+    price: 150 + ((i*731)%3200),
+    img:   imgs[i%imgs.length],
+    condition: conds[i%conds.length],
+  }))
+}
+const gridItems = makeGrid(16)
+
+const CATS = [
+  { label:'All Parts',            slug:'all-parts'         },
+  { label:'Engine & Mechanical',  slug:'engine-mechanical' },
+  { label:'Body & Exterior',      slug:'body-exterior'     },
+  { label:'Interior',             slug:'interior'          },
+  { label:'Electronics & Audio',  slug:'electronics-audio' },
+  { label:'Tires & Wheels',       slug:'tires-wheels'      },
+  { label:'Lighting',             slug:'lighting'          },
+]
 
 export default function AccessoriesPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = React.use(params)
-  const [activeCat, setActiveCat] = useState('All Parts')
-  const [diamondFirst, setDiamondFirst] = useState(false)
-  const [activeFilter, setActiveFilter] = useState('All')
+  const { locale }                      = React.use(params)
+  const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [diamond,      setDiamond     ] = useState(true)
+  const [gridView,     setGridView    ] = useState(true)
+  const [page,         setPage        ] = useState(1)
+  const [keyword,      setKeyword     ] = useState('')
+  const [city,         setCity        ] = useState('All Morocco')
+  const [price,        setPrice       ] = useState('Any Range')
+  const [condition,    setCondition   ] = useState('All')
+  const [category,     setCategory    ] = useState('All Parts')
+  const [cityOpen,     setCityOpen    ] = useState(false)
+  const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [condOpen,     setCondOpen    ] = useState(false)
+  const [catOpen,      setCatOpen     ] = useState(false)
+
+  const cities  = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const prices  = ['Any Range','0 – 500 MAD','500 – 1,500 MAD','1,500 – 3,500 MAD','3,500+ MAD']
+  const conds   = ['All','New','Used','Refurbished']
+  const catOpts = ['All Parts','Engine & Mechanical','Body & Exterior','Interior','Electronics & Audio','Tires & Wheels','Lighting']
+
+  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
+    return (
+      <div style={{ position:'relative', flex:1 }}>
+        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPriceOpen(false); setCondOpen(false); setCatOpen(false) }}
+          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 18px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <span style={{ fontSize:'13px', ...UB, color:C.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{value}</span>
+            <ChevronDown size={13} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+          </div>
+        </button>
+        {open && (
+          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'200px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
+            {options.map((opt:string)=>(
+              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: '#f4fbf8', minHeight: '100vh' }}>
+    <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
 
-      {/* HERO */}
-      <section style={{ position: 'relative', height: '380px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <img src="https://images.pexels.com/photos/4489749/pexels-photo-4489749.jpeg?auto=compress&w=1400" alt="Parts & Accessories"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.85), rgba(0,0,0,0.3))' }} />
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 20px', maxWidth: '700px', width: '100%' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 900, color: 'white', letterSpacing: '-0.03em', marginBottom: '8px', lineHeight: 1.1 }}>Parts & Accessories</h1>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '28px' }}>3,215 verified listings across Morocco</p>
-          <div style={{ display: 'flex', gap: '8px', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '100px', padding: '8px 8px 8px 24px', maxWidth: '560px', margin: '0 auto' }}>
-            <Search size={18} color="rgba(255,255,255,0.7)" style={{ flexShrink: 0, alignSelf: 'center' }} />
-            <input type="text" placeholder="Search brands, parts, accessories..."
-              style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', fontSize: '15px', color: 'white', fontFamily: 'Inter, sans-serif', padding: '6px 8px' }} />
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Search</button>
+      {/* ══ 1. HERO ══════════════════════════════════════════ */}
+      <section style={{ position:'relative', height:'520px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+        <img src={I.hero} alt="Car Parts & Accessories" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.42)' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center' as const, maxWidth:'960px', padding:'0 24px', width:'100%' }}>
+          <h1 style={{ fontSize:'clamp(36px,6vw,64px)', ...UB, color:'white', marginBottom:'36px', lineHeight:1, textShadow:'0 4px 20px rgba(0,0,0,0.4)' }}>
+            CAR PARTS & ACCESSORIES.<br/><span style={{ color:C.mint }}>NEW, USED & REFURBISHED.</span>
+          </h1>
+          <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
+            <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
+              <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
+              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>All Morocco <ChevronDown size={14} /></div>
+            </div>
+            <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
+              <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search brands, part names..."
+                style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
+              onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
+            >FIND PARTS</button>
           </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <div style={{ maxWidth: '1280px', margin: '-40px auto 0', padding: '0 24px', position: 'relative', zIndex: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-          {[{ label: 'Total Listings', value: '3,215' }, { label: 'Verified Sellers', value: '840' }, { label: 'Brands', value: '200+' }, { label: 'Cities', value: '12' }].map(s => (
-            <div key={s.label} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px 24px', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-              <p style={{ fontSize: '26px', fontWeight: 800, color: '#2dd4bf', marginBottom: '4px' }}>{s.value}</p>
-              <p style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</p>
+      {/* ══ 2. ADVANCED FILTER BAR ═══════════════════════════ */}
+      <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <div style={{ flex:1.6, padding:'0 18px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
+            <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+              <Search size={13} color={C.muted} />
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search brands..."
+                style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'13px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
+              {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
-          ))}
+          </div>
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="PRICE (MAD)" value={price} options={prices} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="CONDITION" value={condition} options={conds} open={condOpen} setOpen={setCondOpen} onChange={setCondition} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <DDrop label="CATEGORY" value={category} options={catOpts} open={catOpen} setOpen={setCatOpen} onChange={setCategory} />
+          <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
+          <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'0 32px', borderRadius:'0 100px 100px 0', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', flexShrink:0, transition:'filter 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
+            onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
+          >Find Parts</button>
         </div>
       </div>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px 80px' }}>
+      <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
-        {/* BREADCRUMB */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', marginBottom: '32px' }}>
-          <Link href={`/${locale}`} style={{ color: '#2dd4bf', textDecoration: 'none', fontWeight: 600 }}>Home</Link>
-          <span>›</span>
-          <Link href={`/${locale}/motors`} style={{ color: '#2dd4bf', textDecoration: 'none', fontWeight: 600 }}>Motors</Link>
-          <span>›</span>
-          <span style={{ color: '#0f172a', fontWeight: 700 }}>Parts & Accessories</span>
+        {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
+          {['Home','Motors','Parts & Accessories'].map((c,i,arr)=>(
+            <React.Fragment key={c}>
+              {i<arr.length-1
+                ? <><Link href={i===0?`/${locale}`:`/${locale}/motors`} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
+                : <span style={{ color:C.ink }}>{c}</span>}
+            </React.Fragment>
+          ))}
         </nav>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>Car Parts & Accessories in Morocco</h2>
+            <p style={{ fontSize:'14px', color:C.mint, ...CB }}>8,340 Parts Listed</p>
+          </div>
+          <div style={{ display:'flex', gap:'10px' }}>
+            {['Sort: Default','Save Search'].map(b=>(
+              <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
+              >{b}</button>
+            ))}
+          </div>
+        </div>
 
-        {/* FILTER BAR */}
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.6)', borderRadius: '20px', padding: '8px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
-            {[{ label: 'City', val: 'All Morocco' }, { label: 'Keyword', val: 'Search brands...' }, { label: 'Price (MAD)', val: 'Any Range' }, { label: 'Condition', val: 'All' }, { label: 'Category', val: 'All Parts' }].map((f, i) => (
-              <div key={f.label} style={{ padding: '10px 16px', borderRight: i < 4 ? '1px solid #f1f5f9' : 'none', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <span style={{ fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, color: '#64748b', letterSpacing: '0.1em', marginBottom: '3px' }}>{f.label}</span>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#0f172a' }}>{f.val}</span>
+        {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
+        <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
+          {CATS.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/motors/accessories/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.label}</Link>
+          ))}
+          <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}
+            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
+            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.mint}}
+          ><Plus size={14} /> View More</button>
+        </div>
+
+        {/* ══ 5. SELLER TABS + VERIFIED TOGGLE ═════════════════ */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' as const, gap:'14px', marginBottom:'20px' }}>
+          <div style={{ display:'flex', gap:'4px', padding:'5px', backgroundColor:'#e8efec', borderRadius:'100px' }}>
+            {['All Sellers','SouKni Members','SouKni Pro'].map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'10px 24px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', border:'none', transition:'all 0.2s',
+                  backgroundColor: activeSeller===tab ? C.ink   : 'transparent',
+                  color:           activeSeller===tab ? 'white' : C.muted,
+                  boxShadow:       activeSeller===tab ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                }}
+              >{tab}</button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
+            <span style={{ fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>Show New Parts First</span>
+            <div style={{ width:'52px', height:'26px', borderRadius:'100px', backgroundColor:diamond?C.mint:'rgba(107,122,118,0.25)', position:'relative', transition:'background 0.25s' }}>
+              <div style={{ position:'absolute', top:'3px', left:diamond?'29px':'3px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:C.ink, transition:'left 0.25s' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* ══ 6. NEW ARRIVALS + GRID TOGGLE ════════════════════ */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'40px' }}>
+          <div style={{ display:'flex', gap:'10px' }}>
+            {['New Arrivals','Price Drop Alert'].map(btn=>(
+              <button key={btn}
+                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
+              >{btn}</button>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
+            <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
+            <button onClick={()=>setGridView(false)} style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:!gridView?C.ink:'transparent', color:!gridView?'white':C.muted, transition:'all 0.2s' }}>☰</button>
+          </div>
+        </div>
+
+        {/* ══ 7. FEATURED PARTS ═════════════════════════════════ */}
+        <section style={{ marginBottom:'48px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+            <div>
+              <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'4px' }}>Featured Parts & Accessories</h3>
+              <p style={{ fontSize:'14px', color:C.muted }}>Genuine and aftermarket parts, verified sellers</p>
+            </div>
+            <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All Featured</a>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
+            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+          </div>
+        </section>
+
+        {/* ══ 8. PART VERIFICATION BANNER ═══════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.ink, borderRadius:'40px', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative' as const, overflow:'hidden', minHeight:'240px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', flexWrap:'wrap' as const, gap:'24px' }}>
+            <div style={{ position:'absolute', right:'-48px', bottom:'-48px', width:'320px', height:'320px', backgroundColor:`${C.mint}18`, borderRadius:'50%' }} />
+            <div style={{ position:'absolute', right:'120px', top:'-60px', width:'200px', height:'200px', backgroundColor:`${C.mint}0a`, borderRadius:'50%' }} />
+            <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
+              <p style={{ fontSize:'11px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'16px' }}>SOUKNI PARTS VERIFIED</p>
+              <h2 style={{ fontSize:'clamp(24px,3.5vw,38px)', ...UB, color:'white', marginBottom:'20px', lineHeight:1.1 }}>Every listed part checked for compatibility and condition.</h2>
+              <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >Learn How It Works</button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 9. EXCLUSIVE PARTS BENTO ══════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <h3 style={{ fontSize:'clamp(20px,3vw,32px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'32px' }}>Exclusive Parts Collection</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gridTemplateRows:'380px 380px', gap:'20px' }}>
+            <div style={{ gridColumn:'1/3', gridRow:'1/3', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento1} alt="Bosch Alternator" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'20px', left:'20px' }}><CondBadge type="new" /></div>
+              </div>
+              <div style={{ padding:'24px 28px', flexShrink:0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'6px', gap:'12px' }}>
+                  <div>
+                    <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>BOSCH</p>
+                    <h4 style={{ fontSize:'20px', ...CB, color:C.ink }}>Alternator — Fits VW Golf/Passat</h4>
+                  </div>
+                  <span style={{ fontSize:'22px', ...CB, color:C.mint, flexShrink:0 }}>MAD 1,200</span>
+                </div>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>Brand new, sealed box · 1-year warranty · Casablanca</p>
+                <div style={{ display:'flex', gap:'10px' }}>
+                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
+                  >Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'3', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento2} alt="Michelin Tires" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}><CondBadge type="new" /></div>
+              </div>
+              <div style={{ padding:'16px 18px', flexShrink:0 }}>
+                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>MICHELIN</p>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Set of 4 Tires 225/45 R17</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 3,400</span>
+                </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'4', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
+                <img src={I.bento3} alt="BMW Headlight" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}><CondBadge type="refurbished" /></div>
+              </div>
+              <div style={{ padding:'16px 18px', flexShrink:0 }}>
+                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>OEM</p>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>BMW 3 Series Headlight</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 1,850</span>
+                </div>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                </div>
+              </div>
+            </div>
+            <div style={{ gridColumn:'3/5', gridRow:'2', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'row' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
+              <div style={{ width:'50%', overflow:'hidden', position:'relative' }}>
+                <img src={I.bento4} alt="Pioneer Head Unit" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <div style={{ position:'absolute', top:'12px', left:'12px' }}><CondBadge type="used" /></div>
+              </div>
+              <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
+                <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'6px' }}>PIONEER</p>
+                <h4 style={{ fontSize:'18px', ...CB, color:C.ink, marginBottom:'6px' }}>Touchscreen Multimedia Head Unit</h4>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>Used, tested working · Includes wiring harness · Tangier</p>
+                <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>MAD 2,200</span>
+                <div style={{ display:'flex', gap:'10px' }}>
+                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
+                  >Message</button>
+                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 10. SELL YOUR PARTS BANNER ════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'320px', display:'flex', alignItems:'center', boxShadow:'0 16px 48px rgba(0,0,0,0.15)', cursor:'pointer' }}>
+            <img src={I.sellcta} alt="Sell Your Spare Parts" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.58)' }} />
+            <div style={{ position:'relative', zIndex:1, padding:'0 64px', maxWidth:'560px' }}>
+              <p style={{ fontSize:'11px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'14px' }}>FOR SELLERS</p>
+              <h2 style={{ fontSize:'clamp(26px,3.5vw,42px)', ...UB, color:'white', marginBottom:'18px', lineHeight:1.05 }}>Got Spare Parts Lying Around?</h2>
+              <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.55 }}>List your used or leftover parts in minutes and reach buyers across Morocco.</p>
+              <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >LIST A PART</button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 11. PART DISCOVERIES GRID ═════════════════════════ */}
+        <section style={{ marginBottom:'48px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'28px' }}>
+            <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>Part Discoveries</h3>
+            <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All</a>
+          </div>
+          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
+            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
+              {row.map((item,j)=><GridCard key={j} {...item} />)}
+            </div>
+          ))}
+        </section>
+
+        {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {[1,2,3].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
+                backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
+              }}
+            >{p}</button>
+          ))}
+          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>8</button>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+        </div>
+
+        {/* ══ 13. TRUST BANNER ═══════════════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.mint, borderRadius:'40px', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:`0 16px 48px ${C.mint}30`, flexWrap:'wrap' as const, gap:'28px' }}>
+            <div style={{ maxWidth:'520px' }}>
+              <p style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:'rgba(22,29,27,0.6)', marginBottom:'14px' }}>EXCLUSIVE PRIVILEGE</p>
+              <h2 style={{ fontSize:'clamp(26px,3.5vw,40px)', ...UB, color:C.ink, marginBottom:'16px', lineHeight:1.05 }}>Unlock the Power of Diamond.</h2>
+              <p style={{ fontSize:'17px', color:`${C.ink}b3`, lineHeight:1.6 }}>Priority placement and a verified badge on every part you list. Sell your inventory 5x faster.</p>
+            </div>
+            <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
+              <button style={{ backgroundColor:C.ink, color:'white', border:'none', padding:'18px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+              >Get Status</button>
+              <button style={{ backgroundColor:'transparent', color:C.ink, border:`2px solid rgba(22,29,27,0.2)`, padding:'18px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'all 0.2s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(22,29,27,0.06)'}
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+              >Learn More</button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 14. APP BANNER ═══════════════════════════════════ */}
+        <section style={{ marginBottom:'64px' }}>
+          <div style={{ backgroundColor:C.cream, borderRadius:'40px', height:'440px', position:'relative' as const, overflow:'hidden', display:'flex', alignItems:'center', padding:'0 64px', border:'1px solid rgba(107,122,118,0.1)' }}>
+            <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
+              <h2 style={{ fontSize:'clamp(36px,5vw,56px)', ...UB, color:C.ink, marginBottom:'20px', lineHeight:1, letterSpacing:'-0.05em' }}>JOIN THE<br/>SOUKNI FAMILY</h2>
+              <p style={{ fontSize:'17px', color:C.muted, marginBottom:'36px', maxWidth:'400px', lineHeight:1.6 }}>Get early access to part deals, new inventory alerts, and verified sellers.</p>
+              <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
+                {['App Store','Google Play'].map(app=>(
+                  <button key={app} style={{ height:'52px', minWidth:'160px', backgroundColor:C.ink, color:'white', border:'none', borderRadius:'14px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'transform 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+                    onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+                  >{app}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ position:'absolute', right:'80px', bottom:'-40px', width:'320px', height:'500px', backgroundColor:'white', borderRadius:'56px', boxShadow:'0 32px 80px rgba(0,0,0,0.18)', border:'8px solid #f5ede0', padding:'20px', display:'flex', flexDirection:'column' as const, gap:'16px' }}>
+              <div style={{ backgroundColor:C.surface, borderRadius:'100px', height:'32px' }} />
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', flex:1 }}>
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px' }} />
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px' }} />
+                <div style={{ backgroundColor:C.surface, borderRadius:'16px', gridColumn:'span 2' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* ══ 15. FOOTER ═══════════════════════════════════════ */}
+      <footer style={{ backgroundColor:C.ink, color:'white', padding:'64px 24px 32px' }}>
+        <div style={{ maxWidth:'1280px', margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:'48px', marginBottom:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(255,255,255,0.12)' }}>
+            <div>
+              <Link href={`/${locale}`} style={{ textDecoration:'none' }}>
+                <div style={{ fontSize:'28px', ...UB, color:C.mint, marginBottom:'12px', cursor:'pointer' }}>SouKni</div>
+              </Link>
+              <p style={{ fontSize:'14px', ...CB, color:'rgba(255,255,255,0.82)', fontStyle:'italic', marginBottom:'20px' }}>The Market in your Pocket</p>
+              <div style={{ display:'flex', gap:'10px' }}>
+                {[{s:'FB',h:'https://facebook.com'},{s:'IG',h:'https://instagram.com'},{s:'X',h:'https://x.com'}].map(({s,h})=>(
+                  <a key={s} href={h} target="_blank" rel="noopener noreferrer"
+                    style={{ width:'38px', height:'38px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', ...UB, color:'rgba(255,255,255,0.6)', textDecoration:'none', transition:'all 0.15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
+                    onMouseLeave={e=>{e.currentTarget.style.backgroundColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.6)'}}
+                  >{s}</a>
+                ))}
+              </div>
+            </div>
+            {[
+              { title:'Marketplace', links:[{l:'Motors',h:`/${locale}/motors`},{l:'Property',h:`/${locale}/property`},{l:'Fashion',h:`/${locale}/fashion`},{l:'The Vault',h:`/${locale}/vault`}] },
+              { title:'Company',     links:[{l:'About Us',h:`/${locale}/about`},{l:'Careers',h:`/${locale}/jobs`},{l:'Press Kit',h:`/${locale}/about`}] },
+              { title:'Support',     links:[{l:'Help Center',h:`/${locale}/community`},{l:'Safety Center',h:`/${locale}/community`},{l:'Contact',h:`/${locale}/community`}] },
+            ].map(col=>(
+              <div key={col.title}>
+                <h4 style={{ fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:C.mint, marginBottom:'20px' }}>{col.title}</h4>
+                {col.links.map(({l,h})=>(
+                  <Link key={l} href={h} style={{ display:'block', fontSize:'13px', ...CB, color:'rgba(255,255,255,0.65)', textDecoration:'none', marginBottom:'12px', transition:'color 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.color='white'}
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.65)'}
+                  >{l}</Link>
+                ))}
               </div>
             ))}
           </div>
-          <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '14px 20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#0f9b8e'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2dd4bf'}>
-            <Search size={18} /> Find Parts
-          </button>
-        </div>
-
-        {/* TITLE + SORT */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
-            New and Used Parts & Accessories in Morocco <span style={{ color: '#64748b', fontWeight: 400, fontSize: '16px' }}>3,215 Ads</span>
-          </h1>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button style={{ border: '1px solid #e2e8f0', backgroundColor: 'white', padding: '8px 16px', borderRadius: '100px', fontSize: '13px', fontWeight: 500, color: '#64748b', cursor: 'pointer' }}>⇅ Sort: Default</button>
-            <button style={{ border: '1px solid #e2e8f0', backgroundColor: 'white', padding: '8px 16px', borderRadius: '100px', fontSize: '13px', fontWeight: 500, color: '#64748b', cursor: 'pointer' }}>🔖 Save Search</button>
+          <div style={{ textAlign:'center' as const, fontSize:'10px', ...UB, color:'rgba(255,255,255,0.35)', textTransform:'uppercase' as const, letterSpacing:'0.2em' }}>
+            © 2026 SOUKNI MOROCCO — ALL RIGHTS RESERVED
           </div>
         </div>
-
-        {/* SUB-CATEGORY PILLS */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          {subCategories.map(cat => (
-            <button key={cat} onClick={() => setActiveCat(cat)}
-              style={{ padding: '8px 20px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, backgroundColor: activeCat === cat ? '#0f172a' : '#e8efec', color: activeCat === cat ? 'white' : '#161d1b', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* FILTER ROW + DIAMOND TOGGLE */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {['All', 'Brand New', 'Used (Excellent)', 'Used (Good)'].map(f => (
-              <button key={f} onClick={() => setActiveFilter(f)}
-                style={{ padding: '6px 20px', borderRadius: '8px', backgroundColor: 'white', border: activeFilter === f ? '1px solid #2dd4bf' : '1px solid #e2e8f0', fontSize: '13px', fontWeight: 500, color: activeFilter === f ? '#2dd4bf' : '#0f172a', cursor: 'pointer' }}>{f}</button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Show SouKni Diamond Verified First</span>
-            <div onClick={() => setDiamondFirst(!diamondFirst)}
-              style={{ width: '44px', height: '24px', borderRadius: '100px', backgroundColor: diamondFirst ? '#2dd4bf' : '#e2e8f0', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-              <div style={{ position: 'absolute', top: '2px', left: diamondFirst ? '22px' : '2px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION ROWS */}
-        <SectionRow title="Featured Performance Parts" items={performance} />
-
-        {/* AUTO PRO BANNER */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '56px' }}>
-          <div style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', background: 'linear-gradient(135deg, #2dd4bf, #2dd4bf)', display: 'flex', alignItems: 'center', padding: '40px' }}>
-            <div style={{ position: 'absolute', right: '-10px', bottom: '-20px', fontSize: '120px', opacity: 0.1 }}>🔧</div>
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>Certified Services</span>
-              <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px', lineHeight: 1.2 }}>SouKni Auto Pro</h2>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>Premium installation and diagnostic services across Morocco.</p>
-              <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '10px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Explore Services</button>
-            </div>
-          </div>
-          <div style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', padding: '40px' }}>
-            <div style={{ position: 'absolute', right: '-10px', bottom: '-20px', fontSize: '120px', opacity: 0.08 }}>💎</div>
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>Premium Access</span>
-              <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px', lineHeight: 1.2 }}>Become a Diamond Member</h2>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>0% commission and unlimited priority listings on all parts.</p>
-              <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '10px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Join Now</button>
-            </div>
-          </div>
-        </div>
-
-        <SectionRow title="Featured Wheels & Tyres" items={wheels} />
-        <SectionRow title="Featured Interior & Electronics" items={interior} />
-
-        {/* DIAMOND BANNER */}
-        <section style={{ borderRadius: '24px', background: 'linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%)', padding: '40px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', marginBottom: '0' }}>
-          <div>
-            <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px', letterSpacing: '-0.02em' }}>Sell Your Parts — 100% Free</h2>
-            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.9)' }}>Reach thousands of buyers across Morocco. Post your listing in minutes.</p>
-          </div>
-          <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: 800, fontSize: '15px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>Post Free Ad →</button>
-        </section>
-
-      </div>
+      </footer>
     </div>
   )
 }

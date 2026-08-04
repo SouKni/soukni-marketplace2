@@ -1,320 +1,419 @@
 'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Search, ChevronDown, MapPin, Globe, DollarSign, Bell, User, ArrowUpDown, Bookmark, Users, UserCircle, BadgeCheck, Truck, Gem, Phone, ShoppingBag, CalendarDays } from 'lucide-react'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useMarket } from '@/context/MarketContext'
 
-const categoryPills = [
-  { label: 'Dogs', count: 733 },
-  { label: 'Cats', count: 635 },
-  { label: 'Birds', count: 385 },
-  { label: 'Exotic Birds', count: 163 },
-  { label: 'Food & Accessories', count: 75 },
-  { label: 'Other', count: 54 },
-]
-
-const sellerFilters = [
-  { label: 'All Sellers', icon: Users },
-  { label: 'Individuals', icon: UserCircle },
-  { label: 'Businesses', icon: BadgeCheck },
-]
-
-type Listing = {
-  id: string; title: string; price: string; unit?: string; location: string
-  image: string; badge?: 'Diamond' | 'Verified' | 'Premium'
+const I = {
+  hero:  'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&w=1600',
+  p1:    'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&w=600',
+  p2:    'https://images.pexels.com/photos/406014/pexels-photo-406014.jpeg?auto=compress&w=600',
+  p3:    'https://images.pexels.com/photos/1444264/pexels-photo-1444264.jpeg?auto=compress&w=600',
+  p4:    'https://images.pexels.com/photos/3023211/pexels-photo-3023211.jpeg?auto=compress&w=600',
+  p5:    'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&w=600',
+  p6:    'https://images.pexels.com/photos/406014/pexels-photo-406014.jpeg?auto=compress&w=600',
+  p7:    'https://images.pexels.com/photos/1444264/pexels-photo-1444264.jpeg?auto=compress&w=600',
+  p8:    'https://images.pexels.com/photos/3023211/pexels-photo-3023211.jpeg?auto=compress&w=600',
+  immo:  'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:  'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
 }
 
-const dogs: Listing[] = [
-  { id: '1', title: 'Golden Retriever Puppies', price: '8,500', location: 'Rabat, Agdal', image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '2', title: 'French Bulldog Rare Blue', price: '12,000', location: 'Rabat, Hay Riad', image: 'https://images.pexels.com/photos/1591939/pexels-photo-1591939.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '3', title: 'Labrador Enthusiast', price: '6,200', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1739660/pexels-photo-1739660.jpeg?auto=compress&w=600' },
-  { id: '4', title: 'German Shepherd', price: '9,000', location: 'Rabat, Hassan', image: 'https://images.pexels.com/photos/1490908/pexels-photo-1490908.jpeg?auto=compress&w=600' },
+type Badge = 'diamond' | 'certified' | 'pro' | null
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
+
+const featuredListings: Listing[] = [
+  { id:'f1', badge:'diamond',   title:'Milo & Gabby Luxury Dog Bed — King Size',   price:2800, location:'Casablanca', time:'Just now', image:I.p1 },
+  { id:'f2', badge:'certified', title:'Dyson Animal V15 Pet Grooming Kit',          price:4200, location:'Rabat',      time:'1h ago',   image:I.p2 },
+  { id:'f3', badge:'pro',       title:'PetSafe Smart Feed Automatic Feeder',        price:1800, location:'Marrakech',  time:'2h ago',   image:I.p3 },
+  { id:'f4', badge:'diamond',   title:'Ruffwear Front Range Dog Harness — Premium', price:950,  location:'Tangier',    time:'3h ago',   image:I.p4 },
 ]
 
-const cats: Listing[] = [
-  { id: '5', title: 'Persian Odd-Eye Elite', price: '7,800', location: 'Rabat, Harhoura', image: 'https://images.pexels.com/photos/1604894/pexels-photo-1604894.jpeg?auto=compress&w=600', badge: 'Premium' },
-  { id: '6', title: 'Siamese Purebred', price: '4,500', location: 'Rabat, Center', image: 'https://images.pexels.com/photos/2071882/pexels-photo-2071882.jpeg?auto=compress&w=600' },
-  { id: '7', title: 'Maine Coon Giant', price: '11,000', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1404819/pexels-photo-1404819.jpeg?auto=compress&w=600' },
-  { id: '8', title: 'Bombay Panther Type', price: '5,200', location: 'Rabat, Agdal', image: 'https://images.pexels.com/photos/1543793/pexels-photo-1543793.jpeg?auto=compress&w=600' },
+const exclusiveListings: Listing[] = [
+  { id:'e1', badge:'diamond',   title:'Versace Pet Carrier — Signature Baroque',   price:8500, location:'Casablanca', time:'Just now', image:I.p1 },
+  { id:'e2', badge:'certified', title:'Orvis ToughChew Elevated Dog Bed XL',       price:3200, location:'Rabat',      time:'1h ago',   image:I.p2 },
+  { id:'e3', badge:'pro',       title:'Whistle Go Explore GPS Pet Tracker',        price:1600, location:'Agadir',     time:'2h ago',   image:I.p3 },
+  { id:'e4', badge:'diamond',   title:'Hagen Catit Vesper Cat Tree — Premium',     price:2400, location:'Fès',        time:'3h ago',   image:I.p4 },
 ]
 
-function ListingCard({ item }: { item: Listing }) {
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',   title:'Kong Classic Dog Toy Bundle XL',            price:380,  location:'Casablanca', time:'Just now', image:I.p5 },
+  { id:'d2',  badge:'certified', title:'PetSafe ScoopFree Self-Cleaning Litter Box', price:2200, location:'Rabat',      time:'1h ago',   image:I.p6 },
+  { id:'d3',  badge:'pro',       title:'Furminator deShedding Tool — Large Dog',    price:620,  location:'Tangier',    time:'2h ago',   image:I.p7 },
+  { id:'d4',  badge:'diamond',   title:'Arlo Essential Pet Camera Indoor',          price:1400, location:'Marrakech',  time:'3h ago',   image:I.p8 },
+  { id:'d5',  badge:'certified', title:'Royal Canin Maxi Adult 15kg Premium',       price:580,  location:'Casablanca', time:'4h ago',   image:I.p1 },
+  { id:'d6',  badge:'diamond',   title:'Flexi Giant Retractable Leash 8m',          price:420,  location:'Rabat',      time:'5h ago',   image:I.p2 },
+  { id:'d7',  badge:'pro',       title:'Aqueon LED Fish Tank Starter Kit 75L',      price:1800, location:'Agadir',     time:'6h ago',   image:I.p3 },
+  { id:'d8',  badge:'certified', title:'Catit Design Senses Play Circuit Cat Toy',  price:350,  location:'Fès',        time:'7h ago',   image:I.p4 },
+  { id:'d9',  badge:'diamond',   title:'Ruffwear Approach Dog Pack — Large',        price:1200, location:'Casablanca', time:'8h ago',   image:I.p5 },
+  { id:'d10', badge:'certified', title:'Trixie Pet Products Deluxe Rabbit Hutch',  price:1600, location:'Rabat',      time:'9h ago',   image:I.p6 },
+  { id:'d11', badge:'pro',       title:'Litter-Robot 4 Automatic Self-Cleaning',    price:6500, location:'Marrakech',  time:'10h ago',  image:I.p7 },
+  { id:'d12', badge:'diamond',   title:'Hill\'s Science Diet Puppy Large Breed',   price:480,  location:'Casablanca', time:'11h ago',  image:I.p8 },
+]
+
+const categories = [
+  { label:'All Pets',        slug:'all-pets'      },
+  { label:'Dogs',            slug:'dogs'          },
+  { label:'Cats',            slug:'cats'          },
+  { label:'Birds',           slug:'birds'         },
+  { label:'Fish & Aquarium', slug:'fish-aquarium' },
+  { label:'Small Animals',   slug:'small-animals' },
+  { label:'Reptiles',        slug:'reptiles'      },
+]
+
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
+
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
+  if (type === 'diamond') return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
+    </span>
+  )
+  return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
+    </span>
+  )
+}
+
+function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
   const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
   return (
-    <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.04)', border: '1px solid #e8efec', transition: 'box-shadow 0.4s' }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12)'}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)'}
-    >
-      <div style={{ position: 'relative', height: '256px', overflow: 'hidden', backgroundColor: '#e8efec' }}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        {item.badge && (
-          <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
-            <span style={{
-              backgroundColor: item.badge === 'Diamond' ? '#2dd4bf' : item.badge === 'Verified' ? '#2dd4bf' : 'rgba(255,255,255,0.4)',
-              backdropFilter: item.badge === 'Premium' ? 'blur(8px)' : undefined,
-              color: 'white', fontSize: '10px', fontWeight: 700, padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase' as const, letterSpacing: '0.1em',
-            }}>{item.badge}</span>
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
+        </div>
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
           </div>
-        )}
-        <button onClick={() => setSaved(!saved)} style={{ position: 'absolute', top: '16px', right: '16px', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <Heart size={18} color="white" fill={saved ? '#ef4444' : 'none'} />
-        </button>
-      </div>
-      <div style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
-          <h3 style={{ fontWeight: 700, fontSize: '17px', color: '#161d1b', lineHeight: 1.3 }}>{item.title}</h3>
-          <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '17px', whiteSpace: 'nowrap' as const }}>{item.price} <span style={{ fontSize: '11px' }}>MAD</span></span>
         </div>
-        <p style={{ color: '#3c4a46', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
-          <MapPin size={13} /> {item.location}
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <button style={{ padding: '9px', border: '2px solid #2dd4bf', color: '#2dd4bf', backgroundColor: 'transparent', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Message</button>
-          <button style={{ padding: '9px', border: 'none', backgroundColor: '#2dd4bf', color: 'white', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>💬 WhatsApp</button>
-        </div>
-      </div>
-    </div>
+      </article>
+    </Link>
   )
 }
 
-function ListingRow({ title, items, viewAllLabel, accent }: { title: string; items: Listing[]; viewAllLabel?: string; accent: string }) {
-  return (
-    <section style={{ marginBottom: '0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#161d1b', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ width: '40px', height: '4px', backgroundColor: accent, borderRadius: '100px', display: 'inline-block' }} />
-          {title}
-        </h2>
-        {viewAllLabel && <a href="#" style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>{viewAllLabel} →</a>}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-        {items.map(item => <ListingCard key={item.id} item={item} />)}
-      </div>
-    </section>
-  )
-}
-
-export default function PetsAccessoriesPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function PetsAccessoriesPage({ params }: { params: Promise<{ locale:string }> }) {
   const { locale } = React.use(params)
-  const [activePill, setActivePill] = useState('')
   const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [diamondFirst, setDiamondFirst] = useState(true)
+  const [activePill, setActivePill] = useState('All Pets')
+  const [page, setPage] = useState(1)
+  const [viewGrid, setViewGrid] = useState(true)
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily: 'Hanken Grotesk, Inter, sans-serif', backgroundColor: '#f4fbf8', color: '#161d1b', minHeight: '100vh' }}>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-
-      {/* HERO */}
-      <section style={{ position: 'relative', height: '85vh', minHeight: '600px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-        <img src="https://images.pexels.com/photos/6816858/pexels-photo-6816858.jpeg?auto=compress&w=1600" alt="Pet showroom"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #f4fbf8 0%, rgba(244,251,248,0.4) 50%, transparent 100%)' }} />
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '1280px', margin: '0 auto', padding: '0 40px', width: '100%' }}>
-          <div style={{ maxWidth: '600px' }}>
-            <h1 style={{ fontSize: '52px', fontWeight: 700, color: '#2dd4bf', marginBottom: '24px', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-              The Market<br /><span style={{ color: '#8d4f00' }}>in your Pocket</span>
-            </h1>
-            <p style={{ fontSize: '18px', color: '#3c4a46', marginBottom: '48px', maxWidth: '420px', lineHeight: 1.6 }}>
-              Discover premium pets and high-end accessories in Morocco's most trusted discovery hub. From Rabat to the world.
-            </p>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.4)', padding: '16px', borderRadius: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ flex: 1, position: 'relative' }}>
-                <Search size={18} color="#6b7a76" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input placeholder="Search for breeds, services..." style={{ width: '100%', padding: '16px 16px 16px 48px', backgroundColor: 'rgba(255,255,255,0.5)', border: 'none', borderRadius: '1rem', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }} />
-              </div>
-              <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '16px 40px', borderRadius: '1rem', fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0,107,95,0.2)' }}>Explore</button>
+      {/* CINEMATIC HERO */}
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={I.hero} alt="Pets & Accessories" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            PETS &amp;<br />ACCESSORIES IN RABAT.
+          </h1>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="Dog bed, cat tree, fish tank..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              Search
+            </button>
           </div>
         </div>
       </section>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 40px' }}>
-
-        {/* FILTER BAR */}
-        <div style={{ position: 'relative', zIndex: 20, marginTop: '-40px', marginBottom: '48px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.4)', padding: '8px', borderRadius: '100px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center' }}>
-            {[
-              { label: 'City', value: 'Rabat', select: true, options: ['Rabat', 'Casablanca', 'Tangier'] },
-              { label: 'Category', value: 'All Pets', select: true, options: ['All Pets', 'Dogs', 'Cats'] },
-              { label: 'Neighborhood', value: '', placeholder: 'Agdal...' },
-              { label: 'Max Price', value: '', placeholder: '5,000 MAD' },
-            ].map((f, i) => (
-              <div key={f.label} style={{ flex: 1, padding: '12px 24px', borderRight: '1px solid rgba(186,202,197,0.3)' }}>
-                <label style={{ display: 'block', fontSize: '9px', fontWeight: 700, color: '#6b7a76', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: '2px' }}>{f.label}</label>
-                {f.select ? (
-                  <select style={{ width: '100%', border: 'none', background: 'transparent', fontWeight: 700, fontSize: '14px', outline: 'none', fontFamily: 'inherit' }} defaultValue={f.value}>
-                    {f.options!.map(o => <option key={o}>{o}</option>)}
-                  </select>
-                ) : (
-                  <input placeholder={f.placeholder} style={{ width: '100%', border: 'none', background: 'transparent', fontWeight: 700, fontSize: '14px', outline: 'none', fontFamily: 'inherit' }} />
-                )}
-              </div>
-            ))}
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 32px', backgroundColor: '#e8efec', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '14px', marginLeft: '8px', whiteSpace: 'nowrap' as const }}>
-              ⚙ Filters
-            </button>
-          </div>
+      {/* ADVANCED FILTER BAR */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {[
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'Dog, cat, bird, fish...', w:2 },
+            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
+          ))}
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
         </div>
+      </div>
+
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#3c4a46', marginBottom: '16px' }}>
-          <Link href={`/${locale}`} style={{ color: '#3c4a46', textDecoration: 'none' }}>Home</Link><span>/</span>
-          <Link href={`/${locale}/vault`} style={{ color: '#3c4a46', textDecoration: 'none' }}>The Vault</Link><span>/</span>
-          <span style={{ fontWeight: 700, color: '#161d1b' }}>Pets &amp; Accessories</span>
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/vault`} style={{ color:C.muted, textDecoration:'none' }}>The Vault</Link><span>›</span>
+          <span style={{ color:C.ink }}>Pets &amp; Accessories</span>
         </nav>
 
-        {/* TITLE + ACTIONS */}
-        <div style={{ display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>New and Used Pets &amp; Accessories for sale in Rabat</h1>
-            <span style={{ color: '#6b7a76', fontSize: '20px' }}>797 Ads</span>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'white', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
-              <ArrowUpDown size={14} /> Sort: Default
+        {/* TITLE + SORT/SAVE */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Pets &amp; Accessories in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+              Sort: Default
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'white', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
-              <Bookmark size={14} /> Save Search
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Save Search
             </button>
           </div>
         </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>1,840 Ads in Rabat District</p>
 
-        {/* CATEGORY PILLS */}
-        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '12px', marginBottom: '24px' }}>
-          {categoryPills.map(p => (
-            <button key={p.label} onClick={() => setActivePill(p.label)}
-              style={{ padding: '10px 24px', borderRadius: '100px', border: activePill === p.label ? '2px solid #2dd4bf' : '1px solid rgba(186,202,197,0.3)', backgroundColor: activePill === p.label ? '#e8efec' : 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' as const }}>
-              {p.label} <span style={{ color: '#6b7a76', fontWeight: 400 }}>({p.count})</span>
-            </button>
-          ))}
-          <button style={{ padding: '10px 24px', borderRadius: '100px', border: '2px solid #2dd4bf', color: '#2dd4bf', fontWeight: 700, fontSize: '14px', backgroundColor: 'transparent', cursor: 'pointer' }}>View More</button>
-        </div>
-
-        {/* SELLER FILTERS */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '48px' }}>
-          {sellerFilters.map(s => (
-            <button key={s.label} onClick={() => setActiveSeller(s.label)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                backgroundColor: activeSeller === s.label ? 'rgba(0,107,95,0.1)' : 'white',
-                border: activeSeller === s.label ? '1px solid rgba(0,107,95,0.2)' : '1px solid rgba(186,202,197,0.3)',
-                color: activeSeller === s.label ? '#2dd4bf' : '#3c4a46',
-              }}>
-              <s.icon size={16} /> {s.label}
-            </button>
+        {/* PILLS */}
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {categories.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/pets-accessories/${cat.slug}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{cat.label}</Link>
           ))}
         </div>
 
-        {/* ROW 1: NOBLE COMPANIONS (DOGS) */}
-        <div style={{ marginBottom: '64px' }}>
-          <ListingRow title="Noble Companions" items={dogs} viewAllLabel="View All" accent="#2dd4bf" />
+        {/* UTILITY BAR */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* INTERSTITIAL BANNERS */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '64px' }}>
-          <div style={{ position: 'relative', borderRadius: '1.5rem', overflow: 'hidden', backgroundColor: '#2dd4bf', padding: '48px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', minHeight: '300px' }}>
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: '420px' }}>
-              <h2 style={{ color: 'white', fontSize: '32px', fontWeight: 700, marginBottom: '16px', lineHeight: 1.2 }}>Elevate your experience with <span style={{ color: '#62fae3' }}>Diamond Membership</span></h2>
-              <p style={{ color: 'rgba(98,250,227,0.8)', marginBottom: '32px', fontSize: '15px', lineHeight: 1.6 }}>Priority listings, verified badges, and exclusive networking for serious breeders and pet lovers.</p>
-              <button style={{ backgroundColor: 'white', color: '#2dd4bf', padding: '16px 40px', borderRadius: '1rem', fontWeight: 700, border: 'none', cursor: 'pointer', width: 'fit-content' }}>Learn More</button>
-            </div>
-            <Gem size={220} color="white" style={{ position: 'absolute', right: '48px', top: '50%', transform: 'translateY(-50%)', opacity: 0.15 }} />
-          </div>
-          <div style={{ borderRadius: '1.5rem', backgroundColor: '#e6e2d9', padding: '32px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
-            <div>
-              <h3 style={{ fontWeight: 700, fontSize: '22px', color: '#484741', marginBottom: '8px' }}>SouKni Auto Pro</h3>
-              <p style={{ color: '#605e58', fontSize: '14px', lineHeight: 1.5 }}>Secure pet transport services across Morocco. Safe, vetted, and air-conditioned.</p>
-            </div>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#2dd4bf', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', padding: 0 }}>
-              Book Transport →
+        {/* QUICK FILTER CHIPS */}
+        <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
+          {[
+            { emoji:'✨', label:'New Arrivals', active:true },
+            { emoji:'📉', label:'Price Drop Alert', active:false },
+            { emoji:'🛍️', label:'Shop Sellers', active:false },
+          ].map(chip=>(
+            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+              {chip.emoji} {chip.label}
             </button>
-            <Truck size={130} color="#161d1b" style={{ position: 'absolute', right: '-16px', bottom: '-16px', opacity: 0.08 }} />
+          ))}
+        </div>
+
+        {/* FEATURED */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM PET ITEMS</h2>
+            <Link href="#" style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
           </div>
-        </div>
-
-        {/* ROW 2: ELEGANT FELINES (CATS) */}
-        <div style={{ marginBottom: '64px' }}>
-          <ListingRow title="Elegant Felines" items={cats} viewAllLabel="Browse All Cats" accent="#8d4f00" />
-        </div>
-
-        {/* ROW 3: EXOTICS & LIVING */}
-        <div style={{ marginBottom: '64px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '40px', height: '4px', backgroundColor: '#605e58', borderRadius: '100px', display: 'inline-block' }} />
-            Exotics &amp; Living
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', border: '1px solid #e8efec', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <div style={{ position: 'relative', height: '288px' }}>
-                <img src="https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&w=600" alt="Macaw" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <span style={{ position: 'absolute', top: '16px', left: '16px', backgroundColor: '#8d4f00', color: 'white', padding: '4px 16px', borderRadius: '100px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em' }}>Rare Find</span>
-              </div>
-              <div style={{ padding: '24px' }}>
-                <h3 style={{ fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>Macaw Blue &amp; Gold (Tamed)</h3>
-                <p style={{ color: '#3c4a46', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>Professional hand-reared macaw. Extremely friendly and starting to talk.</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '24px' }}>15,500 <span style={{ fontSize: '11px' }}>MAD</span></span>
-                  <button style={{ padding: '12px', borderRadius: '50%', backgroundColor: '#2dd4bf', border: 'none', cursor: 'pointer', display: 'flex' }}><Phone size={18} color="white" /></button>
-                </div>
-              </div>
-            </div>
-            <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', border: '1px solid #e8efec', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <div style={{ height: '288px' }}>
-                <img src="https://images.pexels.com/photos/6755109/pexels-photo-6755109.jpeg?auto=compress&w=600" alt="Cat tower" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ padding: '24px' }}>
-                <h3 style={{ fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>Zen Modern Cat Tower</h3>
-                <p style={{ color: '#3c4a46', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>Architectural design meets pet comfort. Sustainably sourced oak wood.</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '24px' }}>2,800 <span style={{ fontSize: '11px' }}>MAD</span></span>
-                  <button style={{ padding: '12px', borderRadius: '50%', backgroundColor: '#2dd4bf', border: 'none', cursor: 'pointer', display: 'flex' }}><ShoppingBag size={18} color="white" /></button>
-                </div>
-              </div>
-            </div>
-            <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', border: '1px solid #e8efec', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-              <div style={{ height: '288px' }}>
-                <img src="https://images.pexels.com/photos/6235233/pexels-photo-6235233.jpeg?auto=compress&w=600" alt="Grooming salon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ padding: '24px' }}>
-                <h3 style={{ fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>Paw &amp; Order Grooming Spa</h3>
-                <p style={{ color: '#3c4a46', fontSize: '14px', marginBottom: '16px', lineHeight: 1.5 }}>Full spa treatment for your pets in the heart of Rabat. Booking essential.</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '17px' }}>From 350 <span style={{ fontSize: '11px', fontWeight: 400 }}>MAD / Session</span></span>
-                  <button style={{ padding: '12px', borderRadius: '50%', backgroundColor: '#2dd4bf', border: 'none', cursor: 'pointer', display: 'flex' }}><CalendarDays size={18} color="white" /></button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* APP DOWNLOAD CTA */}
-        <section style={{ borderRadius: '1.5rem', backgroundColor: '#dde4e1', padding: '48px', marginBottom: '64px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-            <div>
-              <h2 style={{ fontSize: '36px', fontWeight: 700, color: '#2dd4bf', marginBottom: '24px' }}>Join the SouKni Family</h2>
-              <p style={{ color: '#3c4a46', fontSize: '17px', marginBottom: '32px', lineHeight: 1.6 }}>Manage your ads, track favorites, and connect with breeders instantly with our mobile app.</p>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div style={{ backgroundColor: '#161d1b', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                  <div>
-                    <p style={{ fontSize: '9px', textTransform: 'uppercase' as const, opacity: 0.7, fontWeight: 700, margin: 0 }}>Download on the</p>
-                    <p style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>App Store</p>
-                  </div>
-                </div>
-                <div style={{ backgroundColor: '#161d1b', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                  <div>
-                    <p style={{ fontSize: '9px', textTransform: 'uppercase' as const, opacity: 0.7, fontWeight: 700, margin: 0 }}>Get it on</p>
-                    <p style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Google Play</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <img src="https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg?auto=compress&w=800" alt="App preview"
-              style={{ width: '100%', height: '256px', objectFit: 'cover', borderRadius: '1.5rem', boxShadow: '0 25px 50px rgba(0,0,0,0.2)', transform: 'rotate(3deg)' }} />
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
-      </div>
+        {/* IMMO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* FOOTER */}
+        {/* EXCLUSIVE COLLECTION — CLEAN BENTO */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Pets Collection</h2>
+            <Link href="#" style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gridTemplateRows:'280px 280px', gap:16, marginBottom:16 }}>
+            <div style={{ gridRow:'span 2' }}>
+              <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
+                onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+                onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
+                <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
+              <img src={I.p5} alt="Pets Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 28px' }}>
+                <span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, fontWeight:900, padding:'4px 12px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:10, width:'fit-content' }}>SouKni Pets Pro</span>
+                <h3 style={{ ...UB, fontSize:18, color:'white', marginBottom:12, lineHeight:1.2 }}>Find certified pet gear<br/>for every companion.</h3>
+                <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'9px 20px', borderRadius:100, fontSize:11, ...UB, cursor:'pointer', alignSelf:'flex-start' as const }}>Explore All</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AUTO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.auto} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PRO DISCOVERY GRID */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Pets &amp; Accessories Discoveries</h2>
+            <Link href="#" style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
+            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PAGINATION */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
+            </button>
+          ))}
+          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+            Next <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* DIAMOND BANNER */}
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={I.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Unlock the Power of Diamond.</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Priority placement, boosted visibility, and full access to Morocco's most dedicated pet owners. Get started today.</p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+            </div>
+          </div>
+        </section>
+
+        {/* JOIN THE SOUKNI FAMILY */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Get early access to new drops, exclusive member deals, and Morocco's finest pet listings.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

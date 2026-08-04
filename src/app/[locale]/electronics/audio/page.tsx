@@ -1,380 +1,426 @@
-export default function AudioPage() {
+'use client'
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useMarket } from '@/context/MarketContext'
 
-  const featuredListings = [
-    { id: 1, badge: "diamond", title: "Beosound A9 5th Gen", price: "28,500 MAD", condition: "New", location: "Rabat, Agdal", img: "https://lh3.googleusercontent.com/aida/AP1WRLvQvytGgt-0LrDZYTJq4vaW11JLYO8tOCJsRhz_pCRmwGPZx0XgbqegcBHeQ_4Qoic33v50EtWUZGKg02lGUxl-TcvUgtGfioASk7E-dkojlc_5hztUsiqOWmQoXR-EBB9dnHf6Em5O8slzeiBgVQWviRUCxivRmZDMiUY6zb7ay1cAN9UItmQB9Db044_mN-Plbd2_oF77A5jOA09OzPHeWzOyKL0XuDw4rr4HSqoWtWbdWNifQped" },
-    { id: 2, badge: "pro", title: "Phantom I 108 dB Gold", price: "34,200 MAD", condition: "In Stock", location: "Rabat, Souissi", img: "https://lh3.googleusercontent.com/aida/AP1WRLu351srtHYU1W6iJN3zQ8tg5k28eFK-IW9My4xMu-y4m-3n7U8odu7N34ER8gQCiz6k0lP4aHa-OxSOsuYmRJ_Xi_mRxAWE3eiosANALXPbm5eseDgyuAFZH8C2-OS7kE_ekW9Ryhn0vQZTQj-8tk6lt0ErAdKet8ddG8Kl0aAZ-zcS7aE-kp-vjbAHEvnglkyKrJXPNCkF3fPWx5WdvMx9q1m_hBafc8nny5UH3ZPEgfXlTB5PknmkLw" },
-    { id: 3, badge: "diamond", title: "LS60 Wireless Royal Blue", price: "48,900 MAD", condition: "New", location: "Rabat Center", img: "https://lh3.googleusercontent.com/aida/AP1WRLshfjKWLINwS3nGr6rPLprZ68BaPpnWgIDINBE3TLbvtAVYVwt3rK3thlPSNeH74yZiHP-9AhTsjZ4KvnPlPzqyDW5zWrICz_0_MY6fwpoM3rF5qR1sWrzuh4ebpN5cF3Tp8pN2bVcBHLJpkLaH-tkdaj1oEuyqD09crCMoMmqIQvNypohBA_iVMi158JKauc7MXKQRyJDthOOO8empcD5AxQ-IGb1NEjgl1CjrBV9kju79UIi_5ISx" },
-    { id: 4, badge: "verified", title: "Mu-so 2nd Gen Wood", price: "15,400 MAD", condition: "New Arrival", location: "Rabat, Hay Riad", img: "https://lh3.googleusercontent.com/aida/AP1WRLvPEnjjm2NC71nVIoehGZnjOdWYbtLgPtjEd_L8nQBGhHCWiR084qRdVheFzVmapIGsXOoI7Cv719vlnRkJsw0PE1Gn1j1TTHLeV27eLigibYupy-NzHJOjXSEerqCPBEBaTLyd0oL9-BiQzendTH8kRMhWQCYW-2DNsTIggiUuAuJMGsfgrc0yjsfiHxqH6u6sMalcgX4d7T82txtsXq3lede9qDq6YsM5FPj1JUE53ar44NXPhesrvQ" },
-  ]
+const I = {
+  hero:  'https://images.pexels.com/photos/3587478/pexels-photo-3587478.jpeg?auto=compress&w=1600',
+  au1:   'https://images.pexels.com/photos/3587478/pexels-photo-3587478.jpeg?auto=compress&w=600',
+  au2:   'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600',
+  au3:   'https://images.pexels.com/photos/1279107/pexels-photo-1279107.jpeg?auto=compress&w=600',
+  au4:   'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=600',
+  au5:   'https://images.pexels.com/photos/3587478/pexels-photo-3587478.jpeg?auto=compress&w=600',
+  au6:   'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600',
+  au7:   'https://images.pexels.com/photos/1279107/pexels-photo-1279107.jpeg?auto=compress&w=600',
+  au8:   'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=600',
+  immo:  'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:  'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
+}
 
-  const latestRow1 = [
-    { id: 5,  label: "New",            title: "Sonos Arc Premium Soundbar",   location: "Rabat, Souissi",  price: "8,900 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLvEta3meSCI0Wsau0pUS8K-TRmVdRVEmz_aljC8-gCxLpNICNjnlL_C1Yc5ltKXSjwauuIZm_cP3T3IKtYkJjBqpLQ3nniQb749Bb_MajvWa2zpKtsbRqPT4ZYJg-xz9sHx-iA-Z6ZDfRUwASN5u8V3VPn_jTpbTEkZl5E0bo3snatAUAca_QWIc-2vR6lj7DrkBMZOkGyaHp9TN6F0svcIXsnISenaObCpA6g_4-ruBP9xAZqbeJFjjA", labelRed: false },
-    { id: 6,  label: "-15% OFF",       title: "Vintage Hi-Fi Floor Speakers", location: "Rabat, Hassan",   price: "4,500 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLuvnJW24L7P74cJUviy7TYJsiKgSecvThBUyLtwsRLvDtnXnorKcpwDHKxLlN-2ffmFnEIUze6NNMhSyp8sGOLAwhXr-TiKqfMUXM8lhLakPgyY6caj_NpUv-iwXJDbymC9qlEVWw3krNOmjWkvzdz2JuuSJo-CgQA_t-NA51wQo8mNGPJ6-A4JKPm6lIG60ANmHfZiAvt5U-49s0ZS8up0KokBCRgm1QhWVqAV-FVRY9TTHxz29em5UQ", labelRed: true },
-    { id: 7,  label: "Excellent",      title: "Bose SoundLink Revolve+ II",   location: "Rabat, Agdal",    price: "2,200 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLuX0Q7-N3CiMo7b_YFIlCgaPTl2DJ59M4ipG5mpcA29x-vrTqiN8FoITuV3vufldkyz-Ql6PTlphtNBXltXPHaKqZY2EdtLfCgZv2si4nVUBw-Bei7CQ-FxJf5ngd8-rLRIWdn3Ry0ww6wizRs4G7OLs9k3QqvmllRtvM73W_rv622yRrgliAmbmjmhShemnpFqpwfnulhmoOw6RZoZVRqk8Tu96y6II4_Qry28CImgwXe1uxdcUMgOBw", labelRed: false },
-  ]
+type Badge = 'diamond' | 'certified' | 'pro' | null
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
 
-  const latestRow2 = [
-    { id: 8,  label: "NEW",            title: "Sonos Arc Premium Soundbar",   location: "Rabat, Souissi",  price: "8,900 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLvEta3meSCI0Wsau0pUS8K-TRmVdRVEmz_aljC8-gCxLpNICNjnlL_C1Yc5ltKXSjwauuIZm_cP3T3IKtYkJjBqpLQ3nniQb749Bb_MajvWa2zpKtsbRqPT4ZYJg-xz9sHx-iA-Z6ZDfRUwASN5u8V3VPn_jTpbTEkZl5E0bo3snatAUAca_QWIc-2vR6lj7DrkBMZOkGyaHp9TN6F0svcIXsnISenaObCpA6g_4-ruBP9xAZqbeJFjjA", labelRed: false },
-    { id: 9,  label: "PRICE DROP (-15%)", title: "Yamaha HS8 Studio Monitors", location: "Rabat, Hassan",  price: "5,400 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLuvnJW24L7P74cJUviy7TYJsiKgSecvThBUyLtwsRLvDtnXnorKcpwDHKxLlN-2ffmFnEIUze6NNMhSyp8sGOLAwhXr-TiKqfMUXM8lhLakPgyY6caj_NpUv-iwXJDbymC9qlEVWw3krNOmjWkvzdz2JuuSJo-CgQA_t-NA51wQo8mNGPJ6-A4JKPm6lIG60ANmHfZiAvt5U-49s0ZS8up0KokBCRgm1QhWVqAV-FVRY9TTHxz29em5UQ", labelRed: true },
-    { id: 10, label: "USED - LIKE NEW", title: "Shure SM7B Vocal Mic",        location: "Rabat, Agdal",    price: "3,800 MAD",  img: "https://lh3.googleusercontent.com/aida/AP1WRLuX0Q7-N3CiMo7b_YFIlCgaPTl2DJ59M4ipG5mpcA29x-vrTqiN8FoITuV3vufldkyz-Ql6PTlphtNBXltXPHaKqZY2EdtLfCgZv2si4nVUBw-Bei7CQ-FxJf5ngd8-rLRIWdn3Ry0ww6wizRs4G7OLs9k3QqvmllRtvM73W_rv622yRrgliAmbmjmhShemnpFqpwfnulhmoOw6RZoZVRqk8Tu96y6II4_Qry28CImgwXe1uxdcUMgOBw", labelRed: false },
-  ]
+const featuredListings: Listing[] = [
+  { id:'f1', badge:'diamond',   title:'Sony WH-1000XM5 Wireless Noise Cancelling',  price:4200,  location:'Casablanca', time:'Just now', image:I.au1 },
+  { id:'f2', badge:'certified', title:'Apple AirPods Pro 2nd Gen — USB-C',           price:3800,  location:'Rabat',      time:'1h ago',   image:I.au2 },
+  { id:'f3', badge:'pro',       title:'Bose QuietComfort 45 Headphones',             price:3500,  location:'Marrakech',  time:'2h ago',   image:I.au3 },
+  { id:'f4', badge:'diamond',   title:'Sennheiser Momentum 4 Wireless',              price:4800,  location:'Tangier',    time:'3h ago',   image:I.au4 },
+]
 
-  const latestRow3 = [
-    { id: 11, label: "NEW",      title: "Pioneer XDJ-XZ DJ System",   location: "Rabat, Souissi",  price: "18,200 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuB6WMauF6vkz4rKeVGtInyH47HHVZNCDYVWfot8vpWBaueQSK2z4M_Zp938Qg46EDBflOEFfnB4cChWzqL5-MdA4yGhYg0gA9qKuGdce9vD6JCvmwCdjgUyBe9NTuCQ5meHq6gp2arpdVyAvG8KCy0bM6o9KoJx-W1KLyeG81Or8gxC5_fQIHtj6kLMA52TEgewLA5fZoFMw-VgDlu9ESpySt6tUFVQIZf02gCoEILLqMEGQZmYCtxbB-tpz38q-beqDtuQ4vhgMA", labelRed: false },
-    { id: 12, label: "VERIFIED", title: "Roland V-Drums TD-27KV2",   location: "Rabat, Hassan",   price: "32,000 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDP2BNnoXt0OHLKUSmB5zsXHeLL2nnDCO5dkvH8ZtkKG0-lzVOZmcysrDf0kYlsBShHOPx_y1W1lSZLxPhgnZRxkXm32ECDC0IkAb8wUqnRrPmKyDdnHltXpwbn4dP-wApxSaLohzUabmDRY2avF9M_XfnlCcJDac4XweAmPRMg-9nbiz1muyVc8DdcMPebgkPdxYc3jAsldAPEhKpJI7fMspXF0vqymlt4k82iLQDmS2xKWWcEA1QmI8yvSTXyjvf2l4ILO5-aJg", labelRed: false },
-    { id: 13, label: "NEW",      title: "Akai MPC Live II",           location: "Rabat, Agdal",    price: "12,500 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAy99GlOzwDTmsrw08FI0Ec04x9wJMGo4ek9c0GlKuuMhqgynsT9N3ilwjrB2Con1kek30Qs8k1xH9zDfTUXlxadCNNHndbNhiSR38NO_Pb8onvd5O2CbQ6NKQAsnNkxr8H92xv8VC8InTxZpmOC3V2F2fRcP8aqpXg10zf4pqQ2eHGRE_k4oQca9gyGjZk6KYOelYNQGnrBhKHhB7leV1N22BwDIysujqby6O4kruwd8GiCopi-X1sLwCJG7H4YSRi8fxTSDTMzA", labelRed: false },
-    { id: 14, label: "VERIFIED", title: "Focusrite Scarlett 18i20",   location: "Rabat Center",    price: "4,200 MAD",  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDtMJjAisswrsAptVM4hXhBzjUF8B9WsTK1tGtt2m1iZrunzWFeV7TxFP8kx7nmTPab6yH62exPr3QOYTp88ahwYOWCgJwfqdCWAIqJ-hZu4Uk5J1eP5UHMpeAzmBDrGwZyz578P21PtXQZn3tSm_GrDxEX0lYiXvgThYjSHqYQuEg9y5n06G8kESlQha982KQtqH0XTp_-1O4OvetvR0N3Y7M9S_3JZvadeHOy-29LwybzrKGJhsKVdytOVxeZFR-OMGCBSR4_YQ", labelRed: false },
-  ]
+const exclusiveListings: Listing[] = [
+  { id:'e1', badge:'diamond',   title:'Bang & Olufsen Beoplay H95 Titanium',        price:18000, location:'Casablanca', time:'Just now', image:I.au1 },
+  { id:'e2', badge:'certified', title:'Sony WF-1000XM5 True Wireless Earbuds',      price:3200,  location:'Rabat',      time:'1h ago',   image:I.au2 },
+  { id:'e3', badge:'pro',       title:'Apple AirPods Max — Midnight',               price:6500,  location:'Agadir',     time:'2h ago',   image:I.au3 },
+  { id:'e4', badge:'diamond',   title:'Focal Utopia 2022 Open-Back Headphones',     price:45000, location:'Casablanca', time:'3h ago',   image:I.au4 },
+]
 
-  const latestRow4 = [
-    { id: 15, label: "VINTAGE",        title: "Marshall JCM800 Stack",      location: "Rabat, Souissi",  price: "22,000 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCvXVCS44FuH8dYVYg5htffeZEIqkMNQuWyD3eybPvfp_reH8JD0NHQ5C36j6nxTtLrY-7roSQUnMogMh_7GHn_G8qQXjYS4Dwk83kORTvItc6D2SN_poQnjVj73giW0KmVhMuG-nICGq-Y8NiV8AInSu26QidlYnsz-SCEAxf26Ci54Cn6cNXt299XZt5NIGmLL_BduP1aCNNYmUFcFggV8N4muLDweBm2ZEv9OW7tRUR2TwhxL9SNmg_mleYciMDjCBd_d6gY1A", labelRed: false },
-    { id: 16, label: "DIAMOND MEMBER", title: "Nord Stage 4 88-Key",        location: "Rabat, Hassan",   price: "45,000 MAD", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDj3u-seSPwmP5QNtc0d03MLlhtaVnLKP6Ca7QcLbXlncey2J281A-NJiZAg75ptlV1rXI0I_YT-uVPJE8wO_lOdKWb0UunOAdVm3VFetYA3c05tIIlcthz2RMxepq6q9sNZhQotPhmTk5fhh7GmnvOdqYgIwIHTyORFnJYjh9C1CTCVkdlCJFi54mVmEspo8jBe3XlCnePYAtwO2ytbhdTWgt3NC7Wj0Sm6UzBNJ2gu1l_duUX2J-NpBUvA8ABvFEAPIp5Exfiyg", labelRed: false, isDiamond: true },
-    { id: 17, label: "PRO RIG",        title: "Shotgun Mic with Zeppelin",  location: "Rabat, Agdal",    price: "6,800 MAD",  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuB4ns_8LxlqVA1TFIPjl4ntP2_vlfsDFEwbXAKn30FcUqshgf325XeLoIofWr-07GDLM5o5JoB6xO_ZNGjIT6i_YnxXLWUa-OsKUcqcdOYzkU3VwbDByN3MNMWvHR2giK-KC0ZIttrE4RQUBydBrN-dJmjpxQWVjtVbNkATw-7dFIVd65mmXB8pJAy7AeC5LHxyexljqouZiLmTf24naiGH1iQK8f1MTlB8yW9gIGpGBtjl8g-mEaNdnZL0dtIGUjfrdr5Wsuy60A", labelRed: false },
-    { id: 18, label: "NEW",            title: "KRK Rokit 7 G5",             location: "Rabat Center",    price: "5,400 MAD",  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBAj3I9UnPHTyWTM0y5ELCanW4qwck2cBHSgq0BUmFoU6f7xA2BRqAQqKQDxZLqYFC_fiGtontQgwW75WAiaLV9jifmYag9OA4luo42uxQ9UJ3dP_q-B6lUr7oztJTBtoss9nyugndqGFTRUNWNZ93nAmgQwaXowoYOF9JDeL8Hb9ePXiW3Fx62PIyvyXTuPoVjgHcIIfa4z6BpDy2ctb6zvBiqrf2M4L6nFw9GYV7FF-XBdcmeWlc1vjnusXZhTouchwtJ0DOXIQ", labelRed: false },
-  ]
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',   title:'JBL Charge 5 Portable Speaker',             price:1800,  location:'Casablanca', time:'Just now', image:I.au1 },
+  { id:'d2',  badge:'certified', title:'Marshall Emberton II Bluetooth Speaker',     price:1500,  location:'Rabat',      time:'1h ago',   image:I.au2 },
+  { id:'d3',  badge:'pro',       title:'Sonos Era 300 Spatial Audio Speaker',       price:5200,  location:'Tangier',    time:'2h ago',   image:I.au3 },
+  { id:'d4',  badge:'diamond',   title:'Bose SoundLink Flex Waterproof Speaker',    price:2200,  location:'Marrakech',  time:'3h ago',   image:I.au4 },
+  { id:'d5',  badge:'certified', title:'Samsung Galaxy Buds2 Pro',                  price:1900,  location:'Casablanca', time:'4h ago',   image:I.au5 },
+  { id:'d6',  badge:'diamond',   title:'Audio-Technica ATH-M50xBT2 Wireless',      price:2800,  location:'Rabat',      time:'5h ago',   image:I.au6 },
+  { id:'d7',  badge:'pro',       title:'Yamaha YH-L700A ANC Headphones',            price:3600,  location:'Agadir',     time:'6h ago',   image:I.au7 },
+  { id:'d8',  badge:'certified', title:'Jabra Evolve2 85 MS Wireless',              price:4200,  location:'Fès',        time:'7h ago',   image:I.au8 },
+  { id:'d9',  badge:'diamond',   title:'KEF LSX II Wireless HiFi Speakers',        price:12000, location:'Casablanca', time:'8h ago',   image:I.au1 },
+  { id:'d10', badge:'certified', title:'Anker Soundcore Liberty 4 NC',              price:1200,  location:'Rabat',      time:'9h ago',   image:I.au2 },
+  { id:'d11', badge:'pro',       title:'Devialet Phantom I 108dB Speaker',          price:28000, location:'Marrakech',  time:'10h ago',  image:I.au3 },
+  { id:'d12', badge:'diamond',   title:'Sony SRS-XB43 Extra Bass Speaker',          price:1600,  location:'Casablanca', time:'11h ago',  image:I.au4 },
+]
 
-  const showcaseRow1 = [
-    { id: 19, label: "NEW",      title: "Phantom I 108 dB Gold",   location: "Rabat, Souissi",  price: "34,200 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLu351srtHYU1W6iJN3zQ8tg5k28eFK-IW9My4xMu-y4m-3n7U8odu7N34ER8gQCiz6k0lP4aHa-OxSOsuYmRJ_Xi_mRxAWE3eiosANALXPbm5eseDgyuAFZH8C2-OS7kE_ekW9Ryhn0vQZTQj-8tk6lt0ErAdKet8ddG8Kl0aAZ-zcS7aE-kp-vjbAHEvnglkyKrJXPNCkF3fPWx5WdvMx9q1m_hBafc8nny5UH3ZPEgfXlTB5PknmkLw" },
-    { id: 20, label: "VERIFIED", title: "Beosound A9 5th Gen",     location: "Rabat, Agdal",    price: "28,500 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvQvytGgt-0LrDZYTJq4vaW11JLYO8tOCJsRhz_pCRmwGPZx0XgbqegcBHeQ_4Qoic33v50EtWUZGKg02lGUxl-TcvUgtGfioASk7E-dkojlc_5hztUsiqOWmQoXR-EBB9dnHf6Em5O8slzeiBgVQWviRUCxivRmZDMiUY6zb7ay1cAN9UItmQB9Db044_mN-Plbd2_oF77A5jOA09OzPHeWzOyKL0XuDw4rr4HSqoWtWbdWNifQped" },
-    { id: 21, label: "NEW",      title: "Naim Mu-so 2nd Gen",      location: "Rabat, Hay Riad", price: "15,400 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvPEnjjm2NC71nVIoehGZnjOdWYbtLgPtjEd_L8nQBGhHCWiR084qRdVheFzVmapIGsXOoI7Cv719vlnRkJsw0PE1Gn1j1TTHLeV27eLigibYupy-NzHJOjXSEerqCPBEBaTLyd0oL9-BiQzendTH8kRMhWQCYW-2DNsTIggiUuAuJMGsfgrc0yjsfiHxqH6u6sMalcgX4d7T82txtsXq3lede9qDq6YsM5FPj1JUE53ar44NXPhesrvQ" },
-    { id: 22, label: "DIAMOND",  title: "KEF LS60 Wireless",       location: "Rabat Center",    price: "48,900 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLshfjKWLINwS3nGr6rPLprZ68BaPpnWgIDINBE3TLbvtAVYVwt3rK3thlPSNeH74yZiHP-9AhTsjZ4KvnPlPzqyDW5zWrICz_0_MY6fwpoM3rF5qR1sWrzuh4ebpN5cF3Tp8pN2bVcBHLJpkLaH-tkdaj1oEuyqD09crCMoMmqIQvNypohBA_iVMi158JKauc7MXKQRyJDthOOO8empcD5AxQ-IGb1NEjgl1CjrBV9kju79UIi_5ISx" },
-  ]
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
 
-  const showcaseRow2 = [
-    { id: 23, label: "NEW",      title: "Pioneer XDJ-XZ System",  location: "Rabat, Souissi",  price: "18,200 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvyJRJGBbCHDvOBms6M5emjJAWYrL0fuvzKyrSDRvt6oWLClDl36NFUgL3aU4Wfc8w1Szxq8jiS_PuUgGk2rsdPPTaRqzDvpzcPdxIVZUKPJtdjie-wED7ypUQlP--bUGGKu_Q09ACj5BQgW3yIrbLaK7D8oBiqoP7bg3oWg5kE0fwTM3K3GhMgALQGNZMj6VgFF1IcgTHcAYeC8q-uKHhE9_QwBlpsovKgbcw-Bv8mhAy7PQlLGi-UFQ" },
-    { id: 24, label: "VERIFIED", title: "Roland V-Drums TD-27KV2",location: "Rabat, Hassan",   price: "32,000 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLsv58-HXZW3HS9fD0eRRC93ubfQ-BTDtxqGsyqQY7_XL9qb8r_RSS_Id88YmlwSAlR_PlwDgGba_2snL9Pt7T6dZFwWRQyULVpL9apcqNS0-lQX0jlVWfQysZFF8FQAqV0z59a6AdGr6SNRtonOguMjYIEdiNNq_1W17AQndV5B3KrPPx5GyMqpiwMNe0cgYLf9ZO_21I9Rmg0yvq__uSjnWTwR7DdG5w3fhLUZ-4vRtnMoZ5LO5wneuA" },
-    { id: 25, label: "VINTAGE",  title: "Marshall JCM800 Stack",  location: "Rabat, Souissi",  price: "22,000 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLuWhRrZvEKZZq4L8NUB9q4YWL4i4odJvifDC3CSzhmkDUj_wYrzrcQOmf6f3-JRm_evH0-Hc3ILs2MK5zydVaV-svd1SfzE1Gm1EtD_AXHQTGx-rqwDlZBCL9G6nFYV_8KcI3bvoO_U5rpPGvKMAcJ3O-yackpZZ33EQ5B2Z-pcW4SgzuJwSm8QROcllHjaIz5f_KmpdjQrzLte2JUVapcrhzkBtcK77QIPbynw0ALhX_1Lyc7CWAkqng" },
-    { id: 26, label: "NEW",      title: "Nord Stage 4 88-Key",    location: "Rabat, Hassan",   price: "45,000 MAD", img: "https://lh3.googleusercontent.com/aida/AP1WRLvD-0puLgME4Ywa35M7D14rtH0mkjMQc52VM1Fmyct49NEeQuHPljqIoY0FMcv1Bb5DqJeDyw-dw5OBauEq7E-RzHVmhdSLUtxoHob1EmFA0PwxecHoX8PlMB0YbXnRHMk2mEr9soD6ylemfI2oZmndvBTe1-k-Fqw8RZ_UKnuvg18bEC_Zv5Ua_ViDwYnS0X-rzcYiLI9SsNuXFqPpilE9tcCNWKGLZ1cODzxNPFOfR4tfG0z3sTorbA" },
-  ]
-
-  const brands = ["Devialet","Bang & Olufsen","Naim","Sonos","Bose","Sony","JBL"]
-
-  const DiamondTrustCard = ({ msg, btn }: { msg: string, btn: string }) => (
-    <div style={{ borderRadius:"2.5rem", padding:"32px", display:"flex", flexDirection:"column", justifyContent:"space-between", color:"white", boxShadow:"0 8px 32px rgba(0,107,95,.3)", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#2dd4bf 0%,#2dd4bf 100%)" }}>
-      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBC5_BmVjN_s1-KhCBF5L_MFrifBCpc3gvBnN0kLhO7h1Ju6Hia1eSCXmDYbenu7ylw4Iazlhgb8ofav1RQTXRATchtjFKRqfGQ8hRKXHAnQo53kKMeZXLeKK3O1BCwVmuWPOFwBcYHsoWmCOaT2wSRXSd8TYUAm0Hdkd5yq2N2oF_SOFPQSKB6UZ0R7_GISWisHOcnsWqmKhnsUjGjQBK-HMHq43JZ9bX0FiZOAfuJvrVqCQPTIKiWviuLrWlWaJNRNgwdfd9xFg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.1 }} />
-      <div style={{ position:"relative", zIndex:1 }}>
-        <div style={{ fontSize:"32px", marginBottom:"16px" }}>◆</div>
-        <h3 style={{ fontSize:"22px", fontWeight:700, marginBottom:"12px", lineHeight:1.3 }}>{msg}</h3>
-        <p style={{ fontSize:"13px", opacity:.9 }}>Verified ID, Secure Payments &amp; Local Pickup Guarantee in Rabat.</p>
-      </div>
-      <button style={{ position:"relative", zIndex:1, width:"100%", background:"white", color:"#2dd4bf", fontWeight:700, padding:"16px", borderRadius:"16px", marginTop:"24px", border:"none", cursor:"pointer", fontSize:"13px", textTransform:"uppercase" }}>{btn}</button>
-    </div>
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
+  if (type === 'diamond') return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
+    </span>
   )
+  return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
+    </span>
+  )
+}
 
-  const DiscCard = ({ item }: { item: typeof latestRow1[0] & { isDiamond?: boolean } }) => (
-    <article className="card glass img-zoom2" style={{ borderRadius:"2.5rem", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 2px 12px rgba(0,0,0,.06)", border:"1px solid rgba(186,202,197,.5)" }}>
-      <div style={{ position:"relative", aspectRatio:"1/1", overflow:"hidden", background:"#d4dcd9" }}>
-        <img src={item.img} alt={item.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-        <div style={{ position:"absolute", bottom:"8px", left:"8px", padding:"2px 8px", borderRadius:"6px", fontSize:"10px", fontWeight:700, textTransform:"uppercase", background: item.labelRed ? "rgba(186,26,26,.8)" : item.isDiamond ? "#2dd4bf" : "rgba(255,255,255,.85)", backdropFilter:"blur(4px)", color: item.labelRed || item.isDiamond ? "white" : "#2dd4bf" }}>{item.label}</div>
-        <button style={{ position:"absolute", top:"8px", right:"8px", width:"32px", height:"32px", borderRadius:"9999px", background:"rgba(255,255,255,.85)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <span className="ms" style={{ fontSize:"18px" }}>favorite</span>
-        </button>
-      </div>
-      <div style={{ padding:"20px", display:"flex", flexDirection:"column", flex:1 }}>
-        <h4 style={{ fontSize:"16px", fontWeight:700, color:"#161d1b", marginBottom:"4px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.title}</h4>
-        <p style={{ fontSize:"13px", color:"#3c4a46", marginBottom:"12px" }}>{item.location}</p>
-        <p style={{ fontSize:"18px", fontWeight:900, color:"#2dd4bf", marginBottom:"12px" }}>{item.price}</p>
-        <div style={{ marginTop:"auto", display:"flex", gap:"8px" }}>
-          <button style={{ flex:1, padding:"8px", borderRadius:"12px", border:"1px solid rgba(186,202,197,.5)", background:"none", fontSize:"12px", fontWeight:700, cursor:"pointer" }}>Message</button>
-          <button style={{ flex:1, padding:"8px", borderRadius:"12px", background:"rgba(0,107,95,.1)", color:"#2dd4bf", border:"none", fontSize:"12px", fontWeight:700, cursor:"pointer" }}>Call</button>
+function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
+  return (
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-      </div>
-    </article>
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </article>
+    </Link>
   )
+}
+
+export default function AudioPage({ params }: { params: Promise<{ locale:string }> }) {
+  const { locale } = React.use(params)
+  const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [diamondFirst, setDiamondFirst] = useState(true)
+  const [activePill, setActivePill] = useState('All Audio')
+  const [page, setPage] = useState(1)
+  const [viewGrid, setViewGrid] = useState(true)
+  const pills = [
+    { label:'All Audio',    slug:'all-audio'    },
+    { label:'Headphones',   slug:'headphones'   },
+    { label:'Earbuds',      slug:'earbuds'      },
+    { label:'Speakers',     slug:'speakers'     },
+    { label:'HiFi Systems', slug:'hifi-systems' },
+    { label:'Microphones',  slug:'microphones'  },
+    { label:'DJ Equipment', slug:'dj-equipment' },
+  ]
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily:"'Hanken Grotesk',sans-serif", backgroundColor:"#f4fbf8", minHeight:"100vh", color:"#161d1b" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-        .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle;display:inline-block;line-height:1;}
-        .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.4);}
-        .no-scroll::-webkit-scrollbar{display:none;}.no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
-        .card{transition:transform .3s;}.card:hover{transform:translateY(-4px);}
-        .img-zoom img{transition:transform .5s;}.img-zoom:hover img{transform:scale(1.1);}
-        .img-zoom2 img{transition:transform .5s;}.img-zoom2:hover img{transform:scale(1.05);}
-        @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        .bounce{animation:bounce 1s infinite;}
-      `}</style>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-      {/* HERO */}
-      <section style={{ position:"relative", height:"400px", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
-        <div style={{ position:"absolute", inset:0 }}>
-          <img src="https://lh3.googleusercontent.com/aida/AP1WRLsPKGhjLG_VjGzH3uznSdcdpc0x8DVANhr5KSTsHlvfKcBzOH-b7_QfqC23g4e5KRL6J7S_IjcYmp60TP8rDanTcmciks_YpsTGqAMMSSsxyy1XgQLrfeHesSMXSYo9Pcabc33MMUZvfjkhHXqMZoLgmhJCzeOHVrD4PRBZ9V7jcobkn4kP7g5tYWA8Gc4RnaZD4aHbcaS1N7f5e6IUSTfgBp-MMmpj36CUDtnHl1faIDs4_gWdYW5u" alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom,rgba(0,0,0,.4),transparent,#f4fbf8)" }}></div>
-        </div>
-        <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:"896px", margin:"0 auto", padding:"0 20px", display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <h1 style={{ fontSize:"48px", fontWeight:900, color:"white", marginBottom:"32px", textAlign:"center", lineHeight:1.1, letterSpacing:"-0.02em", textShadow:"0 4px 16px rgba(0,0,0,.5)" }}>Discover Your Best Sound in Rabat</h1>
-          <div style={{ width:"100%", display:"flex", gap:"8px", padding:"8px", borderRadius:"3rem", background:"rgba(255,255,255,.1)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,.3)" }}>
-            <div style={{ flex:1, display:"flex", alignItems:"center", borderRadius:"9999px", padding:"12px 20px", background:"rgba(244,251,248,.5)" }}>
-              <span className="ms" style={{ color:"#3c4a46", marginRight:"12px" }}>search</span>
-              <input style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px" }} placeholder="Search premium speakers, hi-fi, soundbars..." />
+      {/* CINEMATIC HERO */}
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={I.hero} alt="Audio" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            AUDIO &amp;<br />SOUND IN RABAT.
+          </h1>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
-            <div style={{ flex:1, display:"flex", alignItems:"center", borderRadius:"9999px", padding:"12px 20px", background:"rgba(244,251,248,.5)" }}>
-              <span className="ms" style={{ color:"#3c4a46", marginRight:"12px" }}>location_on</span>
-              <select style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px", appearance:"none" }}>
-                <option>Rabat</option><option>Casablanca</option>
-              </select>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="Sony, Bose, AirPods, JBL..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ background:"#2dd4bf", color:"white", border:"none", borderRadius:"9999px", padding:"0 40px", fontWeight:700, fontSize:"15px", cursor:"pointer", display:"flex", alignItems:"center", gap:"8px" }}>
-              <span className="ms">manage_search</span> SEARCH
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              Search
             </button>
           </div>
         </div>
       </section>
 
-      {/* FILTER BAR */}
-      <div style={{ maxWidth:"1440px", margin:"-40px auto 32px", padding:"0 40px", position:"relative", zIndex:20 }}>
-        <div style={{ display:"flex", alignItems:"center", padding:"6px", borderRadius:"9999px", background:"rgba(255,255,255,.85)", backdropFilter:"blur(12px)", border:"1px solid rgba(186,202,197,.3)", boxShadow:"0 4px 24px rgba(0,0,0,.08)" }}>
-          {[["CITY","Rabat"],["CONDITION","Select"],["PRICE (MAD)","Select"],["FILTERS","All Filters"]].map(([label,val],i)=>(
-            <div key={label} style={{ flex:1, padding:"8px 16px", borderRight:i<3?"1px solid rgba(186,202,197,.2)":"none", cursor:"pointer" }}>
-              <div style={{ fontSize:"10px", fontWeight:700, color:"#3c4a46", textTransform:"uppercase", letterSpacing:".1em" }}>{label}</div>
-              <div style={{ fontSize:"16px", fontWeight:500, color:"#161d1b", display:"flex", alignItems:"center", gap:"4px" }}>{val}<span className="ms" style={{ fontSize:"18px", color:"#3c4a46" }}>{label==="FILTERS"?"tune":"expand_more"}</span></div>
+      {/* ADVANCED FILTER BAR */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {[
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'Sony, Bose, AirPods, JBL...', w:2 },
+            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
             </div>
           ))}
-          <div style={{ flex:2, padding:"8px 16px", borderRight:"1px solid rgba(186,202,197,.2)" }}>
-            <div style={{ fontSize:"10px", fontWeight:700, color:"#3c4a46", textTransform:"uppercase", letterSpacing:".1em" }}>KEYWORD</div>
-            <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-              <input style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:"16px" }} placeholder="Hi-Fi, Sonos, Floor Speakers..." />
-              <span className="ms" style={{ color:"#2dd4bf" }}>search</span>
-            </div>
-          </div>
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
         </div>
       </div>
 
-      {/* BREADCRUMBS */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 24px", padding:"0 40px" }}>
-        <nav style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"13px", fontWeight:600, color:"rgba(60,74,70,.7)" }}>
-          {["Rabat","Vault","Electronics"].map(c=>(
-            <span key={c} style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-              <a href="#" style={{ textDecoration:"none", color:"inherit" }}>{c}</a>
-              <span className="ms" style={{ fontSize:"16px" }}>chevron_right</span>
-            </span>
-          ))}
-          <span style={{ fontWeight:700, color:"#161d1b" }}>Home Audio</span>
-        </nav>
-      </div>
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
-      {/* TITLE + CONTROLS */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 32px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"16px" }}>
-          <div>
-            <h1 style={{ fontSize:"24px", fontWeight:700, color:"#161d1b", marginBottom:"4px" }}>New and Used Home Audio &amp; Speakers in Rabat</h1>
-            <p style={{ fontSize:"16px", color:"#3c4a46", textTransform:"uppercase", letterSpacing:".05em" }}>4,874 ADS IN RABAT DISTRICT</p>
+        {/* BREADCRUMB */}
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
+          <span style={{ color:C.ink }}>Audio &amp; Sound</span>
+        </nav>
+
+        {/* TITLE + SORT/SAVE */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Audio &amp; Sound Equipment in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+              Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Save Search
+            </button>
           </div>
-          <div style={{ display:"flex", gap:"12px" }}>
-            {[["sort","Sort: Default"],["notifications_active","Save Search"]].map(([icon,label])=>(
-              <button key={label} style={{ display:"flex", alignItems:"center", gap:"8px", padding:"10px 20px", borderRadius:"12px", background:"#eef5f2", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer" }}>
-                <span className="ms" style={{ fontSize:"18px" }}>{icon}</span>{label}
+        </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>3,640 Ads in Rabat District</p>
+
+        {/* PILLS */}
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {pills.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/electronics/audio/${cat.slug}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{cat.label}</Link>
+          ))}
+        </div>
+
+        {/* UTILITY BAR */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
               </button>
             ))}
           </div>
-        </div>
-
-        {/* BRANDS */}
-        <div className="no-scroll" style={{ display:"flex", gap:"12px", overflowX:"auto", padding:"16px 0", marginBottom:"8px" }}>
-          <button style={{ whiteSpace:"nowrap", padding:"10px 24px", borderRadius:"9999px", background:"#2dd4bf", color:"white", fontSize:"13px", fontWeight:700, border:"none", cursor:"pointer" }}>All Brands</button>
-          {brands.map(b=><button key={b} style={{ whiteSpace:"nowrap", padding:"10px 24px", borderRadius:"9999px", background:"#e8efec", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer" }}>{b}</button>)}
-          <button style={{ whiteSpace:"nowrap", padding:"10px 16px", color:"#2dd4bf", fontWeight:700, fontSize:"13px", background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:"4px" }}>View More <span className="ms">expand_more</span></button>
-        </div>
-
-        {/* UTILITY LINES */}
-        <div style={{ paddingTop:"16px", borderTop:"1px solid rgba(186,202,197,.2)", display:"flex", flexDirection:"column", gap:"24px" }}>
-          <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"16px" }}>
-            <span style={{ display:"flex", alignItems:"center", gap:"4px", fontSize:"13px", fontWeight:700, color:"#2dd4bf", background:"rgba(45,212,191,.15)", padding:"4px 12px", borderRadius:"9999px" }}><span className="ms" style={{ fontSize:"16px" }}>bolt</span> New Arrivals</span>
-            <span style={{ display:"flex", alignItems:"center", gap:"4px", fontSize:"13px", fontWeight:700, color:"#605e58", background:"rgba(96,94,88,.1)", padding:"4px 12px", borderRadius:"9999px" }}><span className="ms" style={{ fontSize:"16px" }}>trending_down</span> Price Drop Alert</span>
-            <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-              <span style={{ fontSize:"13px", fontWeight:600, color:"#3c4a46" }}>Show Diamond Certified First</span>
-              <div style={{ width:"36px", height:"20px", background:"#2dd4bf", borderRadius:"9999px", display:"flex", alignItems:"center", padding:"0 3px", cursor:"pointer", justifyContent:"flex-end" }}>
-                <div style={{ width:"14px", height:"14px", background:"white", borderRadius:"9999px" }}></div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
-          </div>
-          <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"8px" }}>
-            <div style={{ display:"flex", background:"#e8efec", borderRadius:"9999px", padding:"4px", border:"1px solid rgba(186,202,197,.3)" }}>
-              <button style={{ padding:"8px 24px", borderRadius:"9999px", background:"white", boxShadow:"0 2px 8px rgba(0,0,0,.08)", fontSize:"13px", fontWeight:700, color:"#2dd4bf", border:"none", cursor:"pointer" }}>All Sellers (4,874)</button>
-              <button style={{ padding:"8px 24px", fontSize:"13px", fontWeight:600, color:"#3c4a46", background:"none", border:"none", cursor:"pointer" }}>SouKni Members (3,120)</button>
-              <button style={{ padding:"8px 24px", fontSize:"13px", fontWeight:600, color:"#3c4a46", background:"none", border:"none", cursor:"pointer" }}>SouKni Pro (1,754)</button>
-            </div>
-            <div style={{ marginLeft:"auto", display:"flex", gap:"12px" }}>
-              <button style={{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 20px", borderRadius:"9999px", background:"#eef5f2", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer" }}><span className="ms" style={{ fontSize:"18px" }}>sort</span> Sort: Featured</button>
-              <button style={{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 16px", borderRadius:"9999px", background:"#eef5f2", border:"1px solid rgba(186,202,197,.3)", fontSize:"13px", fontWeight:700, cursor:"pointer" }}><span className="ms" style={{ fontSize:"18px" }}>grid_view</span></button>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* FEATURED PREMIUM ROW */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 48px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
-          <h2 style={{ fontSize:"24px", fontWeight:700, color:"#2dd4bf" }}>Featured Premium Audio &amp; Speakers</h2>
-          <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#2dd4bf", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>View all Featured <span className="ms" style={{ fontSize:"18px" }}>chevron_right</span></a>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px" }}>
-          {featuredListings.map(item=>(
-            <article key={item.id} className="card glass img-zoom" style={{ borderRadius:"2.5rem", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 4px 24px rgba(0,0,0,.08)", border:"1px solid rgba(186,202,197,.5)" }}>
-              <div style={{ position:"relative", aspectRatio:"4/5", overflow:"hidden", background:"#d4dcd9" }}>
-                <div style={{ position:"absolute", top:"12px", left:"12px", zIndex:10 }}>
-                  {item.badge==="diamond" && <span style={{ background:"#2dd4bf", color:"white", fontSize:"10px", fontWeight:900, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px", textTransform:"uppercase" }}>◆ DIAMOND MEMBER</span>}
-                  {item.badge==="pro" && <span style={{ background:"#62fae3", color:"#00201c", fontSize:"10px", fontWeight:700, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px" }}>✓ PRO SELLER</span>}
-                  {item.badge==="verified" && <span style={{ background:"#dde4e1", color:"#3c4a46", fontSize:"10px", fontWeight:700, padding:"4px 10px", borderRadius:"9999px", display:"flex", alignItems:"center", gap:"4px" }}>✓ VERIFIED</span>}
-                </div>
-                <button style={{ position:"absolute", top:"12px", right:"12px", zIndex:10, width:"40px", height:"40px", borderRadius:"9999px", background:"rgba(255,255,255,.8)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span className="ms" style={{ fontSize:"20px" }}>favorite</span>
-                </button>
-                <img src={item.img} alt={item.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-              </div>
-              <div style={{ padding:"20px", display:"flex", flexDirection:"column", flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
-                  <span style={{ fontSize:"13px", fontWeight:700, color:"#2dd4bf" }}>{item.condition}</span>
-                  <span style={{ width:"4px", height:"4px", background:"#6b7a76", borderRadius:"9999px" }}></span>
-                  <span style={{ fontSize:"13px", color:"#3c4a46" }}>{item.location}</span>
-                </div>
-                <h3 style={{ fontSize:"18px", fontWeight:700, color:"#161d1b", marginBottom:"8px", lineHeight:1.3 }}>{item.title}</h3>
-                <p style={{ fontSize:"22px", fontWeight:900, color:"#2dd4bf", marginBottom:"16px" }}>{item.price}</p>
-                <div style={{ marginTop:"auto", paddingTop:"16px", borderTop:"1px solid rgba(186,202,197,.15)", display:"flex", gap:"8px" }}>
-                  <button style={{ flex:1, padding:"10px", borderRadius:"12px", background:"#e8efec", border:"none", fontSize:"13px", fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}><span className="ms" style={{ fontSize:"18px" }}>chat_bubble</span> Message</button>
-                  <button style={{ flex:1, padding:"10px", borderRadius:"12px", background:"rgba(37,211,102,.1)", color:"#25D366", border:"none", fontSize:"13px", fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}><span className="ms" style={{ fontSize:"18px" }}>call</span> WhatsApp</button>
-                </div>
-              </div>
-            </article>
+        {/* QUICK FILTER CHIPS */}
+        <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
+          {[
+            { emoji:'✨', label:'New Arrivals', active:true },
+            { emoji:'📉', label:'Price Drop Alert', active:false },
+            { emoji:'🛍️', label:'Shop Sellers', active:false },
+          ].map(chip=>(
+            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+              {chip.emoji} {chip.label}
+            </button>
           ))}
         </div>
-      </div>
 
-      {/* INTERSTITIAL */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px" }}>
-          <div style={{ borderRadius:"2.5rem", padding:"40px", minHeight:"300px", display:"flex", flexDirection:"column", justifyContent:"center", background:"#2dd4bf", color:"white", boxShadow:"0 8px 32px rgba(0,107,95,.3)", position:"relative", overflow:"hidden" }}>
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqomfAJG38WMnUEKsnJZ8i9ULkYGDMrZGsC8dng9UxrExKsNVgzctPW3dbZEZdsved9ogGEDa650x_hPR6ivNNj5ZQsNVTha93xZLsp9za8vv81zbfPBGnj6KmGU76iEVidbKkZhpZVJzxUn-1SFJRQiw0OyfdS46DJlef7WAF2csClmeGBs_4eSrPHWeDkq8iL9AD2ROA7By9yAz5sEwcr74YrliV6eC9jkP6CE-d_sTjqdotQ60BdWwyuGhrDdwt-uQVk5i2Yg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.3 }} />
-            <div style={{ position:"relative", zIndex:1, maxWidth:"400px" }}>
-              <h2 style={{ fontSize:"36px", fontWeight:900, marginBottom:"16px", lineHeight:1.2 }}>Join the SouKni Family</h2>
-              <p style={{ fontSize:"18px", marginBottom:"32px", opacity:.9, lineHeight:1.6 }}>Start selling your audio gear today for free and reach millions of music enthusiasts in Morocco.</p>
-              <button style={{ background:"white", color:"#2dd4bf", padding:"16px 32px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", width:"fit-content" }}>Register today for free</button>
+        {/* FEATURED */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM AUDIO</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        {/* IMMO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
             </div>
           </div>
-          <div style={{ borderRadius:"2.5rem", padding:"40px", minHeight:"300px", display:"flex", flexDirection:"column", justifyContent:"center", background:"#dde4e1", border:"2px solid rgba(0,107,95,.2)", boxShadow:"0 8px 32px rgba(0,0,0,.06)", position:"relative", overflow:"hidden" }}>
-            <img src="https://lh3.googleusercontent.com/aida/AP1WRLsPKGhjLG_VjGzH3uznSdcdpc0x8DVANhr5KSTsHlvfKcBzOH-b7_QfqC23g4e5KRL6J7S_IjcYmp60TP8rDanTcmciks_YpsTGqAMMSSsxyy1XgQLrfeHesSMXSYo9Pcabc33MMUZvfjkhHXqMZoLgmhJCzeOHVrD4PRBZ9V7jcobkn4kP7g5tYWA8Gc4RnaZD4aHbcaS1N7f5e6IUSTfgBp-MMmpj36CUDtnHl1faIDs4_gWdYW5u" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.2 }} />
-            <div style={{ position:"relative", zIndex:1, maxWidth:"400px" }}>
-              <p style={{ fontSize:"12px", fontWeight:900, color:"#2dd4bf", textTransform:"uppercase", letterSpacing:".2em", marginBottom:"16px" }}>Solutions for agents</p>
-              <h2 style={{ fontSize:"36px", fontWeight:900, color:"#161d1b", marginBottom:"16px", lineHeight:1.2 }}>SouKni Immo Pro</h2>
-              <p style={{ fontSize:"18px", color:"#3c4a46", marginBottom:"32px", lineHeight:1.6 }}>Boost your audio business visibility with our premium listing dashboard and professional analytics.</p>
-              <button style={{ background:"#2dd4bf", color:"white", padding:"16px 32px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", width:"fit-content" }}>Discover Pro Tools</button>
+        </section>
+
+        {/* EXCLUSIVE AUDIO COLLECTION — CLEAN BENTO */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Audio Collection</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gridTemplateRows:'280px 280px', gap:16, marginBottom:16 }}>
+            <div style={{ gridRow:'span 2' }}>
+              <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
+                onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+                onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
+                <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
+              </div>
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* LATEST LISTINGS */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
-          <h2 style={{ fontSize:"24px", fontWeight:700, color:"#161d1b" }}>Latest Listings in Rabat</h2>
-          <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#2dd4bf", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>View All Listings <span className="ms" style={{ fontSize:"18px" }}>arrow_forward</span></a>
-        </div>
-        {/* Row 1: 3 cards + Diamond Trust card */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px", marginBottom:"16px" }}>
-          {latestRow1.map(item=><DiscCard key={item.id} item={item} />)}
-          <DiamondTrustCard msg="Trust Diamond Certified Sellers" btn="Learn More" />
-        </div>
-        {/* Row 2: 3 cards + Diamond Trust card */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px", marginBottom:"16px" }}>
-          {latestRow2.map(item=><DiscCard key={item.id} item={item} />)}
-          <DiamondTrustCard msg="Create Your Member Account Today 100% FREE! 0,00MAD" btn="Become a Member today" />
-        </div>
-        {/* Row 3: 4 cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px", marginBottom:"16px" }}>
-          {latestRow3.map(item=><DiscCard key={item.id} item={item} />)}
-        </div>
-        {/* Row 4: 4 cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px" }}>
-          {latestRow4.map(item=><DiscCard key={item.id} item={{ ...item, isDiamond: item.label==="DIAMOND MEMBER" }} />)}
-        </div>
-      </div>
-
-      {/* DIAMOND BANNER */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 16px", padding:"0 40px" }}>
-        <div style={{ borderRadius:"2.5rem", padding:"48px", textAlign:"center", color:"white", background:"linear-gradient(135deg,#2dd4bf 0%,#2dd4bf 100%)", boxShadow:"0 8px 40px rgba(0,107,95,.3)", position:"relative", overflow:"hidden" }}>
-          <img src="https://lh3.googleusercontent.com/aida/AP1WRLu4en38XfBWOH4KcwnR_rbO70i78dYWigs2LJumqb6g3mdqwzouaOdsE7k2RcP71FpINyDQHgmJJQr6o9q7DGYfvsedFXCZRdHG0rBdiCKqWLhF1XIiNTyngLggmfT60Du9gwVQ48zxy4ZbE_y1CX5RIIi_NPP_ew1b02a1K5XDfwXQOy1zrUJwSIjj2ntZ-RY195aEu8dXIQp7GBVrShGEt1RWdGNJtfPim7Pm_DnwOXO0-KGadFDKyw" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:.2 }} />
-          <div style={{ position:"relative", zIndex:1 }}>
-            <h2 style={{ fontSize:"40px", fontWeight:900, marginBottom:"16px" }}>Become a Diamond Member</h2>
-            <p style={{ fontSize:"18px", opacity:.9, maxWidth:"600px", margin:"0 auto 32px", lineHeight:1.6 }}>Enjoy zero listing fees, unlimited highlighted ads, and a dedicated account manager for your audio business.</p>
-            <button style={{ background:"white", color:"#2dd4bf", padding:"16px 40px", borderRadius:"9999px", fontWeight:900, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".1em" }}>Upgrade to Diamond</button>
-          </div>
-        </div>
-      </div>
-
-      {/* ELECTRO PRO BANNER */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ position:"relative", height:"320px", borderRadius:"2.5rem", overflow:"hidden", boxShadow:"0 8px 32px rgba(0,0,0,.15)" }}>
-          <img src="https://lh3.googleusercontent.com/aida/AP1WRLsPKGhjLG_VjGzH3uznSdcdpc0x8DVANhr5KSTsHlvfKcBzOH-b7_QfqC23g4e5KRL6J7S_IjcYmp60TP8rDanTcmciks_YpsTGqAMMSSsxyy1XgQLrfeHesSMXSYo9Pcabc33MMUZvfjkhHXqMZoLgmhJCzeOHVrD4PRBZ9V7jcobkn4kP7g5tYWA8Gc4RnaZD4aHbcaS1N7f5e6IUSTfgBp-MMmpj36CUDtnHl1faIDs4_gWdYW5u" alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right,rgba(0,0,0,.75),rgba(0,0,0,.4),transparent)" }}></div>
-          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 64px" }}>
-            <div>
-              <p style={{ color:"#3cddc7", fontWeight:900, fontSize:"12px", textTransform:"uppercase", letterSpacing:".2em", marginBottom:"16px" }}>Premier Partnership</p>
-              <h2 style={{ color:"white", fontSize:"48px", fontWeight:900, marginBottom:"8px", lineHeight:1.1, letterSpacing:"-0.02em" }}>SouKni Electro Pro</h2>
-              <p style={{ color:"rgba(255,255,255,.9)", fontSize:"18px", lineHeight:1.6 }}>The Gold Standard for Premium Electronics & Tech Solutions in Rabat.</p>
-            </div>
-            <button style={{ background:"#2dd4bf", color:"#2dd4bf", padding:"16px 40px", borderRadius:"9999px", fontWeight:700, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", whiteSpace:"nowrap" }}>BECOME A PRO SELLER</button>
-          </div>
-        </div>
-      </div>
-
-      {/* PREMIUM SHOWCASE */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
-          <h2 style={{ fontSize:"24px", fontWeight:700, color:"#161d1b" }}>Latest Listings in Rabat</h2>
-          <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#2dd4bf", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>View All Listings <span className="ms" style={{ fontSize:"18px" }}>arrow_forward</span></a>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px", marginBottom:"16px" }}>
-          {showcaseRow1.slice(0,3).map(item=><DiscCard key={item.id} item={{ ...item, labelRed:false }} />)}
-          <DiamondTrustCard msg="Trust Diamond Certified Sellers" btn="LEARN MORE" />
-        </div>
-      </div>
-
-      {/* PREMIUM AUDIO SHOWCASE */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"24px" }}>
-          <h2 style={{ fontSize:"24px", fontWeight:700, color:"#161d1b" }}>Premium Audio Showcase</h2>
-          <a href="#" style={{ display:"flex", alignItems:"center", gap:"4px", color:"#2dd4bf", fontWeight:700, fontSize:"13px", textDecoration:"none" }}>View All <span className="ms" style={{ fontSize:"18px" }}>arrow_forward</span></a>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px", marginBottom:"16px" }}>
-          {showcaseRow1.map(item=><DiscCard key={item.id} item={{ ...item, labelRed:false }} />)}
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"16px" }}>
-          {showcaseRow2.map(item=><DiscCard key={item.id} item={{ ...item, labelRed:false }} />)}
-        </div>
-      </div>
-
-      {/* PAGINATION */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px", display:"flex", justifyContent:"center", alignItems:"center", gap:"8px" }}>
-        {["1","2","3","...","42","chevron_right"].map((p,i)=>(
-          <button key={i} style={{ width:"40px", height:"40px", borderRadius:"9999px", border:p==="1"?"none":"1px solid rgba(186,202,197,.3)", background:p==="1"?"#2dd4bf":"none", color:p==="1"?"#2dd4bf":"#161d1b", fontWeight:700, fontSize:"14px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            {p==="chevron_right"?<span className="ms">{p}</span>:p}
-          </button>
-        ))}
-      </div>
-
-      {/* STAY IN THE SOUND LOOP */}
-      <div style={{ maxWidth:"1440px", margin:"0 auto 64px", padding:"0 40px" }}>
-        <div style={{ background:"#dde4e1", borderRadius:"2.5rem", padding:"64px", textAlign:"center", position:"relative", overflow:"hidden" }}>
-          <div style={{ maxWidth:"600px", margin:"0 auto", position:"relative", zIndex:1 }}>
-            <h3 style={{ fontSize:"48px", fontWeight:900, color:"#161d1b", marginBottom:"24px", letterSpacing:"-0.02em" }}>Stay in the Sound Loop</h3>
-            <p style={{ fontSize:"18px", color:"#3c4a46", marginBottom:"40px", lineHeight:1.6 }}>Join the SouKni Audio community. Get weekly updates on rare vintage finds and new premium speaker arrivals in Rabat.</p>
-            <div style={{ display:"flex", gap:"16px", justifyContent:"center" }}>
-              <input style={{ width:"320px", padding:"20px 32px", borderRadius:"9999px", border:"none", fontSize:"16px", boxShadow:"0 2px 8px rgba(0,0,0,.08)", outline:"none" }} placeholder="Your email address" type="email" />
-              <button style={{ background:"#161d1b", color:"white", padding:"20px 48px", borderRadius:"9999px", fontWeight:700, fontSize:"13px", border:"none", cursor:"pointer", textTransform:"uppercase", letterSpacing:".1em", whiteSpace:"nowrap" }}>SUBSCRIBE</button>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
+              <img src={I.au5} alt="Electro Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 28px' }}>
+                <span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, fontWeight:900, padding:'4px 12px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:10, width:'fit-content' }}>SouKni Electro Pro</span>
+                <h3 style={{ ...UB, fontSize:18, color:'white', marginBottom:12, lineHeight:1.2 }}>Find your next<br/>certified audio gear today.</h3>
+                <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'9px 20px', borderRadius:100, fontSize:11, ...UB, cursor:'pointer' }}>Explore All</button>
+                </Link>
+              </div>
             </div>
           </div>
-          {/* Animated sound bars */}
-          <div style={{ position:"absolute", bottom:0, left:0, width:"100%", height:"96px", display:"flex", alignItems:"flex-end", justifyContent:"center", gap:"4px", opacity:.15 }}>
-            {[48,80,64,96,56,80,48,64,96,56,80,48].map((h,i)=>(
-              <div key={i} className="bounce" style={{ width:"8px", height:`${h}px`, background:"#2dd4bf", borderRadius:"9999px", animationDelay:`${i*0.1}s` }}></div>
+        </section>
+
+        {/* AUTO PRO BANNER */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.auto} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PRO DISCOVERY GRID */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Audio Discoveries</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
+            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* FOOTER */}
+        {/* PAGINATION */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
+            </button>
+          ))}
+          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+            Next <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* DIAMOND BANNER */}
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={I.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>
+              ✦ SOUKNI CERTIFIED
+            </span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>
+              Unlock the Power of Diamond.
+            </h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>
+              Priority placement, boosted visibility, and full access to Morocco's most serious audio buyers. Get started today.
+            </p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+            </div>
+          </div>
+        </section>
+
+        {/* JOIN THE SOUKNI FAMILY */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Get early access to new drops, exclusive member deals, and Morocco's finest audio listings.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

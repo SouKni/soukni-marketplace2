@@ -40,7 +40,7 @@ type Badge = 'diamond' | 'pro' | 'verified'
 function CardBadge({ badge }: { badge?: Badge }) {
   if (!badge) return null
   if (badge === 'diamond') return (
-    <span style={{ backgroundColor:C.mintDk, color:'white', fontSize:'9px', fontWeight:900, padding:'4px 10px', borderRadius:'100px', display:'inline-flex', alignItems:'center', gap:'3px', textTransform:'uppercase' as const, letterSpacing:'0.06em', whiteSpace:'nowrap' as const, boxShadow:'0 2px 6px rgba(0,0,0,0.15)' }}>◆ DIAMOND MEMBER</span>
+    <span style={{ backgroundColor:C.mint, color:'white', fontSize:'9px', fontWeight:900, padding:'4px 10px', borderRadius:'100px', display:'inline-flex', alignItems:'center', gap:'3px', textTransform:'uppercase' as const, letterSpacing:'0.06em', whiteSpace:'nowrap' as const, boxShadow:'0 2px 6px rgba(0,0,0,0.15)' }}>◆ DIAMOND MEMBER</span>
   )
   if (badge === 'pro') return (
     <span style={{ backgroundColor:C.mint, color:C.ink, fontSize:'9px', fontWeight:700, padding:'4px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.06em', whiteSpace:'nowrap' as const, boxShadow:'0 2px 6px rgba(0,0,0,0.1)' }}>✓ PRO SELLER</span>
@@ -59,7 +59,7 @@ function ProductCard({ title, price, location, badge, img, tag, tall = false }: 
       <div style={{ position:'relative', aspectRatio: tall ? '4/5' : '1/1', overflow:'hidden', backgroundColor:'#d4dcd9' }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.08)':'scale(1)' }} />
         {badge && <div style={{ position:'absolute', top:'12px', left:'12px', zIndex:10 }}><CardBadge badge={badge} /></div>}
-        {tag && <div style={{ position:'absolute', bottom:'10px', left:'10px', zIndex:10, backgroundColor:'rgba(255,255,255,0.92)', padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:900, color:C.mintDk, textTransform:'uppercase' as const }}>{tag}</div>}
+        {tag && <div style={{ position:'absolute', bottom:'10px', left:'10px', zIndex:10, backgroundColor:'rgba(255,255,255,0.92)', padding:'3px 8px', borderRadius:'6px', fontSize:'9px', fontWeight:900, color:C.mint, textTransform:'uppercase' as const }}>{tag}</div>}
         <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', zIndex:10, width:'38px', height:'38px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.82)', backdropFilter:'blur(8px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
@@ -67,16 +67,16 @@ function ProductCard({ title, price, location, badge, img, tag, tall = false }: 
       <div style={{ padding:'18px 20px', display:'flex', flexDirection:'column' as const, flex:1 }}>
         {location && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' }}>
-            <span style={{ fontSize:'12px', fontWeight:900, color:C.mintDk, textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{location.split(',')[0]}</span>
+            <span style={{ fontSize:'12px', fontWeight:900, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{location.split(',')[0]}</span>
             <span style={{ width:'3px', height:'3px', borderRadius:'50%', backgroundColor:C.muted }} />
             <span style={{ fontSize:'12px', fontWeight:700, color:C.muted }}>{(location.split(',')[1]||'Rabat').trim()}</span>
           </div>
         )}
-        <h4 style={{ fontSize:'17px', fontWeight:700, color:hov?C.mintDk:C.ink, marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const, transition:'color 0.2s' }}>{title}</h4>
-        <p style={{ fontSize:'21px', fontWeight:900, color:C.mintDk, marginBottom:'14px' }}>{price.toLocaleString()} MAD</p>
+        <h4 style={{ fontSize:'17px', fontWeight:700, color:hov?C.mint:C.ink, marginBottom:'4px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const, transition:'color 0.2s' }}>{title}</h4>
+        <p style={{ fontSize:'21px', fontWeight:900, color:C.mint, marginBottom:'14px' }}>{price.toLocaleString()} MAD</p>
         <div style={{ marginTop:'auto', display:'flex', gap:'8px', paddingTop:'14px', borderTop:'1px solid rgba(186,202,197,0.15)' }}>
           <button style={{ flex:1, padding:'10px', borderRadius:'14px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'transparent', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.15s' }}
-            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mintDk;e.currentTarget.style.color='white';e.currentTarget.style.borderColor=C.mintDk}}
+            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color='white';e.currentTarget.style.borderColor=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
           >Message</button>
           <button style={{ flex:1, padding:'10px', borderRadius:'14px', border:'none', backgroundColor:'rgba(34,212,168,0.14)', color:'#0d7a5f', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.15s' }}
@@ -141,7 +141,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
               <span style={{ fontSize:'16px' }}>📍</span>
               <span style={{ fontSize:'15px', fontWeight:600, color:'white' }}>Rabat</span>
             </div>
-            <button style={{ backgroundColor:C.mintDk, color:'white', border:'none', padding:'12px 36px', borderRadius:'100px', fontWeight:700, fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', transition:'filter 0.15s', whiteSpace:'nowrap' as const }}
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 36px', borderRadius:'100px', fontWeight:700, fontSize:'15px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', transition:'filter 0.15s', whiteSpace:'nowrap' as const }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.1)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >🔍 Search</button>
@@ -163,7 +163,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
               <div style={{ flex: f.inp ? 1.5 : 1, padding:'8px 22px', borderRight: i<arr.length-1 ? '1px solid rgba(255,255,255,0.4)' : 'none', cursor:'pointer' }}>
                 <div style={{ fontSize:'9px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.12em', color:'rgba(22,29,27,0.65)', marginBottom:'2px' }}>{f.label}</div>
                 {f.inp
-                  ? <div style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'15px', fontWeight:600, color:'rgba(22,29,27,0.55)' }}>{f.val} <Search size={14} color={C.mintDk} /></div>
+                  ? <div style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'15px', fontWeight:600, color:'rgba(22,29,27,0.55)' }}>{f.val} <Search size={14} color={C.mint} /></div>
                   : <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'15px', fontWeight:700, color: f.icon?C.ink:'rgba(22,29,27,0.7)' }}>
                       {f.icon && <span>{f.icon}</span>}{f.val} {f.sel && <span style={{ fontSize:'16px', color:C.muted }}>▾</span>}
                     </div>
@@ -182,7 +182,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
             {['Rabat','The Vault','Business & Factories'].map((c,i,arr)=>(
               <React.Fragment key={c}>
                 {i<arr.length-1
-                  ? <><a href="#" style={{ color:'rgba(107,122,118,0.72)', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mintDk} onMouseLeave={e=>e.currentTarget.style.color='rgba(107,122,118,0.72)'}>{c}</a><span>›</span></>
+                  ? <><a href="#" style={{ color:'rgba(107,122,118,0.72)', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color='rgba(107,122,118,0.72)'}>{c}</a><span>›</span></>
                   : <span style={{ color:C.ink }}>{c}</span>
                 }
               </React.Fragment>
@@ -197,9 +197,9 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           {[...pills,'View More ▾'].map(pill=>(
             <button key={pill} onClick={()=>setActivePill(pill)}
               style={{ whiteSpace:'nowrap' as const, padding:'10px 22px', borderRadius:'100px', fontSize:'13px', fontWeight:700, cursor:'pointer', transition:'all 0.2s', border:'1px solid',
-                backgroundColor: activePill===pill ? C.mintDk : 'white',
+                backgroundColor: activePill===pill ? C.mint : 'white',
                 color: activePill===pill ? 'white' : C.ink,
-                borderColor: activePill===pill ? C.mintDk : 'rgba(186,202,197,0.4)',
+                borderColor: activePill===pill ? C.mint : 'rgba(186,202,197,0.4)',
                 boxShadow: activePill===pill ? '0 2px 8px rgba(0,107,95,0.2)' : 'none',
               }}
             >{pill}</button>
@@ -221,7 +221,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           <div style={{ display:'flex', alignItems:'center', gap:'20px', flexWrap:'wrap' as const }}>
             <div style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
               <span style={{ fontSize:'13px', fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
-              <div style={{ width:'44px', height:'22px', borderRadius:'100px', backgroundColor: diamond?C.mintDk:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+              <div style={{ width:'44px', height:'22px', borderRadius:'100px', backgroundColor: diamond?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
                 <div style={{ position:'absolute', top:'2px', left: diamond?'24px':'2px', width:'18px', height:'18px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
@@ -239,8 +239,8 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
         {/* ── FEATURED INDUSTRIAL ASSETS ── */}
         <section style={{ marginBottom:'48px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:'20px' }}>
-            <h3 style={{ fontSize:'20px', fontWeight:900, color:C.mintDk, textTransform:'uppercase' as const, letterSpacing:'0.04em' }}>Featured Industrial Assets</h3>
-            <a href="#" style={{ fontSize:'13px', fontWeight:700, color:C.mintDk, textDecoration:'none', display:'flex', alignItems:'center', gap:'4px' }}>View all Featured ›</a>
+            <h3 style={{ fontSize:'20px', fontWeight:900, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.04em' }}>Featured Industrial Assets</h3>
+            <a href="#" style={{ fontSize:'13px', fontWeight:700, color:C.mint, textDecoration:'none', display:'flex', alignItems:'center', gap:'4px' }}>View all Featured ›</a>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px' }}>
             {featured.map((item,i)=><ProductCard key={i} {...item} />)}
@@ -249,12 +249,12 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
 
         {/* ── DUAL INTERSTITIALS ── */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'64px' }}>
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'280px', backgroundColor:C.mintDk, boxShadow:'0 16px 40px rgba(0,107,95,0.25)' }}>
+          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'280px', backgroundColor:C.mint, boxShadow:'0 16px 40px rgba(0,107,95,0.25)' }}>
             <img src={IMG.immo} alt="Immo" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.18 }} />
             <div style={{ position:'relative', zIndex:1, maxWidth:'320px' }}>
               <h2 style={{ fontSize:'32px', fontWeight:900, color:'white', marginBottom:'14px', letterSpacing:'-0.02em', lineHeight:1.2 }}>SouKni Immo Pro</h2>
               <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.92)', marginBottom:'28px', lineHeight:1.6, fontWeight:500 }}>Find the perfect luxury venue for your Rabat corporate events.</p>
-              <button style={{ backgroundColor:'white', color:C.mintDk, border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
                 onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
                 onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
               >Explore Venues</button>
@@ -263,10 +263,10 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'280px', backgroundColor:'#dde4e1', border:'2px solid rgba(0,107,95,0.18)', boxShadow:'0 16px 40px rgba(0,0,0,0.06)' }}>
             <img src={IMG.auto} alt="Auto" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.1 }} />
             <div style={{ position:'relative', zIndex:1, maxWidth:'320px' }}>
-              <span style={{ fontSize:'11px', fontWeight:700, color:C.mintDk, textTransform:'uppercase' as const, letterSpacing:'0.15em', display:'block', marginBottom:'12px' }}>Fleet Solutions</span>
+              <span style={{ fontSize:'11px', fontWeight:700, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', display:'block', marginBottom:'12px' }}>Fleet Solutions</span>
               <h2 style={{ fontSize:'32px', fontWeight:900, color:C.ink, marginBottom:'14px', letterSpacing:'-0.02em', lineHeight:1.2 }}>SouKni Auto Pro</h2>
               <p style={{ fontSize:'17px', color:C.muted, marginBottom:'28px', lineHeight:1.6, fontWeight:500 }}>Arrive in style with our premium luxury corporate rentals in Rabat.</p>
-              <button style={{ backgroundColor:C.mintDk, color:'white', border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,107,95,0.2)' }}
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,107,95,0.2)' }}
                 onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
                 onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
               >Rent a Classic</button>
@@ -328,11 +328,11 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           {/* Elevate Your Portfolio strip */}
           <div style={{ position:'relative', borderRadius:'32px', overflow:'hidden', minHeight:'220px', display:'flex', alignItems:'center', cursor:'pointer' }}>
             <img src={IMG.glass} alt="Glass building" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-            <div style={{ position:'absolute', inset:0, background:`linear-gradient(120deg, ${C.mintDk}cc 0%, rgba(34,212,168,0.55) 70%)` }} />
+            <div style={{ position:'absolute', inset:0, background:`linear-gradient(120deg, ${C.mint}cc 0%, rgba(34,212,168,0.55) 70%)` }} />
             <div style={{ position:'relative', zIndex:1, padding:'48px 56px', maxWidth:'620px' }}>
               <h3 style={{ fontSize:'32px', fontWeight:700, color:'white', marginBottom:'16px', letterSpacing:'-0.01em' }}>Elevate Your Portfolio with SouKni Immo Pro</h3>
               <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.9)', marginBottom:'24px', lineHeight:1.6 }}>Exclusive data, priority listings, and a dedicated account manager for industrial giants.</p>
-              <button style={{ backgroundColor:'white', color:C.mintDk, border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', transition:'transform 0.2s' }}
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', transition:'transform 0.2s' }}
                 onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
                 onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
               >Join Immo Pro</button>
@@ -357,7 +357,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
         </div>
 
         {/* ── PROFESSIONAL INDUSTRIAL DISCOVERIES ── */}
-        <h2 style={{ fontSize:'24px', fontWeight:900, color:C.mintDk, marginBottom:'28px' }}>Professional Industrial Discoveries</h2>
+        <h2 style={{ fontSize:'24px', fontWeight:900, color:C.mint, marginBottom:'28px' }}>Professional Industrial Discoveries</h2>
         {[gridItems.slice(0,4), gridItems.slice(4,8), gridItems.slice(8,12), gridItems.slice(12,16)].map((row,ri)=>(
           <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'16px' }}>
             {row.map((item,j)=><ProductCard key={j} {...item} />)}
@@ -373,9 +373,9 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           {[1,2,3].map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'40px', height:'40px', borderRadius:'50%', cursor:'pointer', fontSize:'14px', fontWeight:700, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mintDk : 'transparent',
+                backgroundColor: page===p ? C.mint : 'transparent',
                 color: page===p ? 'white' : C.ink,
-                borderColor: page===p ? C.mintDk : 'rgba(186,202,197,0.4)',
+                borderColor: page===p ? C.mint : 'rgba(186,202,197,0.4)',
               }}
             >{p}</button>
           ))}
@@ -388,14 +388,14 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
         </div>
 
         {/* ── DIAMOND MEMBER BANNER ── */}
-        <div style={{ background:`linear-gradient(135deg, ${C.mintDk} 0%, ${C.mint} 100%)`, borderRadius:'40px', padding:'48px', textAlign:'center' as const, position:'relative' as const, overflow:'hidden', marginBottom:'48px', boxShadow:'0 20px 60px rgba(0,107,95,0.3)' }}>
+        <div style={{ background:`linear-gradient(135deg, ${C.mint} 0%, ${C.mint} 100%)`, borderRadius:'40px', padding:'48px', textAlign:'center' as const, position:'relative' as const, overflow:'hidden', marginBottom:'48px', boxShadow:'0 20px 60px rgba(0,107,95,0.3)' }}>
           <div style={{ position:'absolute', inset:0, opacity:0.18 }}>
             <img src={IMG.hero} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
           </div>
           <div style={{ position:'relative', zIndex:1 }}>
             <h2 style={{ fontSize:'40px', fontWeight:900, color:'white', marginBottom:'14px', letterSpacing:'-0.02em', fontStyle:'italic' as const }}>Become a Diamond Member</h2>
             <p style={{ fontSize:'18px', color:'rgba(255,255,255,0.95)', marginBottom:'28px', maxWidth:'560px', margin:'0 auto 28px', lineHeight:1.7, fontWeight:500 }}>Enjoy zero listing fees, unlimited highlighted ads, and a dedicated account manager for your industrial business.</p>
-            <button style={{ backgroundColor:'white', color:C.mintDk, border:'none', padding:'16px 44px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
+            <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'16px 44px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
               onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
               onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
             >Upgrade to Diamond</button>
@@ -403,14 +403,14 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
         </div>
 
         {/* ── JOIN SOUKNI FAMILY ── */}
-        <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px 48px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'280px', backgroundColor:C.mintDk, boxShadow:'0 16px 40px rgba(0,107,95,0.25)', marginBottom:'40px' }}>
+        <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', padding:'40px 48px', display:'flex', flexDirection:'column' as const, justifyContent:'center', minHeight:'280px', backgroundColor:C.mint, boxShadow:'0 16px 40px rgba(0,107,95,0.25)', marginBottom:'40px' }}>
           <div style={{ position:'absolute', inset:0, opacity:0.3 }}>
             <img src={IMG.hero} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
           </div>
           <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
             <h2 style={{ fontSize:'36px', fontWeight:900, color:'white', marginBottom:'14px', letterSpacing:'-0.02em' }}>Join the SouKni Family</h2>
             <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.92)', marginBottom:'28px', lineHeight:1.7, fontWeight:500 }}>Start selling your business assets today for free and reach millions of professionals in Morocco.</p>
-            <button style={{ backgroundColor:'white', color:C.mintDk, border:'none', padding:'14px 36px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
+            <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'14px 36px', borderRadius:'100px', fontWeight:900, fontSize:'13px', cursor:'pointer', textTransform:'uppercase' as const, letterSpacing:'0.06em', transition:'transform 0.2s', boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}
               onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
               onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
             >Register as Individual</button>
@@ -424,7 +424,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
           <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:'48px', marginBottom:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(255,255,255,0.12)' }}>
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'14px' }}>
-                <div style={{ width:'40px', height:'40px', backgroundColor:C.mintDk, borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:900, color:'white', boxShadow:'0 4px 12px rgba(0,107,95,0.3)' }}>S</div>
+                <div style={{ width:'40px', height:'40px', backgroundColor:C.mint, borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', fontWeight:900, color:'white', boxShadow:'0 4px 12px rgba(0,107,95,0.3)' }}>S</div>
                 <span style={{ fontSize:'24px', fontWeight:900, letterSpacing:'-0.02em' }}>SouKni</span>
               </div>
               <p style={{ fontSize:'16px', fontWeight:700, color:'rgba(255,255,255,0.82)', fontStyle:'italic' as const, marginBottom:'12px' }}>The Market in your Pocket</p>
@@ -432,7 +432,7 @@ export default function BusinessPage({ params }: { params: Promise<{ locale: str
               <div style={{ display:'flex', gap:'10px' }}>
                 {['🌐','@'].map((icon,i)=>(
                   <div key={i} style={{ width:'40px', height:'40px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', cursor:'pointer', transition:'background 0.15s' }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.backgroundColor=C.mintDk}
+                    onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.backgroundColor=C.mint}
                     onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.backgroundColor='rgba(255,255,255,0.1)'}
                   >{icon}</div>
                 ))}

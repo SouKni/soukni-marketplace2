@@ -4,6 +4,8 @@ import { MarketProvider } from '@/context/MarketContext'
 import Header from '@/components/sections/Header'
 import Footer from '@/components/layout/Footer'
 import '../globals.css'
+import { Providers } from '../providers'
+import SouKniConcierge from '@/components/ui/SouKniConcierge'
 
 export async function generateStaticParams() {
   return [
@@ -35,11 +37,14 @@ export default async function LocaleLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body style={{ margin: 0, padding: 0, backgroundColor: '#f4fbf8', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <MarketProvider>
-          <Header locale={locale} />
-          <main>{children}</main>
-          <Footer locale={locale} />
-        </MarketProvider>
+        <Providers>
+          <MarketProvider>
+            <Header locale={locale} />
+            <main>{children}</main>
+            <Footer locale={locale} />
+            <SouKniConcierge locale={locale} />
+          </MarketProvider>
+        </Providers>
       </body>
     </html>
   )

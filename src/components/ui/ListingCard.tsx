@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { Heart, ChevronLeft, ChevronRight, BadgeCheck, User, Building2, Store } from 'lucide-react'
+import { Heart, ChevronLeft, ChevronRight, BadgeCheck, User, Building2, Store, Diamond, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import type { Listing, Locale } from '@/lib/types'
+import { useMarket } from '@/context/MarketContext'
 
 interface ListingCardProps {
   listing: Listing
@@ -17,6 +18,7 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [saved, setSaved] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const { formatPrice } = useMarket()
 
   const scrollPrev = useCallback((e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation()
@@ -70,10 +72,8 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
             </div>
           </div>
 
-          {/* Gradient */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%)', opacity: hovered ? 1 : 0, transition: 'opacity 0.3s', pointerEvents: 'none' }} />
 
-          {/* Prev/Next arrows */}
           {listing.images.length > 1 && hovered && (
             <>
               <button onClick={scrollPrev} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '30px', height: '30px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: 2 }}>
@@ -85,23 +85,28 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
             </>
           )}
 
-          {/* Save button */}
-          <button onClick={e => { e.preventDefault(); e.stopPropagation(); setSaved(!saved) }} style={{ position: 'absolute', top: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 2, transition: 'transform 0.2s' }}>
+          <button onClick={e => { e.preventDefault(); e.stopPropagation(); setSaved(!saved) }} aria-label={dict.save} style={{ position: 'absolute', top: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 2, transition: 'transform 0.2s' }}>
             <Heart size={14} fill={saved ? '#ef4444' : 'none'} color={saved ? '#ef4444' : '#64748b'} />
           </button>
 
-          {/* Premium badge */}
           {listing.isPremium && (
             <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: '#2dd4bf', color: 'white', fontSize: '9px', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '100px', zIndex: 2, fontFamily: 'Inter, sans-serif' }}>
               Premium
             </div>
           )}
 
-          {/* Dots */}
+          {listing.badge === 'diamond' && (
+            <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2 }}>
+              <span style={{ background: 'linear-gradient(135deg, #2dd4bf, #0d9488)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px', boxShadow: '0 4px 12px rgba(45,212,191,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Diamond size={10} /> Diamond Member
+              </span>
+            </div>
+          )}
+
           {listing.images.length > 1 && (
             <div style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px', zIndex: 2 }}>
               {listing.images.map((_, i) => (
-                <button key={i} onClick={e => { e.preventDefault(); e.stopPropagation(); emblaApi?.scrollTo(i); setCurrentIndex(i) }} style={{ width: i === currentIndex ? '16px' : '6px', height: '6px', borderRadius: '3px', border: 'none', cursor: 'pointer', backgroundColor: i === currentIndex ? 'white' : 'rgba(255,255,255,0.45)', transition: 'all 0.3s', padding: 0 }} />
+                <button key={i} onClick={e => { e.preventDefault(); e.stopPropagation(); emblaApi?.scrollTo(i); setCurrentIndex(i) }} style={{ width: i === currentIndex ? '16px' : '6px', height: '6px', borderRadius: '3px', cursor: 'pointer', backgroundColor: i === currentIndex ? 'white' : 'rgba(255,255,255,0.45)', transition: 'all 0.3s', padding: 0 }} />
               ))}
             </div>
           )}
@@ -127,13 +132,27 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '12px' }}>
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#2dd4bf', letterSpacing: '-0.02em', fontFamily: 'Inter, sans-serif' }}>
-              {listing.price.toLocaleString()}
+              {formatPrice(listing.price)}
             </span>
-            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>
-              MAD
-            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${locale}/messages` }}
+              style={{ flex: 1, backgroundColor: 'rgba(45,212,191,0.1)', color: '#2dd4bf', border: 'none', fontWeight: 700, padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <MessageCircle size={13} /> Chat
+            </button>
+            <button
+              onClick={e => {
+                e.preventDefault(); e.stopPropagation()
+                const phone = (listing as any).seller?.phone
+                window.open(phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : '#', '_blank')
+              }}
+              style={{ flex: 1, backgroundColor: '#22c55e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px' }}>
+              WhatsApp
+            </button>
           </div>
         </div>
       </div>

@@ -2,11 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import {
-  Shield, AlertTriangle, CheckCircle, XCircle,
-  MapPin, CreditCard, MessageCircle, Eye,
-  Phone, Lock, Users, ChevronRight, ExternalLink
-} from 'lucide-react'
+import { Shield, AlertTriangle, CheckCircle, XCircle, MapPin, CreditCard, MessageCircle, Eye, Phone, Lock, Users, ChevronRight, ExternalLink } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 

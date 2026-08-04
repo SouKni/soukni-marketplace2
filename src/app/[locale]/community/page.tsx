@@ -185,7 +185,7 @@ function CommunityInner({ locale }: { locale: string }) {
 
         {/* Movers */}
         <div>
-          <SectionHeader label="Top Rated" title="Movers & Removals" href={`/${locale}/community/movers`} />
+          <SectionHeader label="Top Rated" title="Movers & Removals" href={`/${locale}/services/movers`} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {movers.map((item, i) => <MoverCard key={i} item={item} />)}
           </div>
@@ -193,7 +193,7 @@ function CommunityInner({ locale }: { locale: string }) {
 
         {/* Home Maintenance */}
         <div>
-          <SectionHeader label="Trusted Professionals" title="Home Maintenance" href={`/${locale}/community/home-maintenance`} />
+          <SectionHeader label="Trusted Professionals" title="Home Maintenance" href={`/${locale}/services/home-maintenance`} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {maintenance.map((item, i) => <ServiceCard key={i} item={item} />)}
           </div>
@@ -201,7 +201,7 @@ function CommunityInner({ locale }: { locale: string }) {
 
         {/* Consultants */}
         <div>
-          <SectionHeader label="Expert Advisors" title="Consultancy Services" href={`/${locale}/community/consultants`} />
+          <SectionHeader label="Expert Advisors" title="Consultancy Services" href={`/${locale}/services/consultants`} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {consultants.map((item, i) => <ServiceCard key={i} item={item} />)}
           </div>

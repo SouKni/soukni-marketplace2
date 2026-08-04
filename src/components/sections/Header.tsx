@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import VoiceSearch from '@/components/sections/VoiceSearch'
+import VisualSearch from '@/components/ui/VisualSearch'
 import { useState, useEffect } from 'react'
 import { Bell, Heart, Menu, X, ChevronDown, Search } from 'lucide-react'
 import CityPicker from '@/components/ui/CityPicker'
@@ -15,6 +17,7 @@ const verticals = [
   { key: 'fashion', slug: 'fashion', label: { en: 'Fashion', fr: 'Mode', ar: 'موضة', es: 'Moda', de: 'Mode' } },
   { key: 'jobs', slug: 'jobs', label: { en: 'Jobs', fr: 'Emplois', ar: 'وظائف', es: 'Empleo', de: 'Jobs' } },
   { key: 'electronics', slug: 'electronics', label: { en: 'Mobiles & Electronics', fr: 'Électronique', ar: 'إلكترونيات', es: 'Electrónica', de: 'Elektronik' } },
+  { key: 'home-garden', slug: 'home-garden', label: { en: 'Home & Garden', fr: 'Maison & Jardin', ar: 'منزل وحديقة', es: 'Hogar y Jardín', de: 'Haus & Garten' } },
   { key: 'services', slug: 'services', label: { en: 'Services', fr: 'Services', ar: 'خدمات', es: 'Servicios', de: 'Dienste' } },
 ]
 
@@ -82,7 +85,11 @@ export default function Header({ locale, currentSlug }: HeaderProps) {
             </div>
           </div>
 
-          {/* Search bar */}
+          {/* Voice Search */}
+            <VoiceSearch locale={locale} />
+            {/* Visual Search */}
+            <VisualSearch locale={locale} />
+            {/* Search bar */}
           <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: '420px', margin: '0 24px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#e8efec', borderRadius: '100px', padding: '0 14px', height: '38px' }}>
             <Search size={15} color="#6b7a76" />
             <input
@@ -192,7 +199,7 @@ export default function Header({ locale, currentSlug }: HeaderProps) {
               ))}
               <div style={{ width: '1px', backgroundColor: '#e2e8f0' }} />
               {currencies.map(c => (
-                <button key={c} onClick={() => { setCurrency(c); }} style={{ padding: '6px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 700, border: 'none', cursor: 'pointer', backgroundColor: c === currency ? '#22d4a8' : '#e8efec', color: c === currency ? 'white' : '#334155' }}>{c}</button>
+                <button key={c} onClick={() => { setCurrency(c); }} style={{ padding: '6px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', backgroundColor: c === currency ? '#22d4a8' : '#e8efec', color: c === currency ? 'white' : '#334155' }}>{c}</button>
               ))}
             </div>
 

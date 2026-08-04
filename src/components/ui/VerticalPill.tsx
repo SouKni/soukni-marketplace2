@@ -2,7 +2,7 @@
 
 export default function VerticalPill({ v, locale }: { v: any; locale: string }) {
   return (
-    
+    <a
       href={`/${locale}/${v.slug}`}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',

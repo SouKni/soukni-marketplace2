@@ -2,11 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  Bell, Search, ChevronRight, Plus, Trash2,
-  Check, X, MapPin, Tag, SlidersHorizontal,
-  TrendingDown, Zap, Clock, Toggle
-} from 'lucide-react'
+import { Bell, Search, ChevronRight, Plus, Trash2, Check, X, MapPin, Tag, SlidersHorizontal, TrendingDown, Zap, Clock } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 

@@ -3,13 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  Check, ChevronRight, MapPin, Tag, Bell,
-  Heart, Package, Shield, Sparkles, ArrowRight,
-  Camera, Search, MessageCircle, Star, Zap,
-  Home, Car, Smartphone, Briefcase, ShoppingBag,
-  ChevronLeft, X
-} from 'lucide-react'
+import { Check, ChevronRight, MapPin, Tag, Bell, Heart, Package, Shield, Sparkles, ArrowRight, Camera, Search, MessageCircle, Star, Zap, Home, Car, Smartphone, Briefcase, ShoppingBag, ChevronLeft, X } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -55,7 +49,7 @@ const NOTIFICATION_PREFS = [
 
 type Step = 'welcome' | 'city' | 'interests' | 'goal' | 'notifications' | 'profile' | 'done'
 
-const STEPS: Step[] = ['welcome', 'city', 'interests', 'goal', 'notifications', 'profile', 'done']
+const STEPS = ['welcome', 'city', 'interests', 'goal', 'notifications', 'profile', 'done'] as const
 
 export default function WelcomePage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
@@ -478,7 +472,7 @@ export default function WelcomePage({ params }: { params: Promise<{ locale: Loca
         </div>
 
         {/* Dot indicators */}
-        {step !== 'welcome' && step !== 'done' && (
+        {(step as string) !== 'welcome' && (step as string) !== 'done' && (
           <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginTop: '20px' }}>
             {['city', 'interests', 'goal', 'notifications', 'profile'].map(s => (
               <div key={s} style={{ width: s === step ? '20px' : '6px', height: '6px', borderRadius: '3px', background: s === step ? MINT : '#e2eae6', transition: 'all 0.3s' }} />

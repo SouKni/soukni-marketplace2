@@ -1,22 +1,66 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextRequest, NextResponse } from 'next/server'
 
-const locales = ['en', 'fr', 'ar', 'es', 'de']
-const defaultLocale = 'en'
+const PROTECTED_ROUTES = [
+  '/account',
+  '/post-ad',
+  '/messages',
+  '/orders',
+  '/favorites',
+  '/notifications',
+  '/analytics',
+  '/bulk-import',
+  '/boost',
+  '/diamond',
+  '/review',
+  '/escrow',
+  '/translate',
+  '/qr',
+]
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+const AUTH_ROUTES = ['/auth', '/login']
 
-  const pathnameHasLocale = locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+export async function middleware(request: NextRequest) {
+  const response = NextResponse.next()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
   )
 
-  if (pathnameHasLocale) return
+  const { data: { session } } = await supabase.auth.getSession()
 
-  request.nextUrl.pathname = `/${defaultLocale}${pathname}`
-  return NextResponse.redirect(request.nextUrl)
+  const pathname = request.nextUrl.pathname
+  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}\//, '/')
+
+  const isProtected = PROTECTED_ROUTES.some(r => pathWithoutLocale.startsWith(r))
+  const isAuthRoute = AUTH_ROUTES.some(r => pathWithoutLocale.startsWith(r))
+
+  if (isProtected && !session) {
+    const locale = pathname.split('/')[1] || 'en'
+    return NextResponse.redirect(new URL(`/${locale}/auth?next=${pathname}`, request.url))
+  }
+
+  if (isAuthRoute && session) {
+    const locale = pathname.split('/')[1] || 'en'
+    return NextResponse.redirect(new URL(`/${locale}`, request.url))
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 }

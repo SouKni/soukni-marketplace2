@@ -1,396 +1,301 @@
 'use client'
-
-import { useState } from 'react'
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { useMarket } from '@/context/MarketContext'
-import { Search, Heart, MessageCircle, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 
-/* ─── DATA ─────────────────────────────────────────────── */
-const categoryPills = ['All Roles','Security Guard','Bodyguard','CCTV Monitoring','Security Manager','Consultancy','Event Security']
-
-type BadgeType = 'diamond' | 'verified'
-
-interface Job {
-  id: string; badge: BadgeType; category: string; categoryColor: string
-  title: string; company: string; companyIcon: string
-  salary: number; salaryLabel: string; salaryExtra?: string
-  image?: string; hasChat?: boolean; description?: string
+const HERO = 'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800'
+const topChoices = [
+  { id:'sc1', title:'Head of Security — Luxury Hotel Group', desc:'5-star hotel group in Marrakech seeking a Head of Security to oversee all security operations across 3 properties. Staff management, emergency response protocols, and VIP protection experience required.', price:22000, location:'Marrakech, Palmeraie', rating:4.9, reviews:34, image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sc2', title:'Security Operations Manager — Industrial Zone', desc:'Major industrial park in Tangier hiring a Security Operations Manager to oversee 50+ guards across a 200-hectare site. 24/7 operations management, CCTV monitoring, and access control.', price:18000, location:'Tangier, Zone Franche', rating:4.8, reviews:27, image:'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=800' },
+  { id:'sc3', title:'Executive Protection Officer — HNW Clients', desc:'Private security firm seeking an experienced Executive Protection Officer for close personal protection assignments with high-net-worth clients across Morocco and internationally.', price:25000, location:'Casablanca', rating:4.9, reviews:21, image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+]
+const bentoListings = [
+  { id:'sb1', title:'Site Security Supervisor', price:9000, location:'Casablanca', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sb2', title:'CCTV Control Room Operator', price:7500, location:'Tangier', image:'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=800' },
+  { id:'sb3', title:'Mall Security Team Leader', price:8000, location:'Rabat', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sb4', title:'Access Control & Badge Administrator', price:7000, location:'Casablanca', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sb5', title:'Event Security Coordinator', price:10000, location:'Marrakech', image:'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=800' },
+]
+const discoveryGrid = [
+  { id:'sd1', title:'Security Guard — Day Shift', price:5500, location:'Casablanca', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd2', title:'Night Shift Security Officer', price:6000, location:'Rabat', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd3', title:'Fire Safety & Security Warden', price:7000, location:'Tangier', image:'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=800' },
+  { id:'sd4', title:'Retail Loss Prevention Officer', price:6500, location:'Casablanca', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd5', title:'Airport Security Screening Officer', price:8000, location:'Casablanca', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd6', title:'Bank Security Guard', price:7000, location:'Rabat', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd7', title:'Residential Complex Security', price:5500, location:'Marrakech', image:'https://images.pexels.com/photos/5480696/pexels-photo-5480696.jpeg?auto=compress&w=800' },
+  { id:'sd8', title:'Security Systems Technician', price:10000, location:'Casablanca', image:'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=800' },
+]
+const pills = ['All Security', 'Security Guard', 'Site Security', 'CCTV Operator', 'Security Manager', 'Bodyguard', 'View More']
+const pillSlugs: Record<string,string> = {
+  'Security Guard':'security-guard',
+  'Site Security':'site-security',
+  'CCTV Operator':'cctv-operator',
+  'Security Manager':'security-manager',
+  'Bodyguard':'bodyguard',
 }
+const jobTabs = ['All', 'Full-Time', 'Part-Time', 'Night Shift']
 
-const IMGS = [
-  'https://images.pexels.com/photos/5935794/pexels-photo-5935794.jpeg?auto=compress&w=600',
-  'https://images.pexels.com/photos/8112172/pexels-photo-8112172.jpeg?auto=compress&w=600',
-  'https://images.pexels.com/photos/4427624/pexels-photo-4427624.jpeg?auto=compress&w=600',
-  'https://images.pexels.com/photos/3862132/pexels-photo-3862132.jpeg?auto=compress&w=600',
-]
-
-const allJobs: Job[] = [
-  // Row 1-2 (with images)
-  { id:'j1', badge:'diamond', category:'Supervision', categoryColor:'#2dd4bf', title:'Site Security Supervisor - Technopolis Rabat', company:'Global Guarding Services', companyIcon:'🏢', salary:12500, salaryLabel:'MONTHLY MAD', image:IMGS[0], hasChat:true },
-  { id:'j2', badge:'verified', category:'Close Protection', categoryColor:'#8d4f00', title:'Executive Protection Specialist - Diplomatic Corps', company:'Shield Elite Security', companyIcon:'🛡', salary:28000, salaryLabel:'SALARY MAD', image:IMGS[1] },
-  { id:'j3', badge:'diamond', category:'Executive Management', categoryColor:'#605e58', title:'Regional Security Director - North Africa', company:'Atlas Corp Intl', companyIcon:'🌍', salary:45000, salaryLabel:'MONTHLY MAD', image:IMGS[2] },
-  { id:'j4', badge:'verified', category:'Surveillance', categoryColor:'#2dd4bf', title:'Senior CCTV Monitoring Specialist - Mall Hub', company:'Rabat Mall Group', companyIcon:'👁', salary:9500, salaryLabel:'SALARY MAD', image:IMGS[3] },
-  // Row 2 (text cards)
-  { id:'j5', badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'Night Shift Security Guard - Hay Riad District', company:'ProGuard Morocco', companyIcon:'🌙', salary:6500, salaryLabel:'MAD', description:'Professional guard required for premium residential complex. Bilingual (Arabic/French) preferred.' },
-  { id:'j6', badge:'diamond', category:'Event Security', categoryColor:'#8d4f00', title:'Crowd Control Team Lead - Festival Season', company:'EventSec Rabat', companyIcon:'🎪', salary:15000, salaryLabel:'MAD', description:'Leading security for major music festivals in Rabat. High energy role with competitive rates.' },
-  { id:'j7', badge:'verified', category:'Risk Assessment', categoryColor:'#605e58', title:'Corporate Security Consultant - Banking Sector', company:'RiskPro Morocco', companyIcon:'🏦', salary:35000, salaryLabel:'MAD', description:'Conducting full audits of physical security infrastructure for national banks.' },
-  { id:'j8', badge:'verified', category:'Technical', categoryColor:'#2dd4bf', title:'Security Systems Technician - Access Control', company:'TechSec Solutions', companyIcon:'🔧', salary:11000, salaryLabel:'MAD', description:'Maintenance and installation of modern biometric systems and alarms.' },
-  // Grid 2 (rows 3-4)
-  { id:'j9',  badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'Residential Guard - Souissi Luxury Riad', company:'LuxGuard', companyIcon:'🏰', salary:7200, salaryLabel:'MAD' },
-  { id:'j10', badge:'diamond', category:'Management', categoryColor:'#8d4f00', title:'Security Operations Center Lead', company:'OpsSec Rabat', companyIcon:'📡', salary:18500, salaryLabel:'MAD' },
-  { id:'j11', badge:'verified', category:'Asset Protection', categoryColor:'#605e58', title:'Loss Prevention Manager', company:'RetailSafe Morocco', companyIcon:'🔒', salary:14000, salaryLabel:'MAD' },
-  { id:'j12', badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'K9 Security Handler - Airport Zone', company:'AirSec Rabat', companyIcon:'🐕', salary:10500, salaryLabel:'MAD' },
-  { id:'j13', badge:'diamond', category:'Bodyguard', categoryColor:'#8d4f00', title:'Female Protection Detail for VIP Clients', company:'EliteShield', companyIcon:'👮', salary:22000, salaryLabel:'MAD' },
-  { id:'j14', badge:'verified', category:'CCTV', categoryColor:'#605e58', title:'Night Surveillance Operator', company:'VisionSec Morocco', companyIcon:'📷', salary:8800, salaryLabel:'MAD' },
-  { id:'j15', badge:'verified', category:'Audit', categoryColor:'#2dd4bf', title:'Fire & Safety Security Officer', company:'SafetyFirst Rabat', companyIcon:'🚒', salary:9500, salaryLabel:'MAD' },
-  { id:'j16', badge:'diamond', category:'Security Manager', categoryColor:'#8d4f00', title:'Chief Security Officer - Rabat Agdal', company:'CSO Partners', companyIcon:'⭐', salary:32000, salaryLabel:'MAD' },
-  // Grid 3 (rows 5-6)
-  { id:'j17', badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'Retail Security Officer - Agdal Boutique', company:'RetailGuard', companyIcon:'🛍', salary:6200, salaryLabel:'MAD' },
-  { id:'j18', badge:'verified', category:'Event', categoryColor:'#8d4f00', title:'Concert Security Crew - Rabat Coast', company:'EventForce', companyIcon:'🎵', salary:12000, salaryLabel:'MAD' },
-  { id:'j19', badge:'diamond', category:'CCTV', categoryColor:'#605e58', title:'Head of Surveillance Center', company:'SurveillancePro', companyIcon:'🖥', salary:16000, salaryLabel:'MAD' },
-  { id:'j20', badge:'verified', category:'Transport', categoryColor:'#2dd4bf', title:'Cash-in-Transit Armed Guard', company:'SecureTrans Morocco', companyIcon:'🚐', salary:13500, salaryLabel:'MAD' },
-  { id:'j21', badge:'verified', category:'Cyber', categoryColor:'#8d4f00', title:'Information Security Coordinator', company:'CyberSec Rabat', companyIcon:'💻', salary:25000, salaryLabel:'MAD' },
-  { id:'j22', badge:'diamond', category:'Director', categoryColor:'#605e58', title:'Global Head of Asset Security', company:'AssetGuard International', companyIcon:'🌐', salary:60000, salaryLabel:'MAD' },
-  { id:'j23', badge:'verified', category:'Guard', categoryColor:'#2dd4bf', title:'Patrol Officer - Rabat Tech Park', company:'TechPark Security', companyIcon:'🚶', salary:6800, salaryLabel:'MAD' },
-  { id:'j24', badge:'verified', category:'Events', categoryColor:'#8d4f00', title:'VIP Liaison & Security Host', company:'VIPSec Morocco', companyIcon:'🎖', salary:11500, salaryLabel:'MAD' },
-  // Grid 4 (rows 7-8)
-  { id:'j25', badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'Warehouse Night Guard - Sale Zone', company:'WareGuard', companyIcon:'🏭', salary:6000, salaryLabel:'MAD' },
-  { id:'j26', badge:'verified', category:'Consulting', categoryColor:'#8d4f00', title:'Security Infrastructure Advisor', company:'InfraSec Consulting', companyIcon:'📐', salary:28000, salaryLabel:'MAD' },
-  { id:'j27', badge:'diamond', category:'Monitoring', categoryColor:'#605e58', title:'CCTV Analytics Lead', company:'AnalyticSec', companyIcon:'📊', salary:15500, salaryLabel:'MAD' },
-  { id:'j28', badge:'verified', category:'Guard Force', categoryColor:'#2dd4bf', title:'Armed Security Officer - Banking HQ', company:'BankGuard Rabat', companyIcon:'🏛', salary:12500, salaryLabel:'MAD' },
-  { id:'j29', badge:'verified', category:'Trainer', categoryColor:'#8d4f00', title:'Head of Guard Training Center', company:'SecureAcademy Morocco', companyIcon:'🎓', salary:20000, salaryLabel:'MAD' },
-  { id:'j30', badge:'diamond', category:'Crisis', categoryColor:'#605e58', title:'Crisis Response Specialist', company:'CrisisShield', companyIcon:'🚨', salary:24500, salaryLabel:'MAD' },
-  { id:'j31', badge:'verified', category:'Technical', categoryColor:'#2dd4bf', title:'Lead CCTV Engineer', company:'TechSec Labs', companyIcon:'🔭', salary:14200, salaryLabel:'MAD' },
-  { id:'j32', badge:'verified', category:'Patrol', categoryColor:'#8d4f00', title:'Mobile Patrol Unit - Rabat North', company:'PatrolPro Morocco', companyIcon:'🚔', salary:7800, salaryLabel:'MAD' },
-]
-
-/* ─── CARD (with image) ───────────────────────────────────── */
-function JobCardImage({ job }: { job: Job }) {
+function CertifiedBadge() {
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
+}
+function Stars({ rating }: { rating: number }) {
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
+}
+function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const { formatPrice } = useMarket()
-
+  const [hov, setHov] = useState(false)
   return (
-    <article onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-      style={{ backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid rgba(186,202,197,0.15)',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const }}>
-      <div style={{ position:'relative', height:'200px', overflow:'hidden' }}>
-        <img src={job.image} alt={job.title}
-          style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform: hovered ? 'scale(1.05)' : 'scale(1)' }}
-        />
-        <div style={{ position:'absolute', top:'14px', left:'14px' }}>
-          {job.badge === 'diamond'
-            ? <span style={{ background:'linear-gradient(135deg,#2dd4bf,#2dd4bf)', color:'white', fontSize:'9px', fontWeight:900, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.06em', boxShadow:'0 4px 12px rgba(45,212,191,0.35)' }}>Diamond Partner</span>
-            : <span style={{ backgroundColor:'rgba(221,228,225,0.9)', color:'#3c4a46', fontSize:'9px', fontWeight:700, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>Verified</span>
-          }
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
-          style={{ position:'absolute', top:'12px', right:'12px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(0,0,0,0.2)', backdropFilter:'blur(8px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Heart size={15} fill={saved?'#ef4444':'none'} color="white" />
-        </button>
-      </div>
-      <div style={{ padding:'20px', flex:1, display:'flex', flexDirection:'column' as const }}>
-        <span style={{ fontSize:'11px', fontWeight:700, color:job.categoryColor, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>{job.category}</span>
-        <h3 style={{ fontSize:'16px', fontWeight:700, color:'#161d1b', margin:'6px 0 10px', lineHeight:1.35, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const, overflow:'hidden', minHeight:'44px' }}>{job.title}</h3>
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'#6b7a76', marginBottom:'14px', fontSize:'13px' }}>
-          <span>{job.companyIcon}</span><span style={{ fontWeight:500 }}>{job.company}</span>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid rgba(186,202,197,0.2)', paddingTop:'14px', marginTop:'auto' }}>
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>{job.salaryLabel}</div>
-            <div style={{ fontSize:'22px', fontWeight:900, color: job.salary>=20000?'#2dd4bf':'#161d1b', letterSpacing:'-0.02em', lineHeight:1 }}>
-              {job.salary.toLocaleString()}{job.salaryExtra && <span style={{ fontSize:'13px', fontWeight:400, color:'#6b7a76', marginLeft:'3px' }}>{job.salaryExtra}</span>}
-            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} applicants)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
           </div>
-          <div style={{ display:'flex', gap:'8px' }}>
-            {job.hasChat && (
-              <button style={{ width:'38px', height:'38px', borderRadius:'50%', border:'1px solid #2dd4bf', backgroundColor:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#2dd4bf', transition:'all 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(0,107,95,0.06)'}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              ><MessageCircle size={16} /></button>
-            )}
-            <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'10px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'filter 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-              onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-            >Apply Now</button>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
+            <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span><span style={{ fontSize:'12px', color:'#6b7a76' }}> / month</span></div>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Apply Now</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
+            </div>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }
-
-/* ─── CARD (text only) ───────────────────────────────────── */
-function JobCardText({ job }: { job: Job }) {
+function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const { formatPrice } = useMarket()
-
+  const [hov, setHov] = useState(false)
   return (
-    <article onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-      style={{ backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid rgba(186,202,197,0.15)', padding:'24px',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const, minHeight:'300px' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'14px' }}>
-        {job.badge === 'diamond'
-          ? <span style={{ background:'linear-gradient(135deg,#2dd4bf,#2dd4bf)', color:'white', fontSize:'9px', fontWeight:900, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>Diamond Partner</span>
-          : <span style={{ backgroundColor:'#dde4e1', color:'#3c4a46', fontSize:'9px', fontWeight:700, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const }}>Verified</span>
-        }
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
-          style={{ background:'none', border:'none', cursor:'pointer', color: saved?'#ef4444':'#6b7a76' }}>
-          <Heart size={18} fill={saved?'#ef4444':'none'} />
-        </button>
-      </div>
-      <span style={{ fontSize:'11px', fontWeight:700, color:job.categoryColor, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>{job.category}</span>
-      <h3 style={{ fontSize:'16px', fontWeight:700, color:'#161d1b', margin:'6px 0 10px', lineHeight:1.35, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const, overflow:'hidden' }}>{job.title}</h3>
-      {job.description && <p style={{ fontSize:'14px', color:'#6b7a76', lineHeight:1.6, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical' as const, overflow:'hidden', marginBottom:'12px', flex:1 }}>{job.description}</p>}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid rgba(186,202,197,0.2)', paddingTop:'14px', marginTop:'auto' }}>
-        <div>
-          <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>{job.salaryLabel}</div>
-          <div style={{ fontSize:'20px', fontWeight:900, color: job.salary>=20000?'#2dd4bf':'#161d1b', letterSpacing:'-0.02em', lineHeight:1 }}>{job.salary.toLocaleString()}</div>
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+        <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
         </div>
-        <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'10px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'filter 0.15s' }}
-          onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-          onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-        >Apply Now</button>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
+          <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+          <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'6px' }}>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Apply</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
       </div>
-    </article>
+    </Link>
   )
 }
 
-/* ─── MINIMAL CARD (rows 3-8) ────────────────────────────── */
-function JobCardMinimal({ job }: { job: Job }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <article onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-      style={{ backgroundColor:'white', borderRadius:'40px', border:'1px solid rgba(186,202,197,0.15)', padding:'24px',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const, minHeight:'300px' }}>
-      <div style={{ marginBottom:'14px' }}>
-        {job.badge === 'diamond'
-          ? <span style={{ background:'linear-gradient(135deg,#2dd4bf,#2dd4bf)', color:'white', fontSize:'9px', fontWeight:900, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>Diamond Partner</span>
-          : <span style={{ backgroundColor:'#dde4e1', color:'#3c4a46', fontSize:'9px', fontWeight:700, padding:'4px 8px', borderRadius:'6px', textTransform:'uppercase' as const }}>Verified</span>
-        }
-      </div>
-      <span style={{ fontSize:'11px', fontWeight:700, color:job.categoryColor, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>{job.category}</span>
-      <h3 style={{ fontSize:'16px', fontWeight:700, color:'#161d1b', margin:'6px 0', lineHeight:1.35, flex:1 }}>{job.title}</h3>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid rgba(186,202,197,0.2)', paddingTop:'14px', marginTop:'auto' }}>
-        <div>
-          <div style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>MAD</div>
-          <div style={{ fontSize:'22px', fontWeight:900, color: job.salary>=20000?'#2dd4bf':'#161d1b', letterSpacing:'-0.02em' }}>{job.salary.toLocaleString()}</div>
-        </div>
-        <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'filter 0.15s' }}
-          onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-          onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-        >Apply</button>
-      </div>
-    </article>
-  )
-}
-
-/* ─── PAGE ───────────────────────────────────────────────── */
-export default function SecurityJobsPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function Page({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [activePill, setActivePill] = useState('All Roles')
+  const [city, setCity] = useState('')
   const [keyword, setKeyword] = useState('')
-  const [diamondOnly, setDiamondOnly] = useState(true)
+  const [activePill, setActivePill] = useState(pills[0])
+  const [tab, setTab] = useState('All')
+  const [diamond, setDiamond] = useState(true)
+  const [page, setPage] = useState(1)
+  const [grid, setGrid] = useState(true)
 
   return (
-    <div style={{ fontFamily:'Inter,system-ui,sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
-
-      {/* ── HERO ── */}
-      <section style={{ position:'relative', height:'480px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src="https://images.pexels.com/photos/5935794/pexels-photo-5935794.jpeg?auto=compress&w=1600" alt="Security Jobs Hero"
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}
-        />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(22,29,27,0.45) 0%, rgba(22,29,27,0.15) 60%, #f4fbf8 100%)' }} />
-        <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:'860px', padding:'80px 24px 0', textAlign:'center' }}>
-          <h1 style={{ fontSize:'48px', fontWeight:800, color:'white', marginBottom:'24px', letterSpacing:'-0.02em', lineHeight:1.1, textShadow:'0 4px 20px rgba(0,0,0,0.3)' }}>
-            Secure Your Future in Rabat's Leading Organizations
-          </h1>
-          <div style={{ backgroundColor:'rgba(255,255,255,0.65)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.4)', borderRadius:'100px', padding:'8px 8px 8px 0', display:'flex', alignItems:'center', boxShadow:'0 20px 60px rgba(0,0,0,0.12)' }}>
-            <div style={{ flex:1, display:'flex', alignItems:'center', gap:'10px', padding:'10px 20px', borderRight:'1px solid rgba(186,202,197,0.3)' }}>
-              <Search size={20} color="#2dd4bf" />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
-                placeholder="Security Manager, Protection Specialist, CCTV Operator..."
-                style={{ flex:1, backgroundColor:'transparent', border:'none', outline:'none', fontSize:'15px', fontFamily:'Inter,sans-serif', color:'#161d1b' }}
-              />
+    <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
+      <section style={{ position:'relative', height:'440px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={HERO} alt='Security & Guard' style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Find Top Security & Guard Jobs!</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>40 verified security & guard positions across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#2dd4bf', color:'#0f9b8e', border:'none', padding:'13px 28px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer', margin:'0 4px', transition:'filter 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
-              onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
-            >Search Jobs</button>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
 
-      {/* ── FILTER + PILLS ── */}
-      <div style={{ maxWidth:'1440px', margin:'-48px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        {/* Filter bar */}
-        <div style={{ backgroundColor:'rgba(255,255,255,0.68)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.45)', borderRadius:'40px', padding:'20px 24px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'center', gap:'0', marginBottom:'24px', flexWrap:'wrap' as const }}>
-          {[
-            { label:'District', type:'select', opts:['All Rabat Districts','Hay Riad','Agdal','Souissi','Hassan'] },
-            { label:'Compensation', type:'select', opts:['Any Salary','6,000-10,000 MAD','10,000-20,000 MAD','20,000+ MAD'] },
-            { label:'Shift Type', type:'button', val:'Full-time' },
-          ].map((f,i,arr)=>(
-            <React.Fragment key={f.label}>
-              <div style={{ flex:1, minWidth:'180px', padding:'0 16px', borderRight: i<arr.length-1?'1px solid rgba(186,202,197,0.25)':'none' }}>
-                <div style={{ fontSize:'9px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.12em', color:'#6b7a76', marginBottom:'4px' }}>{f.label}</div>
-                {f.type==='select'
-                  ? <select style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'#161d1b', fontFamily:'Inter,sans-serif', cursor:'pointer', width:'100%' }}>
-                      {f.opts!.map(o=><option key={o}>{o}</option>)}
-                    </select>
-                  : <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}>
-                      <span style={{ fontSize:'14px', fontWeight:600, color:'#161d1b' }}>{f.val}</span>
-                      <span style={{ fontSize:'18px' }}>🎚</span>
-                    </div>
-                }
-              </div>
-            </React.Fragment>
-          ))}
-          <div style={{ width:'1px', height:'40px', backgroundColor:'rgba(186,202,197,0.25)', margin:'0 8px', flexShrink:0 }} />
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 16px', cursor:'pointer' }} onClick={()=>setDiamondOnly(!diamondOnly)}>
-            <span style={{ fontSize:'13px', fontWeight:600, color:'#3c4a46', whiteSpace:'nowrap' as const }}>Diamond Only</span>
-            <div style={{ width:'44px', height:'24px', borderRadius:'100px', backgroundColor: diamondOnly?'#2dd4bf':'#dde4e1', position:'relative', transition:'background 0.25s', flexShrink:0 }}>
-              <div style={{ position:'absolute', top:'2px', left: diamondOnly?'22px':'2px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:'white', boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.25s' }} />
+      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
+          {[['City','Casablanca'],['Job Title','Search...'],['Experience','All Levels'],['Salary','Any Range'],['Filters','All']].map(([l,v],i)=>(
+            <div key={l} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
+              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
             </div>
-          </div>
-        </div>
-        {/* Pills + sort */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', overflowX:'auto' as const, gap:'12px', paddingBottom:'8px' }}>
-          <div style={{ display:'flex', gap:'10px', flexShrink:0 }}>
-            {categoryPills.map(pill=>(
-              <button key={pill} onClick={()=>setActivePill(pill)}
-                style={{ padding:'9px 20px', borderRadius:'100px', fontSize:'13px', fontWeight:700, border:'1px solid', cursor:'pointer', transition:'all 0.15s', whiteSpace:'nowrap' as const,
-                  backgroundColor: activePill===pill?'#2dd4bf':'#eef5f2',
-                  color: activePill===pill?'#0f9b8e':'#3c4a46',
-                  borderColor: activePill===pill?'#2dd4bf':'rgba(186,202,197,0.25)',
-                  boxShadow: activePill===pill?'0 4px 16px rgba(45,212,191,0.25)':'none',
-                }}
-              >{pill}</button>
-            ))}
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'#6b7a76', fontSize:'13px', flexShrink:0, cursor:'pointer', whiteSpace:'nowrap' as const }}>
-            Sort: <span style={{ color:'#2dd4bf', fontWeight:700 }}>Featured First</span>
-            <ChevronDown size={16} color="#2dd4bf" />
-          </div>
+          ))}
+          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}><Search size={16} /> SEARCH</button>
         </div>
       </div>
 
-      <main style={{ maxWidth:'1440px', margin:'0 auto', padding:'40px 40px 80px' }}>
+      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Security & Guard</span>
+        </nav>
 
-        {/* ── GRID 1 — rows 1-2 (4 image cards + 4 text cards) ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'48px' }}>
-          {allJobs.slice(0,4).map(job=><JobCardImage key={job.id} job={job} />)}
-          {allJobs.slice(4,8).map(job=><JobCardText key={job.id} job={job} />)}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Security & Guard Jobs in Morocco</h2>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Save Search
+            </button>
+          </div>
+        </div>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'16px' }}>40 Security & Guard positions across Morocco</p>
+
+        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
+          {pills.map(p=>
+            pillSlugs[p] ? (
+              <Link key={p} href={`/${locale}/jobs/security/${pillSlugs[p]}`} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}>{p}</Link>
+            ) : (
+              <button key={p} onClick={()=>setActivePill(p)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap' as const, backgroundColor:activePill===p?'#161d1b':'#e8efec', color:activePill===p?'white':'#3c4a46' }}>{p}</button>
+            )
+          )}
         </div>
 
-        {/* ── DUAL BANNERS: Join Family + Immo Pro ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px', marginBottom:'48px' }}>
-          {/* Join SouKni Family */}
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', backgroundColor:'#e8efec', padding:'48px', display:'flex', alignItems:'center', minHeight:'280px' }}>
-            <div style={{ position:'absolute', right:'-40px', top:'50%', transform:'translateY(-50%)', width:'220px', height:'220px', backgroundColor:'rgba(0,107,95,0.08)', borderRadius:'50%', filter:'blur(40px)' }} />
-            <div style={{ position:'relative', zIndex:1, maxWidth:'360px' }}>
-              <h2 style={{ fontSize:'32px', fontWeight:800, color:'#161d1b', marginBottom:'12px', letterSpacing:'-0.02em', lineHeight:1.2 }}>Join the SouKni Family</h2>
-              <p style={{ color:'#6b7a76', fontSize:'15px', marginBottom:'28px', lineHeight:1.6 }}>Download the app for real-time security alerts and direct messaging with hiring agencies.</p>
-              <div style={{ display:'flex', gap:'12px' }}>
-                {[{icon:'🍎',store:'App Store'},{icon:'▶',store:'Google Play'}].map(btn=>(
-                  <button key={btn.store} style={{ backgroundColor:'#0f172a', color:'white', border:'none', padding:'10px 18px', borderRadius:'12px', display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', fontSize:'13px', fontWeight:600 }}>
-                    <span style={{ fontSize:'20px' }}>{btn.icon}</span>{btn.store}
-                  </button>
-                ))}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'6px' }}>
+            {jobTabs.map(t=><button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:tab===t?'#dde4e1':'transparent', color:tab===t?'#161d1b':'#6b7a76' }}>{t}</button>)}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
               </div>
             </div>
-          </div>
-
-          {/* SouKni Immo Pro */}
-          <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', minHeight:'280px' }}>
-            <img src="https://images.pexels.com/photos/1732414/pexels-photo-1732414.jpeg?auto=compress&w=800" alt="Immo Pro"
-              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            />
-            <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(0,0,0,0.5)' }} />
-            <div style={{ position:'absolute', inset:0, padding:'40px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div>
-                <h3 style={{ fontSize:'22px', fontWeight:800, color:'white', marginBottom:'8px' }}>SouKni Immo Pro</h3>
-                <p style={{ color:'rgba(255,255,255,0.82)', fontSize:'14px', marginBottom:'20px', maxWidth:'240px', lineHeight:1.6 }}>The ultimate recruitment engine for Real Estate agencies.</p>
-                <button style={{ backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Switch to Immo</button>
-              </div>
-              <div style={{ width:'80px', height:'80px', backgroundColor:'rgba(255,255,255,0.1)', backdropFilter:'blur(12px)', borderRadius:'20px', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(255,255,255,0.2)', fontSize:'40px', flexShrink:0 }}>🏠</div>
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             </div>
           </div>
         </div>
 
-        {/* ── GRID 2 — rows 3-4 ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'48px' }}>
-          {allJobs.slice(8,16).map(job=><JobCardMinimal key={job.id} job={job} />)}
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {[{emoji:'✨',label:'New Listings',active:true},{emoji:'💰',label:'Top Salaries',active:false},{emoji:'🏢',label:'Top Employers',active:false}].map(c=>(
+            <button key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46' }}>{c.emoji} {c.label}</button>
+          ))}
         </div>
 
-        {/* ── DIAMOND AGENCY BANNER ── */}
-        <div style={{ borderRadius:'40px', overflow:'hidden', background:'linear-gradient(135deg, #2dd4bf 0%, #2dd4bf 100%)', padding:'52px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'48px', position:'relative' as const }}>
-          <div style={{ position:'absolute', right:'60px', top:'50%', transform:'translateY(-50%)', fontSize:'260px', opacity:0.08, lineHeight:1, userSelect:'none' as const, pointerEvents:'none' as const }}>🛡</div>
-          <div style={{ maxWidth:'560px', position:'relative', zIndex:1 }}>
-            <h2 style={{ fontSize:'32px', fontWeight:800, color:'white', marginBottom:'12px', letterSpacing:'-0.02em', lineHeight:1.2 }}>Diamond Agency Membership</h2>
-            <p style={{ color:'rgba(255,255,255,0.9)', fontSize:'16px', marginBottom:'24px', lineHeight:1.7 }}>Gain maximum visibility and trust. Verified agencies receive 5× more applications and priority placement across all security categories.</p>
-            <button style={{ backgroundColor:'white', color:'#2dd4bf', border:'none', padding:'14px 32px', borderRadius:'100px', fontWeight:800, fontSize:'14px', cursor:'pointer', boxShadow:'0 8px 24px rgba(0,0,0,0.15)', transition:'transform 0.2s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-            >Become a Diamond Member</button>
-          </div>
-        </div>
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+        </section>
 
-        {/* ── GRID 3 — rows 5-6 ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'48px' }}>
-          {allJobs.slice(16,24).map(job=><JobCardMinimal key={job.id} job={job} />)}
-        </div>
-
-        {/* ── SOUKNI AUTO PRO BANNER ── */}
-        <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'280px', display:'flex', alignItems:'center', marginBottom:'48px' }}>
-          <img src="https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&w=1600" alt="Auto Pro"
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}
-          />
-          <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(0,0,0,0.45)', backdropFilter:'blur(2px)' }} />
-          <div style={{ position:'relative', zIndex:1, padding:'48px', maxWidth:'640px' }}>
-            <h2 style={{ fontSize:'38px', fontWeight:800, color:'white', marginBottom:'14px', letterSpacing:'-0.02em', lineHeight:1.2 }}>SouKni Auto Pro</h2>
-            <p style={{ color:'rgba(255,255,255,0.9)', fontSize:'16px', marginBottom:'28px', lineHeight:1.6 }}>Professional fleet services for security firms and corporate fleets. List your inventory or source armored vehicles today.</p>
+        <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles & Electro Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
+            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)', marginBottom:'24px', lineHeight:1.6 }}>Our certified SouKni network ensures you get the best tech deals across Morocco.</p>
             <div style={{ display:'flex', gap:'12px' }}>
-              <button style={{ backgroundColor:'#2dd4bf', color:'white', border:'none', padding:'13px 28px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', boxShadow:'0 8px 24px rgba(0,107,95,0.35)', transition:'transform 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
-                onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
-              >Get Started</button>
-              <button style={{ border:'2px solid rgba(255,255,255,0.7)', color:'white', backgroundColor:'transparent', padding:'13px 28px', borderRadius:'100px', fontWeight:700, fontSize:'14px', cursor:'pointer', transition:'background 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.12)'}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >Learn More</button>
+              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
             </div>
           </div>
-        </div>
-
-        {/* ── GRID 4 — rows 7-8 ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-          {allJobs.slice(24,32).map(job=><JobCardMinimal key={job.id} job={job} />)}
-        </div>
-      </main>
-
-      {/* ── FOOTER ── */}
-
-      {/* Mobile Bottom Nav */}
-      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:50, backgroundColor:'rgba(244,251,248,0.88)', backdropFilter:'blur(20px)', borderTop:'1px solid rgba(186,202,197,0.2)', display:'flex', justifyContent:'space-around', alignItems:'center', padding:'10px 16px 24px' }}>
-        {[
-          {icon:'🧭',label:'Explore',active:false},{icon:'🔍',label:'Search',active:false},
-          {icon:'+',label:'',isCenter:true},{icon:'🛡',label:'Jobs',active:true},{icon:'👤',label:'Profile',active:false},
-        ].map((item,i)=>(
-          <div key={i} style={{ display:'flex', flexDirection:'column' as const, alignItems:'center', gap:'2px', cursor:'pointer', marginTop:item.isCenter?'-20px':'0' }}>
-            {item.isCenter
-              ? <div style={{ width:'48px', height:'48px', borderRadius:'50%', backgroundColor:'#2dd4bf', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', color:'#0f9b8e', fontWeight:800, boxShadow:'0 4px 16px rgba(45,212,191,0.35)' }}>+</div>
-              : <><span style={{ fontSize:'20px' }}>{item.icon}</span><span style={{ fontSize:'9px', fontWeight:700, color:item.active?'#2dd4bf':'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.05em' }}>{item.label}</span></>
-            }
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
           </div>
-        ))}
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Security & Guard Collection</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
+            {bentoListings.slice(0,3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'17px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {bentoListings.slice(3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Elevate your lifestyle with Morocco's most exclusive real estate.</h3>
+            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
+              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Security & Guard Positions</h2>
+            <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
+          ))}
+          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
+        </div>
+
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>
+          <div>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>Post your security & guard job today for free and reach thousands of qualified candidates across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
+          </Link>
+        </section>
       </div>
     </div>
   )

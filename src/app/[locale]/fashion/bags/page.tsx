@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import React from 'react'
 import Link from 'next/link'
+
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 
@@ -270,14 +271,22 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
 
         {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
-          {CATS.map(cat=>(
-            <button key={cat} onClick={()=>setActiveCat(cat)}
-              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid',
-                backgroundColor: activeCat===cat ? C.mint  : 'white',
-                color:           activeCat===cat ? C.ink   : C.muted,
-                borderColor:     activeCat===cat ? C.mint  : 'rgba(186,202,197,0.4)',
+          {[
+            { label:'All Bags',       slug:'all-bags'      },
+            { label:'Handbags',       slug:'handbags'      },
+            { label:'Wallets',        slug:'wallets'       },
+            { label:'Briefcases',     slug:'briefcases'    },
+            { label:'Crossbody Bags', slug:'crossbody-bags'},
+            { label:'Backpacks',      slug:'backpacks'     },
+            { label:'Clutches',       slug:'clutches'      },
+          ].map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/fashion/bags/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
               }}
-            >{cat}</button>
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.label}</Link>
           ))}
           {/* VIEW MORE pill */}
           <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}

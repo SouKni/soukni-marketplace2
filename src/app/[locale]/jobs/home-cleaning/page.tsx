@@ -1,299 +1,302 @@
 'use client'
-
-import { useState } from 'react'
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { useMarket } from '@/context/MarketContext'
-import { Search, MapPin, ChevronDown, MessageCircle, Heart } from 'lucide-react'
+import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 
-/* ─── DATA ─────────────────────────────────────────────── */
-const categoryPills = [
-  'All Jobs', 'Home Cleaning', 'Office Cleaning', 'Housekeeper',
-  'Laundry & Ironing', 'Childcare', 'Specialized Services',
+const HERO = 'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800'
+const topChoices = [
+  { id:'hc1', title:'Cleaning Operations Manager — Property Group', desc:'Luxury property management company in Marrakech seeking a Cleaning Operations Manager to oversee housekeeping across 12 villas and 3 riads. Staff scheduling, quality control, and guest satisfaction management.', price:16000, location:'Marrakech, Palmeraie', rating:4.9, reviews:48, image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hc2', title:'Executive Housekeeper — 5-Star Hotel', desc:'Prestigious boutique hotel in Rabat hiring an Executive Housekeeper to lead a team of 30 room attendants. Highest standards of cleanliness, linen management, and VIP room preparation.', price:14000, location:'Rabat, Souissi', rating:4.8, reviews:39, image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hc3', title:'Deep Cleaning Team Supervisor', desc:'Professional cleaning company seeking a Team Supervisor to manage residential deep-cleaning crews across Casablanca. Vehicle provided. Experience with eco-friendly products preferred.', price:9000, location:'Casablanca', rating:4.8, reviews:31, image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
 ]
-
-const topJobs = [
-  { id: 'j1', tag: 'Home Cleaning', title: 'Residential Housekeeper', location: 'Agdal, Rabat', salary: 4500, period: '/ mo', image: 'https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg?auto=compress&w=600' },
-  { id: 'j2', tag: 'Corporate', title: 'Office Cleaning Specialist', location: 'Hay Riad, Rabat', salary: 5000, period: '/ mo', image: 'https://images.pexels.com/photos/4099467/pexels-photo-4099467.jpeg?auto=compress&w=600' },
-  { id: 'j3', tag: 'Deep Clean', title: 'Deep Cleaning Expert', location: 'Souissi, Rabat', salary: 6500, period: '/ mo', image: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg?auto=compress&w=600' },
-  { id: 'j4', tag: 'Laundry', title: 'Elite Laundry Specialist', location: 'Centre Ville, Rabat', salary: 4800, period: '/ mo', image: 'https://images.pexels.com/photos/4239082/pexels-photo-4239082.jpeg?auto=compress&w=600' },
-  { id: 'j5', tag: 'Hospitality', title: 'Hospitality Cleaning Pro', location: 'Hassan, Rabat', salary: 5200, period: '', image: 'https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&w=600' },
-  { id: 'j6', tag: 'Windows', title: 'Window & Facade Tech', location: 'Technopolis, Rabat', salary: 6000, period: '', image: 'https://images.pexels.com/photos/4099467/pexels-photo-4099467.jpeg?auto=compress&w=600' },
-  { id: 'j7', tag: 'Post-Con', title: 'Post-Construction Cleaner', location: 'Sale El Jadida, Rabat', salary: 5500, period: '', image: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg?auto=compress&w=600' },
-  { id: 'j8', tag: 'Premium', title: 'Premium Riad Housekeeper', location: 'Medina, Rabat', salary: 7000, period: '', image: 'https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg?auto=compress&w=600' },
+const bentoListings = [
+  { id:'hb1', title:'Villa Housekeeper — Full Time', price:7000, location:'Marrakech', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hb2', title:'Office Cleaning Supervisor', price:8000, location:'Casablanca', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hb3', title:'Laundry & Dry Cleaning Attendant', price:6000, location:'Rabat', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hb4', title:'Move-In/Out Cleaning Specialist', price:7500, location:'Casablanca', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hb5', title:'Post-Construction Cleaning Lead', price:9000, location:'Tangier', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
 ]
-
-const specializedRoles = [
-  { icon: '🏭', title: 'Industrial Cleaning Pro', location: 'Industrial Zone, Rabat', salary: 8000 },
-  { icon: '🏊', title: 'Pool Maintenance Tech', location: 'Souissi Villas, Rabat', salary: 6000 },
-  { icon: '🧹', title: 'Carpet Cleaning Expert', location: 'Agdal, Rabat', salary: 5500 },
-  { icon: '🌿', title: 'Green Cleaning Consultant', location: 'Hay Riad, Rabat', salary: 9500 },
-  { icon: '⛵', title: 'Yacht Cleaning Specialist', location: 'Marina, Rabat-Sale', salary: 10000 },
-  { icon: '🏥', title: 'Medical Facility Custodian', location: 'Hospital Zone, Rabat', salary: 7200 },
-  { icon: '🍽', title: 'Kitchen Hygiene Tech', location: 'Centre Ville, Rabat', salary: 6500 },
-  { icon: '🎓', title: 'Educational Facility Pro', location: 'Irkhane, Rabat', salary: 5000 },
+const discoveryGrid = [
+  { id:'hd1', title:'Residential Cleaner — Part Time', price:4500, location:'Casablanca', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hd2', title:'Window Cleaning Technician', price:6000, location:'Rabat', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hd3', title:'Carpet & Upholstery Cleaner', price:6500, location:'Marrakech', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hd4', title:'Kitchen & Oven Deep Clean Specialist', price:5500, location:'Casablanca', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hd5', title:'Sanitisation & Disinfection Agent', price:6000, location:'Tangier', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hd6', title:'Riad & Heritage Property Cleaner', price:5000, location:'Fès', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
+  { id:'hd7', title:'Airbnb Property Cleaner', price:5500, location:'Marrakech', image:'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&w=800' },
+  { id:'hd8', title:'Industrial Cleaning Operator', price:7000, location:'Casablanca', image:'https://images.pexels.com/photos/6195121/pexels-photo-6195121.jpeg?auto=compress&w=800' },
 ]
+const pills = ['All Cleaning', 'Residential Cleaning', 'Office Cleaning', 'Deep Cleaning', 'Laundry & Ironing', 'Move-In/Out Clean', 'View More']
+const pillSlugs: Record<string,string> = {
+  'Residential Cleaning':'residential-cleaning',
+  'Office Cleaning':'office-cleaning',
+  'Deep Cleaning':'deep-cleaning',
+  'Laundry & Ironing':'laundry-ironing',
+  'Move-In/Out Clean':'move-in-out-clean',
+}
+const jobTabs = ['All', 'Full-Time', 'Part-Time', 'Part-Time']
 
-/* ─── JOB CARD ───────────────────────────────────────────── */
-function JobCard({ job }: { job: any }) {
+function CertifiedBadge() {
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
+}
+function Stars({ rating }: { rating: number }) {
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
+}
+function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const { formatPrice } = useMarket()
-
+  const [hov, setHov] = useState(false)
   return (
-    <article
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s', transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        display: 'flex', flexDirection: 'column' as const, cursor: 'pointer',
-      }}
-    >
-      {/* Image */}
-      <div style={{ height: '176px', position: 'relative', overflow: 'hidden' }}>
-        <img src={job.image} alt={job.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.05)' : 'scale(1)' }}
-        />
-        {/* Tag */}
-        <div style={{ position: 'absolute', top: '14px', left: '14px', backgroundColor: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', padding: '4px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, color: '#2dd4bf' }}>
-          {job.tag}
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
+          </button>
         </div>
-        {/* Save */}
-        <button onClick={e => { e.stopPropagation(); setSaved(!saved) }}
-          style={{ position: 'absolute', top: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.8)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Heart size={15} fill={saved ? '#ef4444' : 'none'} color={saved ? '#ef4444' : '#161d1b'} />
-        </button>
-        {/* FAB+ on card 4 */}
-        {job.id === 'j4' && (
-          <div style={{ position: 'absolute', bottom: '-16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '20px', boxShadow: '0 4px 12px rgba(0,107,95,0.3)', zIndex: 5 }}>+</div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' as const }}>
-        <h4 style={{ fontSize: '17px', fontWeight: 800, color: '#161d1b', marginBottom: '8px', lineHeight: 1.3 }}>{job.title}</h4>
-        <p style={{ fontSize: '13px', color: '#6b7a76', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <MapPin size={13} color="#2dd4bf" /> {job.location}
-        </p>
-        <div style={{ fontSize: '22px', fontWeight: 900, color: '#2dd4bf', marginBottom: '20px', letterSpacing: '-0.01em' }}>
-          {formatPrice(job.salary)}
-          {job.period && <span style={{ fontSize: '14px', fontWeight: 400, color: '#6b7a76' }}> {job.period}</span>}
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-          <button style={{ flex: 1, backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '12px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'filter 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
-            onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
-          >Apply Now</button>
-          <button style={{ width: '46px', height: '46px', backgroundColor: '#e8efec', border: 'none', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#2dd4bf', transition: 'background 0.15s', flexShrink: 0 }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#dde4e1'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#e8efec'}
-          ><MessageCircle size={18} /></button>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-/* ─── SPECIALIZED CARD ───────────────────────────────────── */
-function SpecializedCard({ role }: { role: any }) {
-  const [hovered, setHovered] = useState(false)
-  const { formatPrice } = useMarket()
-
-  return (
-    <article
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        backgroundColor: 'white', borderRadius: '24px', padding: '24px',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s', transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        display: 'flex', flexDirection: 'column' as const, cursor: 'pointer',
-      }}
-    >
-      <div style={{ height: '120px', backgroundColor: 'rgba(0,107,95,0.05)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px', marginBottom: '16px' }}>
-        {role.icon}
-      </div>
-      <h4 style={{ fontSize: '17px', fontWeight: 800, color: '#161d1b', marginBottom: '4px', lineHeight: 1.3 }}>{role.title}</h4>
-      <p style={{ fontSize: '13px', color: '#6b7a76', marginBottom: '16px' }}>{role.location}</p>
-      <div style={{ fontSize: '20px', fontWeight: 900, color: '#2dd4bf', marginTop: 'auto', letterSpacing: '-0.01em' }}>{formatPrice(role.salary)}</div>
-    </article>
-  )
-}
-
-/* ─── PAGE ───────────────────────────────────────────────── */
-export default function HomeCleaningPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = React.use(params)
-  const [activePill, setActivePill] = useState('All Jobs')
-  const [keyword, setKeyword] = useState('')
-
-  return (
-    <div style={{ fontFamily: 'Inter,system-ui,sans-serif', backgroundColor: '#f4fbf8', minHeight: '100vh' }}>
-
-      {/* ── HERO ── */}
-      <section style={{ position: 'relative', height: '540px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img
-          src="https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg?auto=compress&w=1600"
-          alt="Cleaning Jobs Hero"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(22,29,27,0.45) 0%, rgba(22,29,27,0.2) 100%)' }} />
-
-        <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '900px', padding: '80px 24px 0', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 800, color: 'white', marginBottom: '28px', letterSpacing: '-0.02em', lineHeight: 1.1, textShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-            Expert Cleaners & Housekeepers in Rabat
-          </h1>
-
-          {/* Glassmorphic search */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '24px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'white', padding: '14px 20px', borderRadius: '16px', border: '1px solid rgba(186,202,197,0.3)' }}>
-              <Search size={20} color="#2dd4bf" />
-              <input type="text" value={keyword} onChange={e => setKeyword(e.target.value)}
-                placeholder="What role are you looking for?"
-                style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', fontSize: '16px', fontFamily: 'Inter,sans-serif', color: '#161d1b' }}
-              />
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} applicants)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
+            <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span><span style={{ fontSize:'12px', color:'#6b7a76' }}> / month</span></div>
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Apply Now</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
             </div>
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '16px 40px', borderRadius: '16px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', transition: 'filter 0.15s', whiteSpace: 'nowrap' as const }}
-              onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
-              onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
-            >Search</button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  return (
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+        <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
+        </div>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+          <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
+          <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+          <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'6px' }}>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Apply</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+export default function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = React.use(params)
+  const [city, setCity] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [activePill, setActivePill] = useState(pills[0])
+  const [tab, setTab] = useState('All')
+  const [diamond, setDiamond] = useState(true)
+  const [page, setPage] = useState(1)
+  const [grid, setGrid] = useState(true)
+
+  return (
+    <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
+      <section style={{ position:'relative', height:'440px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={HERO} alt='Home Cleaning' style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Find Top Home Cleaning Jobs!</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>370 verified home cleaning positions across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
 
-      {/* ── FILTER BAR + PILLS ── */}
-      <div style={{ maxWidth: '1440px', margin: '-32px auto 0', padding: '0 40px', position: 'relative', zIndex: 20 }}>
-        {/* Filter bar */}
-        <div style={{ backgroundColor: 'white', borderRadius: '100px', padding: '6px', display: 'flex', alignItems: 'center', border: '1px solid rgba(186,202,197,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', marginBottom: '24px' }}>
-          {[
-            { icon: '📍', label: 'City', val: 'Rabat' },
-            { icon: '🧭', label: 'Neighborhood', val: 'Agdal' },
-            { icon: '💰', label: 'Salary', val: 'Range' },
-            { icon: '🎚', label: 'Filters', val: '2 Applied' },
-          ].map((f, i, arr) => (
-            <React.Fragment key={f.label}>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', cursor: 'pointer', borderRadius: '100px', transition: 'background 0.15s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = '#eef5f2'}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent'}
-              >
-                <span style={{ fontSize: '16px' }}>{f.icon}</span>
-                <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: '#6b7a76' }}>{f.label}</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#161d1b', marginLeft: 'auto' }}>{f.val}</span>
-              </div>
-              {i < arr.length - 1 && <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(186,202,197,0.3)', flexShrink: 0 }} />}
-            </React.Fragment>
+      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
+          {[['City','Casablanca'],['Job Title','Search...'],['Experience','All Levels'],['Salary','Any Range'],['Filters','All']].map(([l,v],i)=>(
+            <div key={l} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
+              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
+            </div>
           ))}
-        </div>
-
-        {/* Category pills */}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
-          {categoryPills.map(pill => (
-            <button key={pill} onClick={() => setActivePill(pill)}
-              style={{
-                padding: '10px 20px', borderRadius: '100px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                backgroundColor: activePill === pill ? '#2dd4bf' : 'rgba(45,212,191,0.12)',
-                color: activePill === pill ? 'white' : '#161d1b',
-                backdropFilter: 'blur(8px)',
-                boxShadow: activePill === pill ? '0 4px 16px rgba(0,107,95,0.25)' : 'none',
-              }}
-            >{pill}</button>
-          ))}
+          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}><Search size={16} /> SEARCH</button>
         </div>
       </div>
 
-      {/* ── MAIN ── */}
-      <main style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 40px 80px' }}>
+      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Home Cleaning</span>
+        </nav>
 
-        {/* Section header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#161d1b' }}>Top Opportunities in Rabat</h3>
-          <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', transition: 'opacity 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >View all 840 jobs →</a>
-        </div>
-
-        {/* Row 1 — 4 cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '16px' }}>
-          {topJobs.slice(0, 4).map(job => <JobCard key={job.id} job={job} />)}
-        </div>
-
-        {/* Row 2 — 4 cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '40px' }}>
-          {topJobs.slice(4, 8).map(job => <JobCard key={job.id} job={job} />)}
-        </div>
-
-        {/* ── RECRUITER BANNER ── */}
-        <div style={{ backgroundColor: 'rgba(45,212,191,0.08)', border: '2px solid rgba(45,212,191,0.2)', borderRadius: '32px', padding: '28px 36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' as const }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '60px', height: '60px', backgroundColor: '#2dd4bf', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', boxShadow: '0 8px 20px rgba(45,212,191,0.3)', flexShrink: 0 }}>🧹</div>
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f9b8e', marginBottom: '4px' }}>Are you a Cleaning Agency?</h2>
-              <p style={{ fontSize: '15px', color: '#6b7a76' }}>Find your next star specialist — 100% Free.</p>
-            </div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Home Cleaning Jobs in Morocco</h2>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Save Search
+            </button>
           </div>
-          <button style={{ backgroundColor: '#0f9b8e', color: '#62fae3', border: 'none', padding: '14px 32px', borderRadius: '100px', fontWeight: 800, fontSize: '14px', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,87,77,0.25)', transition: 'all 0.2s', whiteSpace: 'nowrap' as const, flexShrink: 0 }}
-            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
-            onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
-          >Post a FREE Recruitment Ad</button>
+        </div>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'16px' }}>370 Home Cleaning positions across Morocco</p>
+
+        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
+          {pills.map(p=>
+            pillSlugs[p] ? (
+              <Link key={p} href={`/${locale}/jobs/home-cleaning/${pillSlugs[p]}`} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}>{p}</Link>
+            ) : (
+              <button key={p} onClick={()=>setActivePill(p)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap' as const, backgroundColor:activePill===p?'#161d1b':'#e8efec', color:activePill===p?'white':'#3c4a46' }}>{p}</button>
+            )
+          )}
         </div>
 
-        {/* ── DUAL BANNERS ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '48px' }}>
-
-          {/* Left: Join SouKni Family */}
-          <div style={{ backgroundColor: '#2dd4bf', borderRadius: '32px', padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflow: 'hidden', position: 'relative' as const, minHeight: '200px' }}>
-            <div style={{ position: 'absolute', right: '-40px', bottom: '-40px', width: '220px', height: '220px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '40px', transform: 'rotate(12deg)' }} />
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: '65%' }}>
-              <h4 style={{ fontSize: '26px', fontWeight: 800, color: 'white', marginBottom: '12px', lineHeight: 1.2, letterSpacing: '-0.01em' }}>Join the SouKni Family</h4>
-              <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '20px', fontSize: '14px', lineHeight: 1.6 }}>Download the app for instant notifications on new cleaning jobs in Rabat.</p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {[{ icon: '🍎', store: 'App Store' }, { icon: '▶', store: 'Play Store' }].map(btn => (
-                  <button key={btn.store} style={{ backgroundColor: '#0f172a', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'opacity 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                  ><span style={{ fontSize: '18px' }}>{btn.icon}</span>{btn.store}</button>
-                ))}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'6px' }}>
+            {jobTabs.map(t=><button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:tab===t?'#dde4e1':'transparent', color:tab===t?'#161d1b':'#6b7a76' }}>{t}</button>)}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s' }} />
               </div>
             </div>
-          </div>
-
-          {/* Right: SouKni Immo Pro */}
-          <div style={{ position: 'relative', borderRadius: '32px', overflow: 'hidden', minHeight: '200px' }}>
-            <img src="https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&w=800" alt="Immo Pro"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-            <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }} />
-            <div style={{ position: 'relative', zIndex: 1, padding: '36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
-              <div>
-                <h4 style={{ fontSize: '20px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>SouKni Immo Pro</h4>
-                <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '20px', fontSize: '14px', lineHeight: 1.6, maxWidth: '260px' }}>Premium real estate and maintenance specialists across Rabat and Casablanca.</p>
-                <button style={{ backgroundColor: '#2dd4bf', color: '#0f9b8e', border: 'none', padding: '12px 24px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'filter 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.08)'}
-                  onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
-                >Discover More</button>
-              </div>
-              <div style={{ width: '100px', height: '100px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', fontSize: '48px', flexShrink: 0 }}>🏠</div>
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             </div>
           </div>
         </div>
 
-        {/* ── SPECIALIZED CLEANING ROLES ── */}
-        <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#161d1b', marginBottom: '24px' }}>Specialized Cleaning Roles</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' }}>
-          {specializedRoles.map(role => <SpecializedCard key={role.title} role={role} />)}
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {[{emoji:'✨',label:'New Listings',active:true},{emoji:'💰',label:'Top Salaries',active:false},{emoji:'🏢',label:'Top Employers',active:false}].map(c=>(
+            <button key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46' }}>{c.emoji} {c.label}</button>
+          ))}
         </div>
-      </main>
 
-      {/* ── FOOTER ── */}
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+        </section>
 
-      {/* FAB */}
-      <button style={{ position: 'fixed', bottom: '40px', right: '40px', width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#2dd4bf', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', boxShadow: '0 8px 24px rgba(0,107,95,0.35)', zIndex: 40, transition: 'all 0.2s' }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)' }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
-      >+</button>
+        <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles & Electro Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
+            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)', marginBottom:'24px', lineHeight:1.6 }}>Our certified SouKni network ensures you get the best tech deals across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px' }}>
+              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Home Cleaning Collection</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
+            {bentoListings.slice(0,3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'17px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {bentoListings.slice(3).map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
+                  <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
+                    <h3 style={{ fontWeight:900, fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD/mo</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
+          <div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Elevate your lifestyle with Morocco's most exclusive real estate.</h3>
+            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
+              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button></Link>
+              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
+            </div>
+          </div>
+          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          </div>
+        </div>
+
+        <section style={{ marginBottom:'40px' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Home Cleaning Positions</h2>
+            <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
+          ))}
+          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
+        </div>
+
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>
+          <div>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>Post your home cleaning job today for free and reach thousands of qualified candidates across Morocco.</p>
+            <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
+          </Link>
+        </section>
+      </div>
     </div>
   )
 }

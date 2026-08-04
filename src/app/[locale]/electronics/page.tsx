@@ -1,204 +1,363 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Heart, Search, MapPin, ChevronRight, MessageCircle, Diamond, Check, Shield } from 'lucide-react'
-import { useMarket } from '@/context/MarketContext'
+import { Search, ChevronRight } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
+import ListingCard from '@/components/ui/ListingCard'
+import FilterBar from '@/components/ui/FilterBar'
+import type { Listing } from '@/lib/types'
 
-const electronicsCategories = [
-  { label: 'Mobiles', count: '9,318', slug: 'mobiles', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=600' },
-  { label: 'Tablets', count: '2,140', slug: 'tablets', image: 'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600' },
-  { label: 'Laptops', count: '4,210', slug: 'laptops', image: 'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=600' },
-  { label: 'Desktops', count: '980', slug: 'desktops', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=600' },
-  { label: 'Audio', count: '1,930', slug: 'audio', image: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600' },
-  { label: 'Wearables', count: '1,540', slug: 'wearables', image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&w=600' },
-  { label: 'Cameras', count: '1,120', slug: 'cameras', image: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600' },
-  { label: 'Projectors & TVs', count: '2,840', slug: 'projectors-tvs', image: 'https://images.pexels.com/photos/1571442/pexels-photo-1571442.jpeg?auto=compress&w=600' },
-  { label: 'Accessories', count: '6,200', slug: 'accessories', image: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600' },
-  { label: 'Car Electronics', count: '1,420', slug: 'car-electronics', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+
+const categories = [
+  { slug:'mobiles',          label:'Mobiles',            count:'9,318', emoji:'📱', image:'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=600' },
+  { slug:'tablets',          label:'Tablets',             count:'2,140', emoji:'📲', image:'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600' },
+  { slug:'laptops',          label:'Laptops',             count:'4,210', emoji:'💻', image:'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=600' },
+  { slug:'desktops',         label:'Desktops',            count:'980',   emoji:'🖥️', image:'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=600' },
+  { slug:'audio',            label:'Audio',               count:'1,930', emoji:'🎧', image:'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600' },
+  { slug:'wearables',        label:'Wearables',           count:'1,540', emoji:'⌚', image:'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&w=600' },
+  { slug:'cameras',          label:'Cameras',             count:'1,120', emoji:'📷', image:'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600' },
+  { slug:'projectors-tvs',   label:'Projectors & TVs',    count:'2,840', emoji:'📺', image:'https://images.pexels.com/photos/1571442/pexels-photo-1571442.jpeg?auto=compress&w=600' },
+  { slug:'accessories',      label:'Accessories',         count:'6,200', emoji:'🔌', image:'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600' },
+  { slug:'car-electronics',  label:'Car Electronics',     count:'1,420', emoji:'🚗', image:'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
+  { slug:'smart-home',       label:'Smart Home',          count:'1,560', emoji:'🏠', image:'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&w=600' },
 ]
 
-const listings = [
-  { title: 'iPhone 15 Pro Max — Titanium, 256GB', category: 'Mobiles', price: 12500, location: 'Casablanca', time: '20 min ago', badge: 'verified', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=600' },
-  { title: 'Samsung Galaxy S24 Ultra — 512GB', category: 'Mobiles', price: 11800, location: 'Rabat', time: '1 hour ago', badge: 'verified', image: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&w=600' },
-  { title: '2024 MacBook Pro 14" M3 Max', category: 'Laptops', price: 28000, location: 'Casablanca', time: 'Just now', badge: 'diamond', image: 'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=600' },
-  { title: 'Sony 75" 8K OLED Smart TV', category: 'TVs', price: 32000, location: 'Marrakech', time: '2 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/1571442/pexels-photo-1571442.jpeg?auto=compress&w=600' },
-]
+const trending = ['iPhone 15 Pro','Gaming Laptop','AirPods Pro','Samsung TV 65"','MacBook Air M3','PS5 Console','Smart Watch','DSLR Camera','Bluetooth Speaker','Drone 4K','Wireless Charger','Mechanical Keyboard']
 
-const moreListings = [
-  { title: 'iPad Pro 13" M4 — 256GB + Pencil', category: 'Tablets', price: 14200, location: 'Tangier', time: '3 hours ago', badge: 'verified', image: 'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600' },
-  { title: 'Sony A7R V Full-Frame Mirrorless', category: 'Cameras', price: 32000, location: 'Rabat', time: '4 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=600' },
-  { title: 'PS5 + 3 Controllers + 8 Games', category: 'Gaming', price: 8500, location: 'Casablanca', time: '5 hours ago', badge: null, image: 'https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&w=600' },
-  { title: 'Apple Watch Ultra 2 — Titanium', category: 'Wearables', price: 7200, location: 'Marrakech', time: '1 day ago', badge: 'verified', image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&w=600' },
-  { title: 'Bose QC Ultra Headphones', category: 'Audio', price: 3800, location: 'Tangier', time: '6 hours ago', badge: null, image: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&w=600' },
-  { title: 'Google Pixel 9 Pro XL — 128GB', category: 'Mobiles', price: 10500, location: 'Fès', time: '2 hours ago', badge: 'verified', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=600' },
-  { title: 'Dell XPS 15 — i9, RTX 4070', category: 'Laptops', price: 22000, location: 'Casablanca', time: '3 hours ago', badge: 'diamond', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=600' },
-  { title: 'DJI Mavic 3 Pro Drone — Fly More', category: 'Cameras', price: 18500, location: 'Agadir', time: '1 day ago', badge: 'diamond', image: 'https://images.pexels.com/photos/1392595/pexels-photo-1392595.jpeg?auto=compress&w=600' },
-]
-
-type Listing = typeof listings[0]
-
-function ElectronicsCard({ item, locale }: { item: Listing, locale: string }) {
-  const [hovered, setHovered] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const { formatPrice } = useMarket()
-
-  return (
-    <Link href={`/${locale}/listing/1`} style={{ textDecoration: 'none' }}>
-    <article onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ backgroundColor: 'white', borderRadius: '40px', overflow: 'hidden', boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
-      <div style={{ position: 'relative', height: '224px', overflow: 'hidden' }}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.1)' : 'scale(1)' }} />
-        {item.badge === 'diamond' && (
-          <div style={{ position: 'absolute', top: '14px', left: '14px', zIndex: 2 }}>
-            <span style={{ background: 'linear-gradient(135deg, #2dd4bf, #0d9488)', color: 'white', fontSize: '9px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px', boxShadow: '0 4px 12px rgba(45,212,191,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Diamond size={10} /> Diamond Member
-            </span>
-          </div>
-        )}
-        {item.badge === 'verified' && (
-          <div style={{ position: 'absolute', top: '14px', left: '14px', zIndex: 2 }}>
-            <span style={{ backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: '#2dd4bf', fontSize: '9px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Check size={10} /> Verified
-            </span>
-          </div>
-        )}
-        <button onClick={e => { e.stopPropagation(); setSaved(!saved) }} style={{ position: 'absolute', bottom: '14px', right: '14px', zIndex: 2, backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', width: '36px', height: '36px', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-          <Heart size={16} fill={saved ? '#ef4444' : 'none'} color={saved ? '#ef4444' : '#0f172a'} />
-        </button>
-      </div>
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <p style={{ fontSize: '9px', fontWeight: 700, color: '#2dd4bf', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>{item.category}</p>
-        <h4 style={{ fontWeight: 600, color: '#0f172a', marginBottom: '10px', fontSize: '15px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.title}</h4>
-        <div style={{ marginTop: 'auto' }}>
-          <span style={{ fontSize: '22px', fontWeight: 700, color: '#2dd4bf', display: 'block', marginBottom: '10px' }}>{formatPrice(item.price)}</span>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#7A7A7A', borderTop: '1px solid #f8fafc', paddingTop: '14px', marginBottom: '14px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} />{item.location}</span>
-            <span>{item.time}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ flex: 1, backgroundColor: 'rgba(45,212,191,0.1)', color: '#2dd4bf', border: 'none', fontWeight: 700, padding: '12px 8px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#2dd4bf'; e.currentTarget.style.color = 'white' }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(45,212,191,0.1)'; e.currentTarget.style.color = '#2dd4bf' }}>
-              <MessageCircle size={14} /> Chat
-            </button>
-            <button style={{ flex: 1, backgroundColor: '#22c55e', color: 'white', border: 'none', fontWeight: 700, padding: '12px 8px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px', transition: 'background 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#16a34a'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#22c55e'}>WhatsApp</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    </Link>
-  )
+function mapRowToListing(row: any): Listing {
+  return {
+    id: row.id,
+    title: row.title,
+    price: (row.price || 0) / 100,
+    currency: row.currency || 'MAD',
+    category: row.subcategory ? row.subcategory.charAt(0).toUpperCase() + row.subcategory.slice(1) : row.category_slug,
+    location: row.city,
+    images: row.images && row.images.length ? row.images : ['https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=600'],
+    isVerified: row.badge === 'verified' || row.badge === 'certified',
+    badge: row.badge,
+    seller: row.profiles ? { name: row.profiles.full_name, type: 'owner', rating: row.profiles.rating } : undefined,
+  }
 }
 
 export default function ElectronicsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [search, setSearch] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [city, setCity] = useState('')
+  const [minPrice, setMinPrice] = useState<number|undefined>()
+  const [maxPrice, setMaxPrice] = useState<number|undefined>()
+  const [sortBy, setSortBy] = useState<'newest'|'price_asc'|'price_desc'>('newest')
+  const [page, setPage] = useState(1)
+  const LIMIT = 12
+  const [hovCat, setHovCat] = useState<string|null>(null)
+  const { fetchListings, loading } = useListings()
+  const [listings, setListings] = useState<Listing[]>([])
+  const [total, setTotal] = useState(0)
+
+  // Debounced search — fires 400ms after last change
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'electronics',
+        query: keyword || undefined,
+        city: city || undefined,
+        minPrice,
+        maxPrice,
+        sortBy,
+        limit: LIMIT,
+        offset: (page - 1) * LIMIT,
+      }).then(rows => {
+        setListings((rows || []).map(mapRowToListing))
+        setTotal(rows?.length === LIMIT ? page * LIMIT + 1 : (page - 1) * LIMIT + (rows?.length || 0))
+      })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [keyword, city, minPrice, maxPrice, sortBy, page])
+
+  const dict = { save: 'Save', viewDetails: 'View details', mad: 'MAD' }
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: '#f4fbf8', minHeight: '100vh' }}>
-      <main>
-        {/* HERO */}
-        <section style={{ position: 'relative', height: '440px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(15,23,42,0.45), rgba(15,23,42,0.45)), url(https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=1600)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '720px', textAlign: 'center' }}>
-            <h1 style={{ fontSize: '48px', fontWeight: 800, color: 'white', marginBottom: '8px', textShadow: '0 2px 20px rgba(0,0,0,0.3)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>Mobiles &amp; Electronics</h1>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', marginBottom: '28px' }}>Morocco's largest marketplace for tech — 38,000+ verified listings</p>
-            <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(16px)', borderRadius: '100px', padding: '6px 6px 6px 24px', display: 'flex', alignItems: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.35)' }}>
-              <input value={search} onChange={e => setSearch(e.target.value)} type="text" placeholder="Search phones, laptops, TVs..." style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', padding: '10px 16px', fontSize: '15px', fontFamily: 'Inter, sans-serif', color: '#0f172a' }} />
-              <button style={{ backgroundColor: '#2dd4bf', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#0f9b8e'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2dd4bf'}><Search size={18} /></button>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
+
+      {/* CINEMATIC HERO */}
+      <section style={{ position:'relative', height:520, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src="https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=1600" alt="Electronics"
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>SouKni Mobiles &amp; Electronics</p>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,68px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            YOUR TECH.<br />YOUR PRICE.<br />YOUR MARKET.
+          </h1>
+          <p style={{ fontSize:16, color:'rgba(255,255,255,0.75)', marginBottom:32, maxWidth:520, margin:'0 auto 32px' }}>
+            Morocco's largest marketplace for tech — 33,780 verified listings
+          </p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="All Morocco" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+            </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="iPhone, laptop, TV, headphones..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onClick={()=>setPage(1)}>
+              <Search size={16} /> Search
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ADVANCED FILTER BAR */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {/* City */}
+          <div style={{ flex:1, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>City</span>
+            <input value={city} onChange={e=>{setCity(e.target.value);setPage(1)}} placeholder="All Morocco"
+              style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', backgroundColor:'transparent', fontFamily:"'Inter',sans-serif", padding:0 }} />
+          </div>
+          {/* Keyword */}
+          <div style={{ flex:2, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>Keyword</span>
+            <input value={keyword} onChange={e=>{setKeyword(e.target.value);setPage(1)}} placeholder="iPhone, laptop, TV..."
+              style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', backgroundColor:'transparent', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+          </div>
+          {/* Price range */}
+          <div style={{ flex:1, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>Min Price (MAD)</span>
+            <input type="number" value={minPrice||''} onChange={e=>{setMinPrice(e.target.value?Number(e.target.value):undefined);setPage(1)}} placeholder="0"
+              style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', backgroundColor:'transparent', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+          </div>
+          <div style={{ flex:1, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>Max Price (MAD)</span>
+            <input type="number" value={maxPrice||''} onChange={e=>{setMaxPrice(e.target.value?Number(e.target.value):undefined);setPage(1)}} placeholder="Any"
+              style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', backgroundColor:'transparent', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+          </div>
+          {/* Sort */}
+          <div style={{ flex:1, padding:'8px 20px', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>Sort By</span>
+            <select value={sortBy} onChange={e=>{setSortBy(e.target.value as any);setPage(1)}}
+              style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', backgroundColor:'transparent', fontFamily:"'Inter',sans-serif", padding:0, cursor:'pointer' }}>
+              <option value="newest">Newest</option>
+              <option value="price_asc">Price ↑</option>
+              <option value="price_desc">Price ↓</option>
+            </select>
+          </div>
+          {[
+            { label:'IGNORE', val:'IGNORE', w:1 },
+          ].filter(()=>false).map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
+          ))}
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
+
+        {/* BREADCRUMB */}
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <span style={{ color:C.ink }}>Mobiles &amp; Electronics</span>
+        </nav>
+
+        {/* CATEGORY GRID — 11 categories + View More = 12 tiles */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Browse by Category</h2>
+            <span style={{ fontSize:14, color:C.muted }}>33,780 total listings</span>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+            {categories.map(cat=>(
+              <Link key={cat.slug} href={`/${locale}/electronics/${cat.slug}`} style={{ textDecoration:'none' }}>
+                <div onMouseEnter={()=>setHovCat(cat.slug)} onMouseLeave={()=>setHovCat(null)}
+                  style={{ position:'relative', borderRadius:24, overflow:'hidden', cursor:'pointer', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat===cat.slug?'scale(1.02)':'scale(1)', boxShadow:hovCat===cat.slug?'0 20px 48px rgba(0,0,0,0.15)':'0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div style={{ aspectRatio:'4/3', overflow:'hidden' }}>
+                    <img src={cat.image} alt={cat.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovCat===cat.slug?'scale(1.08)':'scale(1)' }} />
+                  </div>
+                  <div style={{ position:'absolute', inset:0, background:hovCat===cat.slug?'linear-gradient(to top,rgba(34,212,168,0.75),rgba(0,0,0,0.1))':'linear-gradient(to top,rgba(0,0,0,0.72),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 18px' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <div>
+                        <p style={{ ...UB, fontSize:15, color:'white', marginBottom:3 }}>{cat.label}</p>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} ads</p>
+                      </div>
+                      <div style={{ width:36, height:36, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+                        {cat.emoji}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+            {/* Gaming tile — 12th slot */}
+            <Link href={`/${locale}/gaming`} style={{ textDecoration:'none' }}>
+              <div onMouseEnter={()=>setHovCat('gaming')} onMouseLeave={()=>setHovCat(null)}
+                style={{ position:'relative', borderRadius:24, overflow:'hidden', cursor:'pointer', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat==='gaming'?'scale(1.02)':'scale(1)', boxShadow:hovCat==='gaming'?'0 20px 48px rgba(0,0,0,0.15)':'0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ aspectRatio:'4/3', overflow:'hidden' }}>
+                  <img src="https://images.pexels.com/photos/3945656/pexels-photo-3945656.jpeg?auto=compress&w=600" alt="Gaming" style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovCat==='gaming'?'scale(1.08)':'scale(1)' }} />
+                </div>
+                <div style={{ position:'absolute', inset:0, background:hovCat==='gaming'?'linear-gradient(to top,rgba(34,212,168,0.75),rgba(0,0,0,0.1))':'linear-gradient(to top,rgba(0,0,0,0.72),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 18px' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ ...UB, fontSize:15, color:'white', marginBottom:3 }}>Gaming</p>
+                      <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>4,820 ads</p>
+                    </div>
+                    <div style={{ width:36, height:36, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+                      🎮
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </section>
+
+        {/* ELECTRO PRO BANNER */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src="https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=1200" alt="Electro Pro"
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Electro Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Certified dealers.<br/>Guaranteed warranty.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Pro Deals</button>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* CATEGORY GRID — real links */}
-        <section style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', marginTop: '-48px', position: 'relative', zIndex: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
-            {electronicsCategories.map(cat => (
-              <Link key={cat.slug} href={`/${locale}/electronics/${cat.slug}`} style={{ textDecoration: 'none' }}>
-                <div style={{ position: 'relative', height: '140px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', cursor: 'pointer', transition: 'transform 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.04)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'}>
-                  <img src={cat.image} alt={cat.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.1))' }} />
-                  <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px' }}>
-                    <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: '#62fae3', marginBottom: '4px' }}>{cat.count} listings</p>
-                    <p style={{ fontSize: '14px', fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>{cat.label}</p>
+        {/* LATEST LISTINGS — real data from Supabase */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Latest Listings</h2>
+            <Link href={`/${locale}/electronics/mobiles`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
+              View all <ChevronRight size={14} />
+            </Link>
+          </div>
+          {loading ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+              {Array.from({length:8}).map((_,i)=>(
+                <div key={i} style={{ backgroundColor:'white', borderRadius:24, overflow:'hidden', height:320, animation:'pulse 1.5s ease-in-out infinite' }}>
+                  <div style={{ height:220, backgroundColor:'#e8efec' }} />
+                  <div style={{ padding:16 }}>
+                    <div style={{ height:12, backgroundColor:'#e8efec', borderRadius:6, marginBottom:8 }} />
+                    <div style={{ height:12, backgroundColor:'#e8efec', borderRadius:6, width:'60%' }} />
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : listings.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'64px 0', color:C.muted }}>
+              <p style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>No listings found</p>
+              <p style={{ fontSize:14 }}>Try adjusting your search or filters</p>
+              <button onClick={()=>{setKeyword('');setCity('');setMinPrice(undefined);setMaxPrice(undefined);setPage(1)}}
+                style={{ marginTop:16, padding:'10px 24px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontWeight:700, cursor:'pointer' }}>
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize:13, color:C.muted, marginBottom:16 }}>{listings.length} listing{listings.length!==1?'s':''} found{city?` in ${city}`:''}{ keyword?` for "${keyword}"`:''}</p>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+                {listings.map(item => <ListingCard key={item.id} listing={item} locale={locale as any} dict={dict} />)}
+              </div>
+              {/* Pagination */}
+              <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginTop:32 }}>
+                <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}
+                  style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:page===1?'not-allowed':'pointer', opacity:page===1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}>‹</button>
+                <span style={{ fontSize:13, fontWeight:700, color:C.ink, padding:'0 12px' }}>Page {page}</span>
+                <button onClick={()=>setPage(p=>p+1)} disabled={listings.length < LIMIT}
+                  style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:listings.length<LIMIT?'not-allowed':'pointer', opacity:listings.length<LIMIT?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}>›</button>
+              </div>
+            </>
+          )}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
+        </section>
+
+        {/* GAMING BANNER */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src="https://images.pexels.com/photos/3945656/pexels-photo-3945656.jpeg?auto=compress&w=1200" alt="Gaming"
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#7c3aed', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Gaming</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Consoles, PCs<br/>& everything gaming.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/gaming`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse Gaming</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TRENDING SEARCHES */}
+        <section style={{ marginBottom:64 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>Trending in Electronics</h2>
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap' as const }}>
+            {trending.map(tag=>(
+              <Link key={tag} href={`/${locale}/electronics/mobiles`} style={{ textDecoration:'none' }}>
+                <span style={{ display:'inline-block', padding:'9px 18px', borderRadius:100, fontSize:13, fontWeight:700, backgroundColor:'white', color:C.ink, border:'1px solid rgba(186,202,197,0.4)', cursor:'pointer', transition:'all 0.15s' }}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.backgroundColor=C.mint;(e.currentTarget as HTMLElement).style.color='white'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='white';(e.currentTarget as HTMLElement).style.color=C.ink}}>
+                  {tag}
+                </span>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* TRUST BANNER */}
-        <section style={{ maxWidth: '1280px', margin: '32px auto 0', padding: '0 24px' }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '24px', border: '1px solid #f1f5f9', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ backgroundColor: 'rgba(45,212,191,0.1)', padding: '16px', borderRadius: '50%', flexShrink: 0 }}><Shield size={28} color="#2dd4bf" /></div>
-              <div>
-                <h3 style={{ fontWeight: 700, fontSize: '17px', color: '#0f172a', marginBottom: '4px' }}>SouKni Electro Pro — Certified Dealers</h3>
-                <p style={{ fontSize: '13px', color: '#64748b' }}>Warranty guaranteed · Premium tech at your fingertips</p>
-              </div>
-            </div>
-            <button style={{ border: '2px solid #e2e8f0', padding: '12px 32px', borderRadius: '100px', fontWeight: 700, color: '#0f172a', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>Explore Pro Deals</button>
-          </div>
-        </section>
-
-        {/* DISCOVERY SECTIONS */}
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px 0', display: 'flex', flexDirection: 'column', gap: '64px' }}>
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>Discover Premium Tech <span style={{ color: '#2dd4bf', fontSize: '16px', fontWeight: 400 }}>(Featured)</span></h2>
-              <Link href={`/${locale}/electronics/mobiles`} style={{ color: '#2dd4bf', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontSize: '14px' }}>View all <ChevronRight size={16} /></Link>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-              {listings.map((item, i) => <ElectronicsCard key={i} item={item} locale={locale} />)}
-            </div>
-          </section>
-        </div>
-
-        {/* PROMO BANNER */}
-        <section style={{ maxWidth: '1280px', margin: '64px auto 0', padding: '0 24px' }}>
-          <div style={{ position: 'relative', height: '280px', borderRadius: '40px', overflow: 'hidden' }}>
-            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=1600" alt="Electro Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.2), transparent)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 56px' }}>
-              <h2 style={{ color: 'white', fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>SouKni Electro Pro</h2>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', marginBottom: '20px' }}>Certified dealers, warranty guaranteed, premium tech at your fingertips</p>
-              <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '12px 28px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', width: 'fit-content' }}>Explore Pro Deals</button>
-            </div>
-          </div>
-        </section>
-
-        {/* MORE LISTINGS */}
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 24px 0' }}>
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>Recently Added</h2>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-              {moreListings.map((item, i) => <ElectronicsCard key={i} item={item} locale={locale} />)}
-            </div>
-          </section>
-        </div>
-
         {/* DIAMOND BANNER */}
-        <section style={{ maxWidth: '1280px', margin: '64px auto 80px', padding: '0 24px' }}>
-          <div style={{ position: 'relative', height: '320px', borderRadius: '40px', overflow: 'hidden' }}>
-            <img src="https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=1600" alt="Diamond" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 56px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <Diamond size={28} color="#62fae3" />
-                <span style={{ color: '#62fae3', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Exclusive Status</span>
-              </div>
-              <h2 style={{ color: 'white', fontSize: '32px', fontWeight: 800, marginBottom: '12px' }}>Become a SouKni Diamond Member</h2>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', marginBottom: '24px' }}>Unlock priority listings, verified badge, and exclusive buyer access.</p>
-              <button style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '13px 32px', borderRadius: '100px', fontWeight: 800, fontSize: '13px', cursor: 'pointer', width: 'fit-content' }}>Get Verified Now</button>
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:48 }}>
+          <img src="https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=1600" alt="Diamond"
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Become a SouKni Diamond Member.</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Unlock priority listings, verified badge, and exclusive buyer access across Morocco's tech marketplace.</p>
+            <div style={{ display:'flex', gap:12 }}>
+              <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
+                <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Verified Now</button>
+              </Link>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
             </div>
           </div>
         </section>
-      </main>
+
+        {/* JOIN THE SOUKNI FAMILY */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>SELL YOUR TECH TODAY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Post your electronics for free and reach millions of buyers across Morocco.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
+
+      </div>
     </div>
   )
 }

@@ -3,10 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  Plus, Eye, Heart, MessageCircle, MoreVertical, TrendingUp,
-  Edit, Trash2, RefreshCw, Pause, Play, Sparkles, BarChart3
-} from 'lucide-react'
+import { Plus, Eye, Heart, MessageCircle, MoreVertical, TrendingUp, Share2, Globe, Edit, Trash2, RefreshCw, Pause, Play, Sparkles, BarChart3 } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -159,6 +156,8 @@ export default function MyAdsPage({ params }: { params: Promise<{ locale: Locale
                     <div style={{ position: 'absolute', top: '42px', right: 0, background: 'white', borderRadius: '14px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid #e2eae6', overflow: 'hidden', minWidth: '180px', zIndex: 10 }}>
                       {[
                         { icon: <Edit size={14} />, label: 'Edit Ad', href: `/${locale}/account/edit-ad/${ad.id}` },
+                        { icon: <Share2 size={14} />, label: 'QR Code & Share', href: `/${locale}/qr/${ad.id}` },
+                        { icon: <Globe size={14} />, label: 'Translate Listing', href: `/${locale}/translate/${ad.id}` },
                         { icon: <TrendingUp size={14} />, label: 'Promote / Boost', href: `/${locale}/boost/${ad.id}` },
                         ad.status === 'active'
                           ? { icon: <Pause size={14} />, label: 'Pause Ad' }

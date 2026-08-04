@@ -5,113 +5,76 @@ import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide
 
 const HERO = 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=1600'
 
+const SUBCATS = [
+  { slug:'hair-salons',  label:'Hair Salons',  image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
+  { slug:'nail-studios', label:'Nail Studios',  image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=600' },
+  { slug:'makeup',       label:'Makeup',        image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=600' },
+  { slug:'barbers',      label:'Barbers',       image:'https://images.pexels.com/photos/1813272/pexels-photo-1813272.jpeg?auto=compress&w=600' },
+  { slug:'skincare',     label:'Skincare',      image:'https://images.pexels.com/photos/3997990/pexels-photo-3997990.jpeg?auto=compress&w=600' },
+  { slug:'wellness',     label:'Wellness',      image:'https://images.pexels.com/photos/3757952/pexels-photo-3757952.jpeg?auto=compress&w=600' },
+]
+
 const topChoices = [
-  {
-    id: 'bg1',
-    title: 'Luxury Hair Salon & Colour Specialist — Casablanca',
-    desc: 'Award-winning hair salon specializing in colour, balayage, keratin treatments, and bridal styling. Certified L\'Oréal Professionnel partner with 12 years of experience.',
-    price: 650,
-    location: 'Casablanca, Maarif',
-    rating: 4.9,
-    reviews: 412,
-    image: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=800',
-  },
-  {
-    id: 'bg2',
-    title: 'Premium Nail Studio & Nail Art Expert',
-    desc: 'Luxury nail studio offering gel extensions, nail art, manicure, pedicure, and spa treatments. Hygienic single-use tools. Walk-ins welcome across Rabat.',
-    price: 350,
-    location: 'Rabat, Agdal',
-    rating: 5.0,
-    reviews: 287,
-    image: 'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=800',
-  },
-  {
-    id: 'bg3',
-    title: 'Bridal Makeup Artist & Beauty Concierge',
-    desc: 'Professional makeup artist specializing in bridal, editorial, and event makeup. Airbrush certified. Home visits available across Morocco for your special day.',
-    price: 1800,
-    location: 'Marrakech, Guéliz',
-    rating: 4.9,
-    reviews: 198,
-    image: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=800',
-  },
+  { id:'bg1', title:'Luxury Bridal Hair & Makeup — Full Day', price:2800, location:'Casablanca', rating:4.9, reviews:124, image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=800', desc:'Morocco\'s most sought-after bridal beauty team. Full-day hair and makeup for bride and bridal party. Trial session included, on-location service, airbrush finish. Bookings close 3 months in advance.' },
+  { id:'bg2', title:'Premium Balayage & Colour — Master Colourist', price:1200, location:'Casablanca', rating:4.9, reviews:98, image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=800', desc:'L\'Oréal-certified master colourist specialising in balayage, lived-in colour and blonde transformations. Toning, glossing and Olaplex treatments. Studio based in Maarif, Casablanca.' },
+  { id:'bg3', title:'Hydrafacial & Anti-Ageing Skin Programme', price:950, location:'Rabat', rating:4.8, reviews:82, image:'https://images.pexels.com/photos/3997990/pexels-photo-3997990.jpeg?auto=compress&w=800', desc:'Medical-grade skincare clinic offering Hydrafacial, chemical peels, LED therapy and microneedling. Personalised skin analysis included. Monthly membership plans available.' },
 ]
 
 const bentoListings = [
-  { id:'bb1', title:'Barber Shop & Grooming Lounge',     price:120,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'bb2', title:'Eyebrow Threading & Tinting',       price:80,   location:'Rabat',      image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
-  { id:'bb3', title:'Skincare & Facial Clinic',          price:450,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'bb4', title:'Hair Extensions & Wigs Specialist', price:800,  location:'Marrakech',  image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
-  { id:'bb5', title:'Moroccan Hammam Beauty Ritual',     price:280,  location:'Fès',        image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
+  { id:'bb1', title:'Classic Manicure & Pedicure Combo',     price:280,  location:'Casablanca', image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=600' },
+  { id:'bb2', title:'Classic Gentleman Cut & Hot Shave',     price:180,  location:'Rabat',      image:'https://images.pexels.com/photos/1813272/pexels-photo-1813272.jpeg?auto=compress&w=600' },
+  { id:'bb3', title:'Aromatherapy Full Body Treatment',      price:480,  location:'Marrakech',  image:'https://images.pexels.com/photos/3757952/pexels-photo-3757952.jpeg?auto=compress&w=600' },
+  { id:'bb4', title:'Evening Glam Makeup — Event Ready',     price:550,  location:'Casablanca', image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=600' },
+  { id:'bb5', title:'Gel Nail Extensions — Full Set',        price:320,  location:'Rabat',      image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=600' },
 ]
 
 const discoveryGrid = [
-  { id:'dg1',  title:'Lash Extensions & Lamination',     price:250,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'dg2',  title:'Body Waxing & Hair Removal',       price:150,  location:'Rabat',      image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
-  { id:'dg3',  title:'Microblading & Permanent Makeup',  price:600,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'dg4',  title:'Spray Tanning & Body Contouring',  price:200,  location:'Marrakech',  image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
-  { id:'dg5',  title:'Luxury Couples Beauty Package',    price:900,  location:'Rabat',      image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'dg6',  title:'Teeth Whitening Studio',           price:400,  location:'Casablanca', image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
-  { id:'dg7',  title:'Personal Stylist & Wardrobe',      price:700,  location:'Marrakech',  image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
-  { id:'dg8',  title:'Mobile Beauty Home Service',       price:350,  location:'Agadir',     image:'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&w=600' },
+  { id:'bd1', title:'Keratin Smoothing Treatment',           price:850,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400' },
+  { id:'bd2', title:'Nail Art — Premium Design Set',         price:380,  location:'Rabat',      image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=400' },
+  { id:'bd3', title:'Natural Day Makeup — Home Visit',       price:450,  location:'Casablanca', image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=400' },
+  { id:'bd4', title:'Skin Fade & Beard Shape',               price:120,  location:'Marrakech',  image:'https://images.pexels.com/photos/1813272/pexels-photo-1813272.jpeg?auto=compress&w=400' },
+  { id:'bd5', title:'LED Light Facial & Brightening',        price:620,  location:'Casablanca', image:'https://images.pexels.com/photos/3997990/pexels-photo-3997990.jpeg?auto=compress&w=400' },
+  { id:'bd6', title:'Hot Stone Body Wrap — 90 Min',          price:520,  location:'Marrakech',  image:'https://images.pexels.com/photos/3757952/pexels-photo-3757952.jpeg?auto=compress&w=400' },
+  { id:'bd7', title:'Brazilian Blowout — Smooth & Shiny',   price:680,  location:'Casablanca', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400' },
+  { id:'bd8', title:'Bridal Nail Package — Bride & Party',  price:900,  location:'Rabat',      image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=400' },
 ]
 
-const pills = ['All Beauty','Hair Salons','Nail Studios','Makeup','Barbers','Skincare','Wellness','View More']
-
 function CertifiedBadge() {
-  return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase', letterSpacing:'0.08em' }}>
-      ✦ SOUKNI CERTIFIED
-    </span>
-  )
+  return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
 }
-
 function Stars({ rating }: { rating: number }) {
-  return (
-    <div style={{ display:'flex', gap:'1px' }}>
-      {[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}
-    </div>
-  )
+  return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
 }
-
-function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
+function TopCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
     <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hovered?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
-        <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
-          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hovered?'scale(1.06)':'scale(1)' }} />
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', border:`1px solid ${hov?'#22d4a8':'#f1f5f9'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 12px rgba(0,0,0,0.05)', transition:'all 0.3s', marginBottom:'16px' }}>
+        <div style={{ position:'relative', width:'280px', flexShrink:0, overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>
-        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+        <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-              <Stars rating={item.rating} />
-              <span style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'13px', color:'#161d1b' }}>{item.rating}</span>
-              <span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} reviews)</span>
-            </div>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}><Stars rating={item.rating} /><span style={{ fontWeight:900, fontSize:'13px', color:'#161d1b' }}>{item.rating}</span><span style={{ fontSize:'12px', color:'#6b7a76' }}>({item.reviews} reviews)</span></div>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b', marginBottom:'10px', lineHeight:1.2 }}>{item.title}</h3>
             <p style={{ fontSize:'13px', color:'#6b7a76', lineHeight:1.7, marginBottom:'16px' }}>{item.desc}</p>
-            <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'12px', color:'#6b7a76' }}>
-              <MapPin size={12} /> {item.location}
-            </div>
+            <p style={{ fontSize:'12px', color:'#6b7a76', display:'flex', alignItems:'center', gap:'4px' }}><MapPin size={12} />{item.location}</p>
           </div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
-            <div>
-              <span style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'24px', color:'#22d4a8' }}>{item.price} MAD</span>
-              <span style={{ fontSize:'12px', color:'#6b7a76' }}> / session</span>
-            </div>
+            <span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span>
             <div style={{ display:'flex', gap:'8px' }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}>
-                <MessageCircle size={13} />Chat
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px', transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#22d4a8';e.currentTarget.style.color='white'}} onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color='#22d4a8'}}>
+                <MessageCircle size={13} />Message
               </button>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
+              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer', transition:'opacity 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>WhatsApp</button>
             </div>
           </div>
         </div>
@@ -119,27 +82,27 @@ function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: s
     </Link>
   )
 }
-
-function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
+function DiscoCard({ item, locale }: { item: typeof discoveryGrid[0], locale: string }) {
   const [saved, setSaved] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [hov, setHov] = useState(false)
   return (
     <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:'1px solid #f1f5f9', boxShadow:hovered?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ display:'flex', backgroundColor:'white', borderRadius:'24px', overflow:'hidden', border:`1px solid ${hov?'#22d4a8':'#f1f5f9'}`, boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s' }}>
         <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden' }}>
-          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovered?'scale(1.06)':'scale(1)' }} />
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <div style={{ position:'absolute', top:'8px', left:'8px' }}><CertifiedBadge /></div>
         </div>
-        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+        <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
           <div>
             <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
-            <h4 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
-            <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'18px', color:'#22d4a8' }}>{item.price} MAD</p>
+            <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
+            <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
           </div>
           <div style={{ display:'flex', gap:'6px', marginTop:'12px' }}>
-            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Message</button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:saved?'#22d4a8':'#eef5f2', color:saved?'white':'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer', transition:'all 0.2s' }}>{saved?'Saved':'Message'}</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer', transition:'opacity 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>WhatsApp</button>
           </div>
         </div>
       </div>
@@ -149,172 +112,152 @@ function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale
 
 export default function BeautyGroomingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [city, setCity] = useState('')
-  const [keyword, setKeyword] = useState('')
-  const [activePill, setActivePill] = useState('All Beauty')
-  const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [tab, setTab] = useState('All')
   const [diamond, setDiamond] = useState(true)
-  const [activePage, setActivePage] = useState(1)
-  const [viewMode, setViewMode] = useState<'grid'|'list'>('grid')
+  const [page, setPage] = useState(1)
+  const [grid, setGrid] = useState(true)
+  const [keyword, setKeyword] = useState('')
+  const [city, setCity] = useState('')
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
-
-      <section style={{ position:'relative', height:'440px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+      <section style={{ position:'relative', height:'400px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
         <img src={HERO} alt="Beauty & Grooming" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(15,23,42,0.88), rgba(15,23,42,0.4))' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.4))' }} />
         <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 20px', maxWidth:'760px', width:'100%' }}>
-          <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(32px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>
-            Discover Top Beauty &amp; Grooming Experts Near You!
-          </h1>
-          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'32px' }}>1,580 verified beauty professionals across Morocco</p>
-          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
-            <div style={{ display:'flex', flexDirection:'column', padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
-              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca"
-                style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
+          <p style={{ fontSize:'11px', fontWeight:800, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:'12px' }}>SOUKNI SERVICES</p>
+          <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(28px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Beauty & Grooming</h1>
+          <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'28px' }}>Hair salons, nail studios, makeup, barbers, skincare and wellness across Morocco</p>
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'620px', margin:'0 auto' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <div style={{ display:'flex', flexDirection:'column', padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
-              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Hair salon, nail studio, makeup..."
-                style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
+              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Hair, nails, makeup, barber..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'}
-              onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
-              <Search size={16} /> Search
+            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 28px', fontWeight:800, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
+              <Search size={15} /> Search
             </button>
           </div>
         </div>
       </section>
 
-      <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
-          {[
-            { label:'City', val:'Casablanca' },
-            { label:'Keyword', val:'What beauty service do you need?' },
-            { label:'Neighborhood', val:'All Areas' },
-            { label:'Ads Posted', val:'Anytime' },
-            { label:'Filters', val:'All Filters' },
-          ].map((f,i)=>(
-            <div key={f.label} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column', cursor:'pointer', gap:'1px' }}>
-              <span style={{ fontSize:'9px', textTransform:'uppercase', fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{f.label}</span>
-              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{f.val}</span>
+      <div style={{ maxWidth:'1440px', margin:'-24px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'8px 8px 8px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
+          {[['City','Casablanca'],['Keyword','Hair, nails, makeup, barber...'],['Budget','Any Range'],['Availability','Anytime'],['Filters','All']].map(([l,v],i)=>(
+            <div key={l} style={{ flex:i===1?2:1, padding:'6px 18px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
+              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
             </div>
           ))}
-          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
-            <Search size={16} /> SEARCH
+          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'12px 24px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', fontWeight:700, fontSize:'12px', flexShrink:0, marginLeft:'8px', transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
+            <Search size={14} /> SEARCH
           </button>
         </div>
       </div>
 
-      <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px' }}>
-
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }}>Services</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Beauty &amp; Grooming</span>
+      <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
+          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Home</Link><span>›</span>
+          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Services</Link><span>›</span>
+          <span style={{ color:'#161d1b' }}>Beauty & Grooming</span>
         </nav>
 
-        <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b', marginBottom:'4px' }}>Beauty &amp; Grooming Professionals in Rabat</h2>
-        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'16px' }}>1,580 Ads in Rabat District</p>
-
-        <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', paddingBottom:'4px' }}>
-          {pills.map(pill=>(
-            <button key={pill} onClick={()=>setActivePill(pill)}
-              style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', whiteSpace:'nowrap', transition:'all 0.15s', backgroundColor:activePill===pill?'#161d1b':'#e8efec', color:activePill===pill?'white':'#3c4a46' }}>
-              {pill}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Beauty & Grooming in Morocco</h2>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b', transition:'all 0.15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#22d4a8';e.currentTarget.style.color='white';e.currentTarget.style.borderColor='#22d4a8'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#eef5f2';e.currentTarget.style.color='#161d1b';e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort
             </button>
-          ))}
+            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b', transition:'all 0.15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#22d4a8';e.currentTarget.style.color='white';e.currentTarget.style.borderColor='#22d4a8'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#eef5f2';e.currentTarget.style.color='#161d1b';e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}>🔖 Save</button>
+          </div>
         </div>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'24px' }}>Verified beauty and grooming professionals across Morocco</p>
 
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap', gap:'10px' }}>
-          <div style={{ display:'flex', gap:'6px' }}>
-            {['All Sellers','SouKni Members','SouKni Pro'].map(tab=>(
-              <button key={tab} onClick={()=>setActiveSeller(tab)}
-                style={{ padding:'7px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?'#161d1b':'#6b7a76' }}>
-                {tab}
-              </button>
+        <section style={{ marginBottom:'32px' }}>
+          <h2 style={{ fontWeight:900, fontSize:'14px', color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'16px' }}>BROWSE BY SERVICE</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'12px' }}>
+            {SUBCATS.map(sub=>(
+              <Link key={sub.slug} href={`/${locale}/services/beauty-grooming/${sub.slug}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', borderRadius:'20px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s', aspectRatio:'1/1' }}
+                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.04)'}
+                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                  <img src={sub.image} alt={sub.label} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.82),rgba(0,0,0,0.1))' }} />
+                  <div style={{ position:'absolute', bottom:'10px', left:'10px', right:'10px' }}>
+                    <p style={{ fontSize:'11px', fontWeight:800, color:'white', lineHeight:1.2, textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{sub.label}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:'16px', flexWrap:'wrap' as const, gap:'10px' }}>
+          <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'#e8efec', borderRadius:'100px' }}>
+            {['All','Online','In-Person','Home Visit'].map(t=>(
+              <button key={t} onClick={()=>setTab(t)} style={{ padding:'8px 20px', borderRadius:'100px', fontSize:'11px', fontWeight:700, cursor:'pointer', border:'none', transition:'all 0.2s',
+                backgroundColor:tab===t?'#161d1b':'transparent', color:tab===t?'white':'#6b7a76', boxShadow:tab===t?'0 2px 8px rgba(0,0,0,0.15)':'none' }}>{t}</button>
             ))}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
-              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Show SouKni Diamond Verified First</span>
+              <span style={{ fontSize:'12px', fontWeight:700, color:'#6b7a76' }}>Diamond Verified First</span>
               <div style={{ width:'40px', height:'20px', borderRadius:'100px', backgroundColor:diamond?'#22d4a8':'#bacac5', position:'relative', transition:'background 0.25s' }}>
                 <div style={{ position:'absolute', top:'2px', left:diamond?'22px':'2px', width:'16px', height:'16px', borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
             </div>
-            <div style={{ display:'flex', gap:'6px', borderLeft:'1px solid rgba(186,202,197,0.3)', paddingLeft:'12px' }}>
-              {[{icon:'↕',label:'Sort: Default'},{icon:'🔔',label:'Save Search'}].map(btn=>(
-                <button key={btn.label} style={{ display:'flex', alignItems:'center', gap:'5px', padding:'7px 12px', borderRadius:'10px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
-                  {btn.icon} {btn.label}
-                </button>
-              ))}
+            <div style={{ display:'flex', gap:'6px' }}>
+              <button onClick={()=>setGrid(true)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:grid?'#161d1b':'#e8efec', color:grid?'white':'#161d1b', transition:'all 0.2s' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+              <button onClick={()=>setGrid(false)} style={{ width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px', border:'none', cursor:'pointer', backgroundColor:!grid?'#161d1b':'#e8efec', color:!grid?'white':'#161d1b', transition:'all 0.2s' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             </div>
           </div>
         </div>
 
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'32px', flexWrap:'wrap', gap:'10px' }}>
-          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-            {[
-              { emoji:'✨', label:'New Arrivals', active:true },
-              { emoji:'📉', label:'Price Drop Alert', active:false },
-              { emoji:'🛍️', label:'Shop Sellers', active:false },
-            ].map(chip=>(
-              <button key={chip.label}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?'#161d1b':'white', color:chip.active?'white':'#3c4a46' }}>
-                {chip.emoji} {chip.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display:'flex', gap:'6px' }}>
-            <button onClick={()=>setViewMode('grid')}
-              style={{ width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'10px', border:'none', cursor:'pointer', backgroundColor:viewMode==='grid'?'#161d1b':'#e8efec', color:viewMode==='grid'?'white':'#3c4a46' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            </button>
-            <button onClick={()=>setViewMode('list')}
-              style={{ width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'10px', border:'none', cursor:'pointer', backgroundColor:viewMode==='list'?'#161d1b':'#e8efec', color:viewMode==='list'?'white':'#3c4a46' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
-          </div>
+        <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
+          {[{label:'New Arrivals',active:true},{label:'Top Rated',active:false},{label:'Best Price',active:false}].map(c=>(
+            <button key={c.label} style={{ padding:'8px 18px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46', transition:'all 0.15s' }}
+              onMouseEnter={e=>{if(!c.active){e.currentTarget.style.borderColor='#22d4a8';e.currentTarget.style.color='#161d1b'}}}
+              onMouseLeave={e=>{if(!c.active){e.currentTarget.style.borderColor='rgba(186,202,197,0.5)';e.currentTarget.style.color='#3c4a46'}}}>{c.label}</button>
+          ))}
         </div>
 
         <section style={{ marginBottom:'40px' }}>
-          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
-          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+          <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
+          {topChoices.map(item=><TopCard key={item.id} item={item} locale={locale} />)}
         </section>
 
         <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
           <div>
-            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Mobiles &amp; Electro Pro</p>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>Your Premium tech and elite electronics marketplace.</h3>
-            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)', marginBottom:'24px', lineHeight:1.6 }}>Our certified SouKni network ensures you get the best tech deals across Morocco.</p>
-            <div style={{ display:'flex', gap:'12px' }}>
-              <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Tech</button>
-              </Link>
-              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
-            </div>
+            <p style={{ fontSize:'10px', fontWeight:700, color:'#22d4a8', textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
+            <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'white', marginBottom:'12px', lineHeight:1.1 }}>List your luxury property where Morocco's elite browse.</h3>
+            <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}><button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer', transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>Explore Properties</button></Link>
           </div>
           <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
-            <img src="https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=800" alt="Electronics" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.7 }} />
           </div>
         </div>
 
         <section style={{ marginBottom:'40px' }}>
-          <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Beauty Collection</h2>
+          <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Beauty Collection</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
             {bentoListings.slice(0,3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
-                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
                   <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
                   <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
                   <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
-                    <h3 style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'15px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
-                    <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'17px', color:'#22d4a8' }}>{item.price} MAD</p>
+                    <h3 style={{ fontWeight:900, fontSize:'14px', color:'white', marginBottom:'4px', lineHeight:1.3 }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'16px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
                   </div>
                 </div>
               </Link>
@@ -323,15 +266,13 @@ export default function BeautyGroomingPage({ params }: { params: Promise<{ local
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
             {bentoListings.slice(3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
-                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
-                  onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
+                <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
                   <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
                   <div style={{ position:'absolute', top:'12px', left:'12px' }}><CertifiedBadge /></div>
                   <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px' }}>
-                    <h3 style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'16px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
-                    <p style={{ fontFamily:'Hanken Grotesk, Inter, sans-serif', fontWeight:900, letterSpacing:'-0.03em', fontSize:'18px', color:'#22d4a8' }}>{item.price} MAD</p>
+                    <h3 style={{ fontWeight:900, fontSize:'15px', color:'white', marginBottom:'4px' }}>{item.title}</h3>
+                    <p style={{ fontWeight:900, fontSize:'17px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
                   </div>
                 </div>
               </Link>
@@ -339,58 +280,45 @@ export default function BeautyGroomingPage({ params }: { params: Promise<{ local
           </div>
         </section>
 
-        <div style={{ borderRadius:'40px', backgroundColor:'#f5ede0', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center', marginBottom:'40px' }}>
-          <div>
-            <p style={{ fontSize:'10px', fontWeight:700, color:'#8a7a5c', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'8px' }}>SouKni Immo Pro</p>
-            <h3 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'28px', color:'#161d1b', marginBottom:'12px', lineHeight:1.1 }}>Elevate your lifestyle with Morocco's most exclusive real estate and rental spaces.</h3>
-            <div style={{ display:'flex', gap:'12px', marginTop:'20px' }}>
-              <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:'#161d1b', color:'white', border:'none', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Explore Properties</button>
-              </Link>
-              <button style={{ backgroundColor:'transparent', color:'#161d1b', border:'1px solid #161d1b', padding:'11px 24px', borderRadius:'100px', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>Contact Expert</button>
-            </div>
-          </div>
-          <div style={{ position:'relative', height:'200px', borderRadius:'24px', overflow:'hidden' }}>
-            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=800" alt="Property" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-          </div>
-        </div>
-
         <section style={{ marginBottom:'40px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
-            <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Beauty &amp; Grooming Services</h2>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Beauty & Grooming</h2>
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            {discoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(page=>(
-            <button key={page} onClick={()=>setActivePage(page)}
-              style={{ width:'36px', height:'36px', borderRadius:'10px', border:activePage===page?'none':'1px solid #e2e8f0', backgroundColor:activePage===page?'#22d4a8':'white', color:activePage===page?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
-              {page}
-            </button>
-          ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>
-            Next <ChevronRight size={14} />
-          </button>
+          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', transition:'all 0.2s' }}>{p}</button>)}
         </div>
 
-        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap', marginBottom:'64px' }}>
+        <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'48px' }}>
           <div>
-            <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
-            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>List your beauty business today for free and reach thousands of clients across Morocco.</p>
+            <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'36px', color:'white', marginBottom:'10px', lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.85)', maxWidth:'480px', lineHeight:1.7 }}>List your beauty or grooming service for free and reach thousands of clients across Morocco.</p>
             <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
-              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>App Store</button>
-              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>Google Play</button>
+              <button style={{ backgroundColor:'white', color:'#0f9b8e', border:'none', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer', transition:'all 0.15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.backgroundColor='#161d1b';e.currentTarget.style.color='white'}} onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color='#0f9b8e'}}>App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.2)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:'100px', fontWeight:800, fontSize:'13px', cursor:'pointer', transition:'all 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.35)'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='rgba(255,255,255,0.2)'}>Google Play</button>
             </div>
           </div>
           <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
-            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' }}>Post Free Ad →</span>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s' }}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='#161d1b';(e.currentTarget as HTMLElement).style.color='white'}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='white';(e.currentTarget as HTMLElement).style.color='#0f9b8e'}}>Post Free Ad →</span>
           </Link>
         </section>
 
+        <div style={{ textAlign:'center' as const }}>
+          <Link href={`/${locale}/services`}
+            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 40px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
+            ← Back to All Services
+          </Link>
+        </div>
       </div>
     </div>
   )

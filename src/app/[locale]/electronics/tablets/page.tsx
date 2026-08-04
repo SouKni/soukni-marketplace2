@@ -1,384 +1,455 @@
 'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Heart, Search, ChevronDown, ChevronLeft, ChevronRight, Bell, User, Bookmark, Users, ShieldCheck, Apple, PlayCircle, Compass, Car, Gem, Plus, SortAsc, BellRing } from 'lucide-react'
+import { Heart, Search, MapPin, ChevronDown, SlidersHorizontal, Star, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useMarket } from '@/context/MarketContext'
 
-const navLinks = ['Motors', 'Property', 'Mobiles & Computers', 'The Vault', 'Home & Living', 'Fashion', 'Jobs', 'Services']
-
-const brands = ['Apple', 'Samsung', 'Nokia', 'Huawei', 'Oppo', 'Xiaomi', 'Honor']
-
-type Device = {
-  id: string
-  title: string
-  price: string
-  location: string
-  time: string
-  badge: 'DIAMOND MEMBER' | 'VERIFIED'
-  image: string
+/* ── IMAGES ─────────────────────────────────────────────── */
+const I = {
+  hero:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=1600',
+  tab1:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab2:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab3:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab4:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab5:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab6:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab7:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  tab8:    'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&w=600',
+  immo:    'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
+  auto:    'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
 }
 
-const row1: Device[] = [
-  { id: '1', title: 'iPhone 15 Pro - 256GB Titanium Blue', price: '11,500', location: 'Agdal, Rabat', time: 'Just Now', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/5813851/pexels-photo-5813851.jpeg?auto=compress&w=500' },
-  { id: '2', title: 'Samsung S24 Ultra 512GB (New)', price: '12,200', location: 'Hay Riad, Rabat', time: '15 min ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&w=500' },
-  { id: '3', title: 'Google Pixel 9 Pro - Mint Condition', price: '8,900', location: 'Hassan, Rabat', time: '2 hours ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=500' },
-  { id: '4', title: 'Sony Xperia 1 V - Multimedia King', price: '7,500', location: 'Souissi, Rabat', time: '5 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500' },
+type Badge = 'diamond' | 'certified' | 'pro' | null
+
+interface Listing {
+  id: string; title: string; price: number; location: string
+  time: string; image: string; badge: Badge
+}
+
+/* ── DATA ───────────────────────────────────────────────── */
+const featuredListings: Listing[] = [
+  { id:'f1', badge:'diamond',    title:'Apple iPad Pro 13" M4 — 1TB WiFi+Cellular', price:22000, location:'Casablanca', time:'Just now',  image:I.tab1 },
+  { id:'f2', badge:'certified',  title:'Samsung Galaxy Tab S9 Ultra 512GB',          price:12500, location:'Rabat',      time:'1h ago',    image:I.tab2 },
+  { id:'f3', badge:'pro',        title:'iPad Air 11" M2 256GB WiFi',                 price:8500,  location:'Marrakech',  time:'2h ago',    image:I.tab3 },
+  { id:'f4', badge:'diamond',    title:'Xiaomi Pad 6 Pro 12GB/256GB',                price:4200,  location:'Tangier',    time:'3h ago',    image:I.tab4 },
 ]
 
-const featuredMobiles: Device[] = [
-  { id: '5', title: 'Google Pixel 9 Pro XL - 512GB', price: '10,900', location: 'Agdal, Rabat', time: 'Sponsored', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=500' },
-  { id: '6', title: 'Premium Foldable Phone - Mint', price: '14,500', location: 'Hay Riad, Rabat', time: 'Just Now', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/5813851/pexels-photo-5813851.jpeg?auto=compress&w=500' },
-  { id: '7', title: 'Samsung Galaxy S24 Ultra 1TB', price: '13,200', location: 'Souissi, Rabat', time: '1 hour ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&w=500' },
-  { id: '8', title: 'iPad Pro 13-inch M4 Chip', price: '15,800', location: 'Hassan, Rabat', time: '2 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/1334598/pexels-photo-1334598.jpeg?auto=compress&w=500' },
+const exclusiveListings: Listing[] = [
+  { id:'e1', badge:'diamond',   title:'iPad Pro 11" M4 — Space Black',              price:13500, location:'Casablanca', time:'Just now',  image:I.tab1 },
+  { id:'e2', badge:'certified', title:'Samsung Tab S9+ 512GB',                      price:11000, location:'Rabat',      time:'1h ago',    image:I.tab2 },
+  { id:'e3', badge:'pro',       title:'Apple iPad mini 7 256GB',                    price:6200,  location:'Agadir',     time:'2h ago',    image:I.tab3 },
+  { id:'e4', badge:'diamond',   title:'Huawei MatePad Pro 13.2"',                   price:7200,  location:'Fès',        time:'3h ago',    image:I.tab4 },
 ]
 
-const expansionGrid: Device[] = [
-  { id: '9', title: 'MacBook Pro M3 Max - 14" Space Black', price: '32,500', location: 'Hay Riad, Rabat', time: '5 min ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=500' },
-  { id: '10', title: 'iPhone 15 Pro Max - 512GB Natural Titanium', price: '13,800', location: 'Agdal, Rabat', time: '12 min ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/5813851/pexels-photo-5813851.jpeg?auto=compress&w=500' },
-  { id: '11', title: 'iPad Pro 11-inch M4 - 256GB Wi-Fi', price: '11,200', location: 'Souissi, Rabat', time: '25 min ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1334598/pexels-photo-1334598.jpeg?auto=compress&w=500' },
-  { id: '12', title: 'Samsung Galaxy S24 Ultra - 256GB Titanium Gray', price: '10,500', location: 'Hassan, Rabat', time: '40 min ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&w=500' },
-  { id: '13', title: 'Google Pixel 9 Pro - 128GB Obsidian', price: '9,200', location: 'Agdal, Rabat', time: '1 hour ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=500' },
-  { id: '14', title: 'Sony Xperia 1 V - 256GB Black', price: '7,800', location: 'Hay Riad, Rabat', time: '2 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500' },
-  { id: '15', title: 'Asus ROG Phone 8 Pro - 512GB Gaming', price: '12,900', location: 'Souissi, Rabat', time: '3 hours ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=500' },
-  { id: '16', title: 'Xiaomi 14 Ultra - 512GB Leica Camera', price: '11,400', location: 'Hassan, Rabat', time: '4 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500' },
-  { id: '17', title: 'OnePlus 12 - 512GB Flowy Emerald', price: '8,500', location: 'Agdal, Rabat', time: '5 hours ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=500' },
-  { id: '18', title: 'Surface Laptop 7 - Snapdragon X Elite', price: '18,900', location: 'Hay Riad, Rabat', time: '6 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=500' },
-  { id: '19', title: 'Samsung Galaxy Tab S9 Ultra - 512GB', price: '9,800', location: 'Souissi, Rabat', time: '7 hours ago', badge: 'DIAMOND MEMBER', image: 'https://images.pexels.com/photos/1334598/pexels-photo-1334598.jpeg?auto=compress&w=500' },
-  { id: '20', title: 'iPhone 14 Pro - 128GB Space Black', price: '8,200', location: 'Hassan, Rabat', time: '8 hours ago', badge: 'VERIFIED', image: 'https://images.pexels.com/photos/5813851/pexels-photo-5813851.jpeg?auto=compress&w=500' },
+const discoveryListings: Listing[] = [
+  { id:'d1',  badge:'diamond',   title:'iPad 10th Gen 256GB WiFi',                  price:4800,  location:'Casablanca', time:'Just now',  image:I.tab1 },
+  { id:'d2',  badge:'certified', title:'Samsung Tab A9+ 5G 128GB',                  price:3400,  location:'Rabat',      time:'1h ago',    image:I.tab2 },
+  { id:'d3',  badge:'pro',       title:'Xiaomi Redmi Pad SE 128GB',                 price:2100,  location:'Tangier',    time:'2h ago',    image:I.tab3 },
+  { id:'d4',  badge:'diamond',   title:'Lenovo Tab M11 128GB',                      price:1800,  location:'Marrakech',  time:'3h ago',    image:I.tab4 },
+  { id:'d5',  badge:'certified', title:'OnePlus Pad 2 12GB/256GB',                  price:4600,  location:'Casablanca', time:'4h ago',    image:I.tab5 },
+  { id:'d6',  badge:'diamond',   title:'Samsung Tab S6 Lite 2024',                  price:2900,  location:'Rabat',      time:'5h ago',    image:I.tab6 },
+  { id:'d7',  badge:'pro',       title:'Lenovo Tab P12 Pro 8K',                     price:5500,  location:'Agadir',     time:'6h ago',    image:I.tab7 },
+  { id:'d8',  badge:'certified', title:'Microsoft Surface Pro 11',                  price:16500, location:'Casablanca', time:'7h ago',    image:I.tab8 },
+  { id:'d9',  badge:'diamond',   title:'iPad Pro 13" M4 — Silver',                  price:21000, location:'Rabat',      time:'8h ago',    image:I.tab1 },
+  { id:'d10', badge:'certified', title:'Samsung Galaxy Tab S9 FE',                  price:5800,  location:'Marrakech',  time:'9h ago',    image:I.tab2 },
+  { id:'d11', badge:'pro',       title:'Xiaomi Pad 6S Pro 12.4"',                   price:6800,  location:'Tangier',    time:'10h ago',   image:I.tab3 },
+  { id:'d12', badge:'diamond',   title:'Apple iPad Air 13" M2 512GB',               price:11500, location:'Casablanca', time:'11h ago',   image:I.tab4 },
 ]
 
-function DeviceCard({ d }: { d: Device }) {
+const C = {
+  mint:    '#22d4a8',
+  mintDk:  '#0f9b8e',
+  ink:     '#161d1b',
+  surface: '#f4fbf8',
+  cream:   '#f5ede0',
+  muted:   '#6b7a76',
+}
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
+const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
+
+/* ── SUB-COMPONENTS ─────────────────────────────────────── */
+function CertifiedBadge({ type }: { type: Badge }) {
+  if (!type) return null
+  if (type === 'diamond') return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100, display:'inline-flex', alignItems:'center', gap:3 }}>
+      <Diamond size={8} /> SOUKNI CERTIFIED
+    </span>
+  )
+  return (
+    <span style={{ position:'absolute', top:10, left:10, zIndex:2, backgroundColor:'rgba(255,255,255,0.92)', color:C.mint, fontSize:'8px', ...UB, letterSpacing:'0.06em', padding:'3px 10px', borderRadius:100 }}>
+      ✓ CERTIFIED
+    </span>
+  )
+}
+
+function ListingCard({ item, locale, compact=false }: { item: Listing; locale: string; compact?: boolean }) {
   const [saved, setSaved] = useState(false)
-  const isDiamond = d.badge === 'DIAMOND MEMBER'
+  const [hov, setHov] = useState(false)
+  const { formatPrice } = useMarket()
   return (
-    <article style={{ backgroundColor: 'rgba(244,251,248,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 8px 32px rgba(0,107,95,0.05)', borderRadius: '1.5rem', overflow: 'hidden', display: 'flex', flexDirection: 'column' as const, transition: 'transform 0.3s' }}
-      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-    >
-      <div style={{ position: 'relative', aspectRatio: '4/5', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 10 }}>
-          <span style={{ backgroundColor: isDiamond ? '#2dd4bf' : '#62fae3', color: isDiamond ? 'white' : '#00201c', fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', textTransform: 'uppercase' as const }}>
-            {isDiamond ? '◆' : '✓'} {d.badge}
-          </span>
-        </div>
-        <button onClick={() => setSaved(!saved)} style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(244,251,248,0.5)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: saved ? '#ba1a1a' : '#161d1b' }}>
-          <Heart size={20} fill={saved ? '#ba1a1a' : 'none'} />
-        </button>
-        <img src={d.image} alt={d.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-        />
-      </div>
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column' as const, flex: 1 }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#161d1b', lineHeight: 1.3, marginBottom: '8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>{d.title}</h3>
-        <div style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>{d.price} DH</div>
-        <p style={{ color: '#3c4a46', fontSize: '13px', marginBottom: '16px' }}>{d.location} • {d.time}</p>
-        <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(186,202,197,0.1)', display: 'flex', gap: '8px' }}>
-          <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '12px', border: '1px solid #2dd4bf', color: '#2dd4bf', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-            💬 Message
-          </button>
-          <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '12px', border: 'none', backgroundColor: '#2dd4bf', color: '#0f9b8e', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-            📞 WhatsApp
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none', display:'block' }}>
+      <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:compact?20:28, overflow:'hidden', border:`1px solid ${hov?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hov?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <CertifiedBadge type={item.badge} />
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>
-      </div>
-    </article>
+        <div style={{ padding:compact?'12px 14px':'16px 18px' }}>
+          <p style={{ fontSize:10, color:C.muted, marginBottom:3, display:'flex', alignItems:'center', gap:3 }}><MapPin size={10} />{item.location} · {item.time}</p>
+          <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
+          <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MessageCircle size={11} /> Chat
+            </button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </article>
+    </Link>
   )
 }
 
-function DeviceGrid({ devices }: { devices: Device[] }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '64px' }}>
-      {devices.map(d => <DeviceCard key={d.id} d={d} />)}
-    </div>
-  )
-}
-
-export default function MobilesTabletsPage({ params }: { params: Promise<{ locale: string }> }) {
+/* ── PAGE ───────────────────────────────────────────────── */
+export default function TabletsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
-  const [activeBrand, setActiveBrand] = useState('Apple')
-  const [activeSeller, setActiveSeller] = useState('All Sellers')
-  const [diamondFirst, setDiamondFirst] = useState(true)
+
+  const [activeSeller, setActiveSeller]     = useState('All Sellers')
+  const [diamondFirst, setDiamondFirst]     = useState(true)
+  const [activePill, setActivePill]         = useState('All Tablets')
+  const [page, setPage]                     = useState(1)
+  const [viewGrid, setViewGrid]             = useState(true)
+  const [filterOpen, setFilterOpen]         = useState(false)
+
+  const pills = [
+    { label:'All Tablets', slug:'all-tablets' },
+    { label:'Apple iPad',  slug:'apple-ipad'  },
+    { label:'Samsung',     slug:'samsung'     },
+    { label:'Xiaomi',      slug:'xiaomi'      },
+    { label:'Huawei',      slug:'huawei'      },
+    { label:'Lenovo',      slug:'lenovo'      },
+    { label:'Microsoft',   slug:'microsoft'   },
+  ]
+  const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
-    <div style={{ fontFamily: 'Hanken Grotesk, Inter, sans-serif', backgroundColor: '#f4fbf8', color: '#161d1b', minHeight: '100vh', paddingBottom: '90px' }}>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
-      {/* ── HEADER ── */}
-      <nav style={{ backgroundColor: 'rgba(244,251,248,0.8)', backdropFilter: 'blur(20px)', borderTop: '4px solid rgba(0,107,95,0.1)', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <Link href={`/${locale}`} style={{ textDecoration: 'none' }}>
-              <span style={{ fontSize: '22px', fontWeight: 900, color: '#2dd4bf', letterSpacing: '-0.02em' }}>SouKni</span>
-            </Link>
-            <div style={{ position: 'relative' }}>
-              <select style={{ appearance: 'none' as const, backgroundColor: '#eef5f2', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '100px', padding: '6px 28px 6px 16px', fontSize: '13px', fontWeight: 600, color: '#3c4a46', cursor: 'pointer', fontFamily: 'inherit' }}>
-                <option>Cities: Rabat</option><option>Casablanca</option><option>Marrakech</option><option>Tangier</option>
-              </select>
-              <ChevronDown size={16} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' as const, color: '#3c4a46' }} />
+      {/* ══ 1. CINEMATIC HERO ══ */}
+      <section style={{ position:'relative', height:480, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src={I.hero} alt="Tablets" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,64px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            TABLETS &amp;<br />IPADS IN RABAT.
+          </h1>
+          {/* 3-section glassmorphic search */}
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', padding: '0 8px', cursor: 'pointer' }}>
-                <span style={{ fontSize: '20px' }}>🌐</span>
-                <span style={{ fontSize: '9px', color: 'rgba(60,74,70,0.7)' }}>FR / MAD</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', padding: '0 8px', cursor: 'pointer' }}>
-                <Heart size={20} color="#3c4a46" />
-                <span style={{ fontSize: '9px', color: 'rgba(60,74,70,0.7)' }}>Favorites</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', padding: '0 8px', cursor: 'pointer', position: 'relative' }}>
-                <span style={{ position: 'relative' }}><Bell size={20} color="#3c4a46" /><span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', backgroundColor: '#ba1a1a', borderRadius: '50%', border: '2px solid #f4fbf8' }} /></span>
-                <span style={{ fontSize: '9px', color: 'rgba(60,74,70,0.7)' }}>Notifications</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', padding: '0 16px', cursor: 'pointer', borderLeft: '1px solid rgba(186,202,197,0.2)', marginLeft: '8px' }}>
-                <User size={20} color="#3c4a46" />
-                <span style={{ fontSize: '11px', color: '#3c4a46' }}>Profile</span>
-              </div>
-              <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '10px 24px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 700, marginLeft: '8px', textTransform: 'uppercase' as const }}>
-                Place your 100% FREE Ad
-              </button>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input placeholder="iPad Pro, Galaxy Tab, Surface..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-          </div>
-        </div>
-        <div style={{ borderTop: '1px solid rgba(186,202,197,0.2)' }}>
-          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', display: 'flex', alignItems: 'center', gap: '32px', height: '48px' }}>
-            {navLinks.map((l, i) => (
-              <span key={l} style={{ fontSize: '13px', fontWeight: i === 2 ? 700 : 600, color: i === 2 ? '#2dd4bf' : '#3c4a46', cursor: 'pointer', borderBottom: i === 2 ? '2px solid #2dd4bf' : 'none', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' as const }}>{l}</span>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <section style={{ position: 'relative', width: '100%', height: '500px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '64px' }}>
-        <img src="https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=1600" alt="Tech Background" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(244,251,248,0.4), rgba(244,251,248,0.2), #f4fbf8)' }} />
-        <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '1440px', padding: '0 40px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 700, color: '#161d1b', marginBottom: '24px', textAlign: 'center' as const }}>Discover Your Next Mobile Device in Rabat</h1>
-          <div style={{ width: '100%', maxWidth: '720px', backgroundColor: 'rgba(244,251,248,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '2rem', padding: '8px', display: 'flex', gap: '8px', boxShadow: '0 8px 32px rgba(0,107,95,0.05)' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(244,251,248,0.5)', borderRadius: '100px', padding: '0 16px' }}>
-              <Search size={20} color="#3c4a46" style={{ marginRight: '12px' }} />
-              <input placeholder="Search for iPhone 15 Pro, S24 Ultra..." style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', padding: '12px 0', fontFamily: 'inherit', fontSize: '15px' }} />
-            </div>
-            <div style={{ width: '1px', backgroundColor: 'rgba(186,202,197,0.3)' }} />
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(244,251,248,0.5)', borderRadius: '100px', padding: '0 16px' }}>
-              <MapPin size={20} color="#3c4a46" style={{ marginRight: '12px' }} />
-              <select style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', padding: '12px 0', fontFamily: 'inherit', fontSize: '15px', appearance: 'none' as const, cursor: 'pointer' }}>
-                <option>All Morocco</option><option>Rabat</option><option>Casablanca</option>
-              </select>
-              <ChevronDown size={20} color="#3c4a46" />
-            </div>
-            <button style={{ backgroundColor: '#2dd4bf', color: 'white', borderRadius: '100px', padding: '0 32px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Search size={20} /> Search
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', letterSpacing:'-0.01em', flexShrink:0, transition:'background 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              Search
             </button>
           </div>
         </div>
       </section>
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
-        {/* SECONDARY FILTER BAR */}
-        <div style={{ marginTop: '-112px', position: 'relative', zIndex: 20, marginBottom: '32px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', padding: '6px' }}>
+      {/* ══ 2. ADVANCED FILTER BAR ══ */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {[
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'iPad, Galaxy Tab, Surface...', w:2 },
+            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
+          ))}
+          <button onClick={()=>setFilterOpen(!filterOpen)} style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
+            <SlidersHorizontal size={14} /> All Filters
+          </button>
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8 }}>
+            <Search size={15} style={{ display:'inline', marginRight:6 }} />SEARCH
+          </button>
+        </div>
+      </div>
+
+      {/* ══ 3. MAIN CONTENT ══ */}
+      <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
+
+        {/* Breadcrumb */}
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
+          <span style={{ color:C.ink }}>Tablets</span>
+        </nav>
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Tablets &amp; iPads in Rabat</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+              Sort: Default
+            </button>
+            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Save Search
+            </button>
+          </div>
+        </div>
+        <p style={{ fontSize:14, color:C.muted, marginBottom:16 }}>2,840 Ads in Rabat District</p>
+
+        {/* Pills */}
+        <div style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', paddingBottom:4 }}>
+          {pills.map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/electronics/tablets/${cat.slug}`}
+              style={{ padding:'8px 20px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, transition:'all 0.15s', textDecoration:'none', display:'inline-block', backgroundColor:'#e8efec', color:'#3c4a46' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='#e8efec';e.currentTarget.style.color='#3c4a46'}}
+            >{cat.label}</Link>
+          ))}
+        </div>
+
+        {/* Utility bar */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderTop:'1px solid rgba(186,202,197,0.25)', borderBottom:'1px solid rgba(186,202,197,0.25)', marginBottom:16, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {sellerTabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveSeller(tab)}
+                style={{ padding:'7px 18px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', backgroundColor:activeSeller===tab?'#dde4e1':'transparent', color:activeSeller===tab?C.ink:C.muted }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={()=>setDiamondFirst(!diamondFirst)}>
+              <span style={{ fontSize:12, fontWeight:700, color:C.muted }}>Show SouKni Diamond Verified First</span>
+              <div style={{ width:40, height:20, borderRadius:100, backgroundColor:diamondFirst?C.mint:'#bacac5', position:'relative', transition:'background 0.25s' }}>
+                <div style={{ position:'absolute', top:2, left:diamondFirst?22:2, width:16, height:16, borderRadius:'50%', backgroundColor:'white', transition:'left 0.25s', boxShadow:'0 1px 3px rgba(0,0,0,0.15)' }} />
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setViewGrid(true)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:viewGrid?C.ink:'#e8efec', color:viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button onClick={()=>setViewGrid(false)} style={{ width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', backgroundColor:!viewGrid?C.ink:'#e8efec', color:!viewGrid?'white':C.ink }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick filter chips */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:28, flexWrap:'wrap' as const, gap:10 }}>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' as const }}>
             {[
-              { label: 'CITY', value: 'Rabat', icon: ChevronDown },
-              { label: 'KEYWORD', value: 'iPhone, Samsung...', isInput: true, flex: 2 },
-              { label: 'CONDITION', value: 'Select', icon: ChevronDown },
-              { label: 'PRICE (MAD)', value: 'Select', icon: ChevronDown },
-              { label: 'FILTERS', value: 'All Filters', last: true },
-            ].map((f, i) => (
-              <div key={f.label} style={{ flex: f.flex || 1, display: 'flex', alignItems: 'center', padding: '0 16px', borderRight: f.last ? 'none' : '1px solid rgba(186,202,197,0.2)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#3c4a46', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: '2px' }}>{f.label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {f.isInput
-                      ? <input placeholder={f.value} style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontFamily: 'inherit', fontSize: '15px', fontWeight: 500 }} />
-                      : <span style={{ fontSize: '15px', fontWeight: 500, color: f.last ? '#161d1b' : 'rgba(60,74,70,0.7)', flex: 1 }}>{f.value}</span>
-                    }
-                    {f.icon && <f.icon size={18} color="#3c4a46" />}
-                    {f.last && <span style={{ fontSize: '18px', color: '#3c4a46' }}>⚙</span>}
-                    {f.isInput && <Search size={18} color="#2dd4bf" />}
+              { emoji:'✨', label:'New Arrivals', active:true },
+              { emoji:'📉', label:'Price Drop Alert', active:false },
+              { emoji:'🛍️', label:'Shop Sellers', active:false },
+            ].map(chip=>(
+              <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+                {chip.emoji} {chip.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ══ FEATURED PREMIUM TABLETS ══ */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM TABLETS</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+          </div>
+        </section>
+
+        {/* ══ IMMO PRO BANNER ══ */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.immo} alt="Immo Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ EXCLUSIVE TABLETS COLLECTION (BENTO) ══ */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Tablets Collection</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          {/* Bento: tall left spanning 2 rows + 2 stacked right */}
+          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gridTemplateRows:'280px 280px', gap:16, marginBottom:16 }}>
+            <div style={{ gridRow:'span 2' }}>
+              <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
+                onMouseEnter={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1.06)'}}
+                onMouseLeave={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1)'}}>
+                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
+                <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
+                <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* BREADCRUMBS */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'rgba(60,74,70,0.7)', marginBottom: '24px' }}>
-          <span style={{ cursor: 'pointer' }}>Rabat</span><ChevronRight size={14} />
-          <span style={{ cursor: 'pointer' }}>Vault</span><ChevronRight size={14} />
-          <span style={{ cursor: 'pointer' }}>Electronics</span><ChevronRight size={14} />
-          <span style={{ color: '#3c4a46', fontWeight: 500 }}>Mobiles</span>
-        </nav>
-
-        {/* TITLE + BRAND PILLS + STATUS TAGS + SELLER FILTERS */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap' as const, justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', marginBottom: '32px' }}>
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#161d1b' }}>New and Used Mobile Phones in Rabat</h1>
-              <p style={{ color: '#3c4a46', marginTop: '4px' }}>5,876 Ads in Rabat</p>
-              {/* BRAND PILLS */}
-              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto' as const, paddingBottom: '8px', marginTop: '16px' }}>
-                {[...brands, 'View More...'].map(b => (
-                  <button key={b} onClick={() => setActiveBrand(b)}
-                    style={{ whiteSpace: 'nowrap' as const, padding: '10px 24px', borderRadius: '100px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: activeBrand === b ? 'none' : '1px solid rgba(186,202,197,0.3)', backgroundColor: activeBrand === b ? '#2dd4bf' : '#e8efec', color: activeBrand === b ? 'white' : '#161d1b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {b} {b === 'View More...' && <ChevronDown size={16} />}
-                  </button>
-                ))}
-              </div>
-              {/* STATUS TAGS + DIAMOND TOGGLE */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px', flexWrap: 'wrap' as const }}>
-                <span style={{ color: '#2dd4bf', fontSize: '13px', fontWeight: 600, backgroundColor: 'rgba(45,212,191,0.2)', padding: '4px 12px', borderRadius: '100px' }}>New Arrivals</span>
-                <span style={{ color: '#605e58', fontSize: '13px', fontWeight: 600, backgroundColor: 'rgba(230,226,217,0.5)', padding: '4px 12px', borderRadius: '100px' }}>Price Drop Alert</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', paddingLeft: '12px', borderLeft: '1px solid rgba(186,202,197,0.2)' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#3c4a46' }}>Show Diamond Verified First</span>
-                  <button onClick={() => setDiamondFirst(!diamondFirst)} style={{ position: 'relative', width: '36px', height: '20px', borderRadius: '100px', backgroundColor: diamondFirst ? '#2dd4bf' : '#dde4e1', border: 'none', cursor: 'pointer' }}>
-                    <div style={{ position: 'absolute', top: '2px', left: diamondFirst ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
-                  </button>
-                </div>
-              </div>
-              {/* SELLER FILTERS */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexWrap: 'wrap' as const }}>
-                {[
-                  { label: 'All Sellers', icon: Users },
-                  { label: 'SouKni Members', icon: User },
-                  { label: 'SouKni Pro', icon: ShieldCheck },
-                ].map(s => (
-                  <button key={s.label} onClick={() => setActiveSeller(s.label)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 20px', borderRadius: '100px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', backgroundColor: activeSeller === s.label ? 'rgba(45,212,191,0.3)' : '#e8efec', color: activeSeller === s.label ? '#0f9b8e' : '#3c4a46', border: activeSeller === s.label ? '1px solid rgba(0,107,95,0.2)' : '1px solid rgba(186,202,197,0.3)' }}>
-                    <s.icon size={18} /> {s.label}
-                  </button>
-                ))}
+            </div>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#eef5f2', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
-                <SortAsc size={18} /> Sort: Featured
-              </button>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#eef5f2', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
-                <BellRing size={18} /> Save Search
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 1: INITIAL GRID */}
-        <DeviceGrid devices={row1} />
-
-        {/* FEATURED MOBILES */}
-        <section style={{ marginBottom: '64px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 600 }}>Featured Mobiles</h2>
-            <a href="#" style={{ color: '#2dd4bf', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>View All</a>
-          </div>
-          <DeviceGrid devices={featuredMobiles} />
-        </section>
-
-        {/* INTERSTITIAL BANNERS: Auto Pro + Immo Pro */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '64px' }}>
-          <div style={{ height: '192px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
-            <img src="https://images.pexels.com/photos/3954422/pexels-photo-3954422.jpeg?auto=compress&w=800" alt="SouKni Auto Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.6), transparent)', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', padding: '32px' }}>
-              <h4 style={{ color: 'white', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>SouKni Auto Pro</h4>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '16px' }}>Sell your car 3x faster with our pro suite.</p>
-              <button style={{ width: 'fit-content', backgroundColor: 'white', color: '#161d1b', padding: '8px 24px', borderRadius: '100px', border: 'none', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Learn More</button>
-            </div>
-          </div>
-          <div style={{ height: '192px', borderRadius: '1.5rem', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
-            <img src="https://images.pexels.com/photos/1370704/pexels-photo-1370704.jpeg?auto=compress&w=800" alt="SouKni Immo Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.6), transparent)', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', padding: '32px' }}>
-              <h4 style={{ color: 'white', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>SouKni Immo Pro</h4>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '16px' }}>Real Estate tools for the modern agent.</p>
-              <button style={{ width: 'fit-content', backgroundColor: 'white', color: '#161d1b', padding: '8px 24px', borderRadius: '100px', border: 'none', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Get Started</button>
-            </div>
-          </div>
-        </div>
-
-        {/* JOIN THE SOUKNI FAMILY BANNER */}
-        <section style={{ marginBottom: '64px' }}>
-          <div style={{ background: 'linear-gradient(to right, #2dd4bf, #2dd4bf)', borderRadius: '3rem', padding: '48px', position: 'relative', overflow: 'hidden', display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: '32px' }}>
-            <div style={{ position: 'relative', zIndex: 10, maxWidth: '560px' }}>
-              <h2 style={{ color: 'white', fontSize: '40px', fontWeight: 700, marginBottom: '16px' }}>Join the SouKni Family</h2>
-              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '18px', marginBottom: '32px' }}>Download our app to get the best experience, instant notifications, and exclusive local deals right in your pocket.</p>
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' as const }}>
-                <button style={{ backgroundColor: 'white', color: '#2dd4bf', padding: '16px 40px', borderRadius: '100px', border: 'none', fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 16px rgba(0,0,0,0.15)' }}>Get Started Now</button>
-                <button style={{ backgroundColor: 'rgba(98,250,227,0.2)', color: 'white', padding: '16px 40px', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.3)', fontWeight: 700, cursor: 'pointer', backdropFilter: 'blur(8px)' }}>View Benefits</button>
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
+              onMouseEnter={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1.06)'}}
+              onMouseLeave={e=>{const img=e.currentTarget.querySelector('img');if(img)img.style.transform='scale(1)'}}>
+              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
+              <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
               </div>
             </div>
-            <div style={{ position: 'relative', zIndex: 10, display: 'none' }}>
-              <div style={{ aspectRatio: '1/1', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '1.5rem', padding: '24px', transform: 'rotate(6deg)', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', textAlign: 'center' as const, width: '200px' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>💎</div>
-                <div style={{ color: 'white', fontWeight: 700, fontSize: '32px' }}>10X</div>
-                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 600 }}>MORE VISIBILITY</div>
+          </div>
+          {/* 4th exclusive listing */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:0 }}>
+            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
+              <img src={I.tab5} alt="Pro Tablet" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 28px' }}>
+                <span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, fontWeight:900, padding:'4px 12px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.1em', display:'inline-block', marginBottom:10, width:'fit-content' }}>SouKni Electro Pro</span>
+                <h3 style={{ ...UB, fontSize:18, color:'white', marginBottom:12, lineHeight:1.2 }}>Find your next<br/>certified tablet today.</h3>
+                <Link href={`/${locale}/electronics`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'9px 20px', borderRadius:100, fontSize:11, ...UB, cursor:'pointer', alignSelf:'flex-start' as const }}>Explore All</button>
+                </Link>
               </div>
             </div>
-            <div style={{ position: 'absolute', right: '-80px', bottom: '-80px', width: '384px', height: '384px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(60px)' }} />
           </div>
         </section>
 
-        {/* EXPANSION GRID: 12 cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '40px' }}>
-          {expansionGrid.map(d => <DeviceCard key={d.id} d={d} />)}
-        </div>
-
-        {/* PAGINATION */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', margin: '40px 0' }}>
-          <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: 'transparent', color: '#161d1b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={20} /></button>
-          <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: '#2dd4bf', color: '#0f9b8e', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>1</button>
-          {[2, 3].map(n => (
-            <button key={n} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: 'transparent', color: '#161d1b', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>{n}</button>
-          ))}
-          <span style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(60,74,70,0.7)', fontSize: '13px' }}>...</span>
-          <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: 'transparent', color: '#161d1b', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>12</button>
-          <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: 'transparent', color: '#161d1b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={20} /></button>
-        </div>
-      </div>
-
-      {/* ── ELECTRO PRO BANNER ── */}
-      <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', marginBottom: '64px' }}>
-        <div style={{ position: 'relative', width: '100%', height: '320px', borderRadius: '3rem', overflow: 'hidden' }}>
-          <img src="https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=1200" alt="SouKni Electro Pro" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.4), transparent)' }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', alignItems: 'flex-start', padding: '0 64px', gap: '8px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' as const }}>
-              <h2 style={{ color: 'white', fontSize: '48px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.02em' }}>SouKni Electro Pro</h2>
-              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '18px', maxWidth: '560px' }}>The Gold Standard for Premium Electronics &amp; Tech Solutions.</p>
+        {/* ══ AUTO PRO BANNER ══ */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src={I.auto} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
             </div>
-            <button style={{ marginTop: '16px', backgroundColor: '#2dd4bf', color: '#0f9b8e', padding: '16px 40px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', boxShadow: '0 8px 16px rgba(0,0,0,0.2)', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
-              Discover Pro Benefits
+          </div>
+        </section>
+
+        {/* ══ PRO DISCOVERY GRID ══ */}
+        <section style={{ marginBottom:48 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Tablet Discoveries</h2>
+            <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:16 }}>
+            {discoveryListings.slice(0,4).map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:16 }}>
+            {discoveryListings.slice(4,8).map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+            {discoveryListings.slice(8,12).map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+          </div>
+        </section>
+
+        {/* ══ PAGINATION ══ */}
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
+          {[1,2,3,4].map(p=>(
+            <button key={p} onClick={()=>setPage(p)}
+              style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
+              {p}
             </button>
+          ))}
+          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+            Next <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* ══ DIAMOND BANNER ══ */}
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:40 }}>
+          <img src={I.hero} alt="Diamond" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>
+              ✦ SOUKNI CERTIFIED
+            </span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>
+              Unlock the Power of Diamond.
+            </h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>
+              Priority placement, boosted visibility, and full access to Morocco's most serious tech buyers. Get started today.
+            </p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── FOOTER ── */}
+        {/* ══ JOIN THE SOUKNI FAMILY ══ */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Get early access to new drops, exclusive member deals, and Morocco's finest electronics listings.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
+                🍎 App Store
+              </button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
+                ▶ Google Play
+              </button>
+            </div>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
 
-      {/* ── MOBILE BOTTOM NAV ── */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, width: '100%', backgroundColor: 'rgba(244,251,248,0.7)', backdropFilter: 'blur(40px)', borderTop: '1px solid rgba(255,255,255,0.2)', zIndex: 50, display: 'none', alignItems: 'center', justifyContent: 'space-around', padding: '12px 16px', borderRadius: '12px 12px 0 0', boxShadow: '0 -8px 24px rgba(0,0,0,0.05)' }} className="md:hidden">
-        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', color: '#3c4a46' }}>
-          <Compass size={22} /><span style={{ fontSize: '10px' }}>Discover</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', color: '#2dd4bf', backgroundColor: 'rgba(45,212,191,0.3)', borderRadius: '100px', padding: '4px 16px' }}>
-          <Search size={22} /><span style={{ fontSize: '10px' }}>Search</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', color: '#3c4a46' }}>
-          <Car size={22} /><span style={{ fontSize: '10px' }}>Motors</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', color: '#3c4a46' }}>
-          <Gem size={22} /><span style={{ fontSize: '10px' }}>Vault</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', color: '#3c4a46' }}>
-          <User size={22} /><span style={{ fontSize: '10px' }}>Profile</span>
-        </div>
-      </nav>
+      </div>
     </div>
   )
 }

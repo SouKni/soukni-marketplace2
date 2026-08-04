@@ -2,11 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
-import {
-  Mail, Phone, MapPin, MessageCircle, Clock,
-  Send, Check, ChevronRight, Shield,
-  Building2, AlertTriangle, Sparkles
-} from 'lucide-react'
+import { Mail, Phone, MapPin, MessageCircle, Clock, Send, Check, ChevronRight, Shield, Building2, AlertTriangle, Sparkles } from 'lucide-react'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Topic = 'general' | 'safety' | 'billing' | 'listing' | 'account' | 'press' | 'business'

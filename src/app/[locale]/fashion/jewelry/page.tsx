@@ -43,7 +43,7 @@ function Badge({ type }: { type: BadgeT }) {
     certified:{ bg:C.mint,   color:C.ink,  label:'SouKni Certified' },
     diamond:  { bg:C.ink,    color:C.mint, label:'◆ DIAMOND'        },
     featured: { bg:'#fbbf24',color:C.ink,  label:'Featured'         },
-    new:      { bg:C.mintDk, color:'white', label:'New Arrival'     },
+    new:      { bg:C.mint, color:'white', label:'New Arrival'     },
   }
   const s = map[type]
   return (
@@ -261,14 +261,21 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
 
         {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
-          {CATS.map(cat=>(
-            <button key={cat} onClick={()=>setActiveCat(cat)}
-              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid',
-                backgroundColor: activeCat===cat ? C.mint  : 'white',
-                color:           activeCat===cat ? C.ink   : C.muted,
-                borderColor:     activeCat===cat ? C.mint  : 'rgba(186,202,197,0.4)',
+          {[
+            { label:'All Jewelry', slug:'all-jewelry', emoji:'💎' },
+            { label:'Rings',       slug:'rings',       emoji:'💍' },
+            { label:'Necklaces',   slug:'necklaces',   emoji:'📿' },
+            { label:'Watches',     slug:'watches',     emoji:'⌚' },
+            { label:'Bracelets',   slug:'bracelets',   emoji:'✨' },
+            { label:'Earrings',    slug:'earrings',    emoji:'👂' },
+          ].map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/fashion/jewelry/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
               }}
-            >{cat}</button>
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.emoji} {cat.label}</Link>
           ))}
           <button
             style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}
@@ -426,7 +433,7 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
               <div style={{ width:'50%', overflow:'hidden', position:'relative' }}>
                 <img src={I.bento4} alt="Cartier Love Bracelet" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'12px', left:'12px' }}>
-                  <span style={{ backgroundColor:C.mintDk, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Arrival</span>
+                  <span style={{ backgroundColor:C.mint, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Arrival</span>
                 </div>
               </div>
               <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>

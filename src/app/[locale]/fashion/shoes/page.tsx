@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 
@@ -46,7 +47,7 @@ function Badge({ type }: { type: BadgeT }) {
     certified:{ bg:C.mint,    color:C.ink,  label:'SouKni Certified' },
     diamond:  { bg:C.ink,     color:C.mint, label:'◆ DIAMOND'        },
     featured: { bg:'#fbbf24', color:C.ink,  label:'Featured'         },
-    new:      { bg:C.mintDk,  color:'white', label:'New Arrival'     },
+    new:      { bg:C.mint,  color:'white', label:'New Arrival'     },
   }
   const s = map[type]
   return (
@@ -264,14 +265,21 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
 
         {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
-          {CATS.map(cat=>(
-            <button key={cat} onClick={()=>setActiveCat(cat)}
-              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid',
-                backgroundColor: activeCat===cat ? C.mint  : 'white',
-                color:           activeCat===cat ? C.ink   : C.muted,
-                borderColor:     activeCat===cat ? C.mint  : 'rgba(186,202,197,0.4)',
+          {[
+            { label:'All Shoes',     slug:'all-shoes'   },
+            { label:'Heels & Pumps', slug:'heels-pumps' },
+            { label:'Sneakers',      slug:'sneakers'    },
+            { label:'Boots',         slug:'boots'       },
+            { label:'Loafers',       slug:'loafers'     },
+            { label:'Sandals',       slug:'sandals'     },
+          ].map(cat=>(
+            <Link key={cat.slug} href={`/${locale}/fashion/shoes/${cat.slug}`}
+              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
+                backgroundColor: 'white', color: C.muted, borderColor: 'rgba(186,202,197,0.4)',
               }}
-            >{cat}</button>
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
+            >{cat.label}</Link>
           ))}
           <button
             style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}
@@ -429,7 +437,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
               <div style={{ width:'50%', overflow:'hidden', position:'relative' }}>
                 <img src={I.bento4} alt="Golden Goose" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'12px', left:'12px' }}>
-                  <span style={{ backgroundColor:C.mintDk, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Arrival</span>
+                  <span style={{ backgroundColor:C.mint, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Arrival</span>
                 </div>
               </div>
               <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>

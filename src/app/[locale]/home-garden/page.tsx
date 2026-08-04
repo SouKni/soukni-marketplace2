@@ -1,279 +1,248 @@
 'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Search, MapPin, Globe, DollarSign, Bell, User, ArrowUpDown, Bookmark, Users, UserCircle, BadgeCheck, ChevronDown, MessageCircle, Gem, Lightbulb, Sprout, Send, ChevronRight } from 'lucide-react'
+import { Search, ChevronRight } from 'lucide-react'
 
-const subCategories = ['Interior', 'Garden', 'Textiles', 'Lighting', 'Artisans']
+const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
+const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
 
-const sellerFilters = [
-  { label: 'All Sellers', icon: Users },
-  { label: 'Individuals', icon: UserCircle },
-  { label: 'Businesses', icon: BadgeCheck },
+const categories = [
+  { slug:'furniture',        label:'Furniture',           count:'4,280', emoji:'🛋️',  image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
+  { slug:'garden-outdoor',   label:'Garden & Outdoor',    count:'2,140', emoji:'🌿',  image:'https://images.pexels.com/photos/1453499/pexels-photo-1453499.jpeg?auto=compress&w=600' },
+  { slug:'home-decor',       label:'Home Décor',          count:'3,920', emoji:'🖼️',  image:'https://images.pexels.com/photos/1571453/pexels-photo-1571453.jpeg?auto=compress&w=600' },
+  { slug:'lighting',         label:'Lighting',            count:'1,640', emoji:'💡',  image:'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&w=600' },
+  { slug:'bedding-bath',     label:'Bedding & Bath',      count:'2,380', emoji:'🛏️',  image:'https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg?auto=compress&w=600' },
+  { slug:'kitchen-dining',   label:'Kitchen & Dining',    count:'3,150', emoji:'🍽️',  image:'https://images.pexels.com/photos/2062426/pexels-photo-2062426.jpeg?auto=compress&w=600' },
+  { slug:'storage-shelving', label:'Storage & Shelving',  count:'1,820', emoji:'📦',  image:'https://images.pexels.com/photos/1148955/pexels-photo-1148955.jpeg?auto=compress&w=600' },
+  { slug:'rugs-curtains',    label:'Rugs & Curtains',     count:'2,460', emoji:'🪞',  image:'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&w=600' },
+  { slug:'plants-pots',      label:'Plants & Pots',       count:'1,290', emoji:'🌱',  image:'https://images.pexels.com/photos/1453499/pexels-photo-1453499.jpeg?auto=compress&w=600' },
+  { slug:'tools-diy',        label:'Tools & DIY',         count:'2,840', emoji:'🔨',  image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
+  { slug:'art-prints',       label:'Art & Prints',        count:'980',   emoji:'🎨',  image:'https://images.pexels.com/photos/1571453/pexels-photo-1571453.jpeg?auto=compress&w=600' },
+  { slug:'smart-home',       label:'Smart Home',          count:'1,560', emoji:'🏠',  image:'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&w=600' },
 ]
 
-type Listing = { id: string; title: string; category: string; price: string; location: string; image: string; badge: 'Diamond' | 'Verified' }
-
-const row1: Listing[] = [
-  { id: '1', title: 'Luxury Garden Sofa Set', category: 'Furniture', price: '14,500', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '2', title: 'Atlas Professional Series Grill', category: 'Outdoor Kitchen', price: '8,900', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1857518/pexels-photo-1857518.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '3', title: 'Convertible Modern Daybed', category: 'Exterior', price: '6,250', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/3637739/pexels-photo-3637739.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '4', title: 'Hand-Carved Terracotta Planter', category: 'Artisan Pottery', price: '1,200', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1408221/pexels-photo-1408221.jpeg?auto=compress&w=600', badge: 'Verified' },
+const featuredItems = [
+  { id:'hg1', title:'Roche Bobois Mah Jong Modular Sofa',  price:28500, location:'Casablanca', image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
+  { id:'hg2', title:'Jardin de Marrakech Outdoor Set',      price:12000, location:'Marrakech',  image:'https://images.pexels.com/photos/1453499/pexels-photo-1453499.jpeg?auto=compress&w=600' },
+  { id:'hg3', title:'Beni Ourain Premium Wool Rug 3x4m',   price:8500,  location:'Rabat',      image:'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&w=600' },
+  { id:'hg4', title:'Flos Arco Floor Lamp — Marble Base',  price:9200,  location:'Casablanca', image:'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&w=600' },
 ]
 
-const row2: Listing[] = [
-  { id: '5', title: 'Luxury Modular Outdoor Sofa', category: 'Furniture', price: '18,500', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '6', title: 'High-End Cantilever Umbrella', category: 'Outdoor Shade', price: '4,200', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1290141/pexels-photo-1290141.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '7', title: 'Designer Copper Fire Pit', category: 'Outdoor Heating', price: '7,800', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1809644/pexels-photo-1809644.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '8', title: 'Handcrafted Ceramic Vases (Set of 3)', category: 'Decor', price: '1,450', location: 'Marrakech, Medina', image: 'https://images.pexels.com/photos/1207918/pexels-photo-1207918.jpeg?auto=compress&w=600', badge: 'Diamond' },
-]
-
-const row3: Listing[] = [
-  { id: '9', title: 'Modern Outdoor Dining Set', category: 'Furniture', price: '12,900', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/1788218/pexels-photo-1788218.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '10', title: 'Robotic Lawn Mower Pro', category: 'Garden Tech', price: '15,200', location: 'Casablanca, Bouskoura', image: 'https://images.pexels.com/photos/8412381/pexels-photo-8412381.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '11', title: 'Premium Leather Pouf', category: 'Decor', price: '850', location: 'Casablanca, Anfa', image: 'https://images.pexels.com/photos/6444256/pexels-photo-6444256.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '12', title: 'Luxury Outdoor Egg Chair', category: 'Furniture', price: '3,600', location: 'Tangier, Malabata', image: 'https://images.pexels.com/photos/6312368/pexels-photo-6312368.jpeg?auto=compress&w=600', badge: 'Diamond' },
-]
-
-const row4: Listing[] = [
-  { id: '13', title: 'Brass Hand-Punched Lantern', category: 'Lighting', price: '1,200', location: 'Fes, Ville Nouvelle', image: 'https://images.pexels.com/photos/1112598/pexels-photo-1112598.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '14', title: 'Teak Sun Loungers (Pair)', category: 'Furniture', price: '9,500', location: 'Agadir, Marina', image: 'https://images.pexels.com/photos/261411/pexels-photo-261411.jpeg?auto=compress&w=600', badge: 'Verified' },
-  { id: '15', title: 'Smart Indoor Herb Garden', category: 'Garden Tech', price: '1,800', location: 'Rabat, Souissi', image: 'https://images.pexels.com/photos/4503267/pexels-photo-4503267.jpeg?auto=compress&w=600', badge: 'Diamond' },
-  { id: '16', title: 'Handcrafted Wall Decor', category: 'Decor', price: '1,100', location: 'Rabat, Agdal', image: 'https://images.pexels.com/photos/6312372/pexels-photo-6312372.jpeg?auto=compress&w=600', badge: 'Verified' },
-]
-
-function ListingCard({ item }: { item: Listing }) {
-  const [saved, setSaved] = useState(false)
-  return (
-    <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px -10px rgba(0,107,95,0.1)', border: '1px solid #e8efec', transition: 'transform 0.3s' }}
-      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-8px)'}
-      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-    >
-      <div style={{ position: 'relative', height: '256px', overflow: 'hidden' }}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', top: '16px', left: '16px' }}>
-          <span style={{
-            backgroundColor: item.badge === 'Diamond' ? '#2dd4bf' : '#3cddc7',
-            color: '#0f9b8e', fontSize: '12px', fontWeight: 700, padding: '6px 12px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-          }}>{item.badge === 'Diamond' ? '💎 DIAMOND' : '✓ VERIFIED'}</span>
-        </div>
-        <button onClick={() => setSaved(!saved)} style={{ position: 'absolute', top: '16px', right: '16px', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(244,251,248,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <Heart size={18} color="#2dd4bf" fill={saved ? '#2dd4bf' : 'none'} />
-        </button>
-      </div>
-      <div style={{ padding: '24px' }}>
-        <p style={{ color: '#3c4a46', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '4px' }}>{item.location}</p>
-        <h3 style={{ fontWeight: 700, fontSize: '18px', color: '#161d1b', marginBottom: '16px', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <div>
-            <span style={{ color: '#2dd4bf', fontWeight: 700, fontSize: '24px' }}>{item.price}</span>
-            <span style={{ color: '#3c4a46', fontSize: '13px', fontWeight: 600, marginLeft: '4px' }}>MAD</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(186,202,197,0.3)', backgroundColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#2dd4bf' }}>
-              <MessageCircle size={18} />
-            </button>
-            <button style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#0f9b8e' }}>
-              💬
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ListingGrid({ items }: { items: Listing[] }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '64px' }}>
-      {items.map(item => <ListingCard key={item.id} item={item} />)}
-    </div>
-  )
-}
-
-export default function HomeGardenPage({ params }: { params: Promise<{ locale: string }> }) {
+export default function HomeGardenPage({ params }: { params: Promise<{ locale:string }> }) {
   const { locale } = React.use(params)
-  const [activeSub, setActiveSub] = useState('Garden')
-  const [activeSeller, setActiveSeller] = useState('All Sellers')
+  const [keyword, setKeyword] = useState('')
+  const [hovCat, setHovCat] = useState<string|null>(null)
+  const [hovItem, setHovItem] = useState<string|null>(null)
 
   return (
-    <div style={{ fontFamily: 'Hanken Grotesk, Inter, sans-serif', backgroundColor: '#f4fbf8', color: '#161d1b', minHeight: '100vh' }}>
+    <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
 
+      {/* CINEMATIC HERO */}
+      <section style={{ position:'relative', height:520, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <img src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=1600" alt="Home & Garden"
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
+        <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
+          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>SouKni Home &amp; Garden</p>
+          <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,68px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
+            YOUR HOME.<br />YOUR GARDEN.<br />YOUR STYLE.
+          </h1>
+          <p style={{ fontSize:16, color:'rgba(255,255,255,0.75)', marginBottom:32, maxWidth:520, margin:'0 auto 32px' }}>
+            26,420 verified home &amp; garden listings across Morocco
+          </p>
+          {/* 3-section glassmorphic search */}
+          <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+            </div>
+            <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Sofa, rug, plants, lighting..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+            </div>
+            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
+              <Search size={16} /> Search
+            </button>
+          </div>
+        </div>
+      </section>
 
-      <main>
-        {/* HERO */}
-        <section style={{ position: 'relative', height: '65vh', minHeight: '480px', paddingTop: '112px', overflow: 'hidden' }}>
-          <img src="https://images.pexels.com/photos/1268871/pexels-photo-1268871.jpeg?auto=compress&w=1600" alt="Outdoor living" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} />
-          <div style={{ position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '0 40px' }}>
-            <h1 style={{ color: 'white', fontSize: '48px', fontWeight: 700, marginBottom: '40px', textAlign: 'center' as const, textShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>Curated Home &amp; Garden</h1>
-            <div style={{ width: '100%', maxWidth: '700px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', borderRadius: '100px', padding: '6px', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 25px 50px rgba(0,0,0,0.2)' }}>
-                <Search size={20} color="white" style={{ marginLeft: '20px', flexShrink: 0 }} />
-                <input placeholder="Search for artisans, lighting, or gardens..." style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'white', padding: '14px 16px', fontFamily: 'inherit', fontSize: '14px' }} />
-                <button style={{ backgroundColor: '#2dd4bf', color: 'white', padding: '14px 36px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' as const }}>Explore</button>
+      {/* ADVANCED FILTER BAR */}
+      <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
+          {[
+            { label:'City', val:'Casablanca', w:1 },
+            { label:'Keyword', val:'Sofa, rug, garden furniture...', w:2 },
+            { label:'Category', val:'All Categories', w:1 },
+            { label:'Price (MAD)', val:'Select Range', w:1 },
+          ].map((f,i)=>(
+            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+            </div>
+          ))}
+          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+            <Search size={15} /> SEARCH
+          </button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
+
+        {/* BREADCRUMB */}
+        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
+          <span style={{ color:C.ink }}>Home &amp; Garden</span>
+        </nav>
+
+        {/* CATEGORY GRID */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Browse by Category</h2>
+            <span style={{ fontSize:14, color:C.muted }}>26,420 total listings</span>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+            {categories.map(cat=>(
+              <Link key={cat.slug} href={`/${locale}/home-garden/${cat.slug}`} style={{ textDecoration:'none' }}>
+                <div onMouseEnter={()=>setHovCat(cat.slug)} onMouseLeave={()=>setHovCat(null)}
+                  style={{ position:'relative', borderRadius:24, overflow:'hidden', cursor:'pointer', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat===cat.slug?'scale(1.02)':'scale(1)', boxShadow:hovCat===cat.slug?'0 20px 48px rgba(0,0,0,0.15)':'0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div style={{ aspectRatio:'4/3', overflow:'hidden' }}>
+                    <img src={cat.image} alt={cat.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovCat===cat.slug?'scale(1.08)':'scale(1)' }} />
+                  </div>
+                  <div style={{ position:'absolute', inset:0, background:hovCat===cat.slug?'linear-gradient(to top,rgba(34,212,168,0.75),rgba(0,0,0,0.1))':'linear-gradient(to top,rgba(0,0,0,0.72),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 18px' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <div>
+                        <p style={{ ...UB, fontSize:15, color:'white', marginBottom:3 }}>{cat.label}</p>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} ads</p>
+                      </div>
+                      <div style={{ width:36, height:36, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+                        {cat.emoji}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* IMMO PRO BANNER */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src="https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200" alt="Immo Pro"
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
               </div>
             </div>
           </div>
         </section>
 
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 40px' }}>
-
-          {/* FILTER BAR */}
-          <section style={{ marginTop: '-40px', position: 'relative', zIndex: 20, marginBottom: '24px' }}>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)', border: '1px solid white', borderRadius: '100px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '8px', display: 'flex', alignItems: 'center' }}>
-              {[
-                { label: 'City', value: 'All Cities', select: true },
-                { label: 'Keyword', value: 'What are you looking for?', flex: 1.5 },
-                { label: 'Neighborhood', value: 'All Districts', select: true },
-                { label: 'Price (MAD)', value: 'Max Price' },
-              ].map((f, i) => (
-                <div key={f.label} style={{ flex: f.flex || 1, padding: '8px 24px', borderRight: '1px solid rgba(186,202,197,0.3)' }}>
-                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#3c4a46', textTransform: 'uppercase' as const }}>{f.label}</label>
-                  <span style={{ fontSize: '14px', fontWeight: 500, color: i === 1 ? 'rgba(60,74,70,0.4)' : '#161d1b' }}>{f.value}</span>
+        {/* FEATURED PICKS */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Featured Home &amp; Garden Picks</h2>
+            <Link href={`/${locale}/home-garden/furniture`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
+              View all <ChevronRight size={14} />
+            </Link>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {featuredItems.map(item=>(
+              <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+                <div onMouseEnter={()=>setHovItem(item.id)} onMouseLeave={()=>setHovItem(null)}
+                  style={{ backgroundColor:'white', borderRadius:24, overflow:'hidden', border:`1px solid ${hovItem===item.id?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hovItem===item.id?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>
+                  <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+                    <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovItem===item.id?'scale(1.06)':'scale(1)' }} />
+                    <span style={{ position:'absolute', top:10, left:10, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const }}>✦ SOUKNI CERTIFIED</span>
+                  </div>
+                  <div style={{ padding:'16px 18px' }}>
+                    <p style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em', fontSize:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</p>
+                    <p style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em', fontSize:18, color:C.mint, marginBottom:6 }}>{item.price.toLocaleString()} MAD</p>
+                    <p style={{ fontSize:11, color:C.muted }}>{item.location}</p>
+                  </div>
                 </div>
-              ))}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '0 24px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#3c4a46', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>⚙ Filters</span>
-                <button style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#2dd4bf', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,107,95,0.3)' }}>
-                  <Search size={18} color="white" />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* BREADCRUMB */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#3c4a46', padding: '16px 0 8px' }}>
-            <Link href={`/${locale}`} style={{ textDecoration: 'none', color: 'inherit' }}>Home</Link><ChevronRight size={14} />
-            <Link href={`/${locale}/vault`} style={{ textDecoration: 'none', color: 'inherit' }}>The Vault</Link><ChevronRight size={14} />
-            <span style={{ color: '#2dd4bf', fontWeight: 600 }}>Home &amp; Garden</span>
-          </nav>
-
-          {/* SUB-CATEGORY PILLS */}
-          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '12px', padding: '16px 0' }}>
-            {subCategories.map(c => (
-              <button key={c} onClick={() => setActiveSub(c)}
-                style={{ padding: '8px 24px', borderRadius: '100px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', border: 'none',
-                  backgroundColor: activeSub === c ? '#2dd4bf' : '#eef5f2', color: activeSub === c ? 'white' : '#161d1b' }}>
-                {c}
-              </button>
-            ))}
-            <button style={{ padding: '8px 24px', borderRadius: '100px', fontSize: '14px', fontWeight: 600, border: 'none', backgroundColor: '#eef5f2', color: '#161d1b', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              View More <ChevronDown size={16} />
-            </button>
-          </div>
-
-          {/* RESULTS HEADER */}
-          <div style={{ display: 'flex', flexWrap: 'wrap' as const, justifyContent: 'space-between', alignItems: 'center', gap: '16px', padding: '16px 0' }}>
-            <span style={{ color: '#3c4a46', fontSize: '15px' }}>New and Used Home &amp; Garden Items for sale in Rabat • 1,127 Ads</span>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}><ArrowUpDown size={16} /> Sort: Default</button>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', border: '1px solid rgba(186,202,197,0.3)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}><Bookmark size={16} /> Save Search</button>
-            </div>
-          </div>
-
-          {/* SELLER FILTERS */}
-          <div style={{ display: 'flex', gap: '12px', padding: '16px 0 32px' }}>
-            {sellerFilters.map(s => (
-              <button key={s.label} onClick={() => setActiveSeller(s.label)}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 24px', borderRadius: '100px', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                  backgroundColor: activeSeller === s.label ? '#2dd4bf' : 'transparent',
-                  border: activeSeller === s.label ? 'none' : '1px solid rgba(186,202,197,0.3)',
-                  color: activeSeller === s.label ? 'white' : '#161d1b' }}>
-                <s.icon size={16} /> {s.label}
-              </button>
+              </Link>
             ))}
           </div>
+        </section>
 
-          {/* ROW 1: Featured Selection */}
-          <div style={{ marginBottom: '0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#2dd4bf' }}>Featured Selection</h2>
-              <a href="#" style={{ color: '#2dd4bf', fontWeight: 600, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>See All →</a>
+        {/* AUTO PRO BANNER */}
+        <section style={{ marginBottom:64 }}>
+          <div style={{ position:'relative', height:220, borderRadius:40, overflow:'hidden', cursor:'pointer', boxShadow:'0 20px 60px rgba(0,0,0,0.15)' }}>
+            <img src="https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200" alt="Auto Pro"
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
+            <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <div style={{ display:'flex', gap:12 }}>
+                <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                </Link>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+              </div>
             </div>
-            <ListingGrid items={row1} />
           </div>
+        </section>
 
-          {/* AUTO PRO BANNER */}
-          <section style={{ marginBottom: '64px' }}>
-            <div style={{ position: 'relative', borderRadius: '1.5rem', overflow: 'hidden', height: '192px', backgroundColor: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px' }}>
-              <div style={{ maxWidth: '420px' }}>
-                <span style={{ display: 'inline-block', backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 600, marginBottom: '12px' }}>Partner Promotion</span>
-                <h3 style={{ color: 'white', fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>SouKni Auto Pro</h3>
-                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>Upgrade your lifestyle. Professional car delivery services now available in the hub.</p>
-              </div>
-              <button style={{ backgroundColor: 'white', color: '#2dd4bf', padding: '14px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>Learn More</button>
+        {/* TRENDING SEARCHES */}
+        <section style={{ marginBottom:64 }}>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>Trending in Home &amp; Garden</h2>
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap' as const }}>
+            {['Beni Ourain Rug','Rattan Furniture','Indoor Plants','Moroccan Lanterns','Kitchen Island','Garden Pergola','Zellige Tiles','Linen Bedding','Wall Art','Outdoor Sofa','Smart Lighting','Ceramic Vases'].map(tag=>(
+              <Link key={tag} href={`/${locale}/home-garden/home-decor`} style={{ textDecoration:'none' }}>
+                <span style={{ display:'inline-block', padding:'9px 18px', borderRadius:100, fontSize:13, fontWeight:700, backgroundColor:'white', color:C.ink, border:'1px solid rgba(186,202,197,0.4)', cursor:'pointer', transition:'all 0.15s' }}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.backgroundColor=C.mint;(e.currentTarget as HTMLElement).style.color='white'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.backgroundColor='white';(e.currentTarget as HTMLElement).style.color=C.ink}}>
+                  {tag}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* DIAMOND BANNER */}
+        <section style={{ position:'relative', borderRadius:40, overflow:'hidden', marginBottom:48 }}>
+          <img src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=1600" alt="Diamond"
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
+          <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Unlock the Power of Diamond.</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Priority placement, boosted visibility, and full access to Morocco's most discerning home buyers. Get started today.</p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Started</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ROW 2, 3, 4 */}
-          <ListingGrid items={row2} />
-          <ListingGrid items={row3} />
-          <ListingGrid items={row4} />
-
-          {/* SMALL CATEGORY TEASERS */}
-          <section style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px', marginBottom: '64px' }}>
-            <div style={{ position: 'relative', borderRadius: '1.5rem', overflow: 'hidden', height: '320px' }}>
-              <img src="https://images.pexels.com/photos/6045236/pexels-photo-6045236.jpeg?auto=compress&w=800" alt="Artisanal Textiles" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }} />
-              <div style={{ position: 'absolute', bottom: '32px', left: '32px', color: 'white', maxWidth: '320px' }}>
-                <h4 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>Artisanal Textiles</h4>
-                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', marginBottom: '16px' }}>Directly sourced from the Atlas Mountains.</p>
-                <button style={{ backgroundColor: '#2dd4bf', color: '#0f9b8e', padding: '8px 24px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Explore Collection</button>
-              </div>
+        {/* JOIN THE SOUKNI FAMILY */}
+        <section style={{ borderRadius:40, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
+          <div>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>JOIN THE SOUKNI FAMILY</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Start selling your home &amp; garden items today for free and reach millions of buyers across Morocco.</p>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
             </div>
-            <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', boxShadow: '0 10px 30px -10px rgba(0,107,95,0.1)', border: '1px solid #e8efec', padding: '24px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between' }}>
-              <div>
-                <Lightbulb size={48} color="#2dd4bf" style={{ marginBottom: '16px' }} />
-                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Statement Lighting</h3>
-                <p style={{ color: '#3c4a46', fontSize: '14px' }}>Bespoke lanterns and modern architectural light fixtures.</p>
-              </div>
-              <span style={{ color: '#2dd4bf', fontWeight: 700, marginTop: '16px' }}>From 2,400 MAD</span>
-            </div>
-            <div style={{ backgroundColor: 'white', borderRadius: '1.5rem', boxShadow: '0 10px 30px -10px rgba(0,107,95,0.1)', border: '1px solid #e8efec', padding: '24px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between' }}>
-              <div>
-                <Sprout size={48} color="#2dd4bf" style={{ marginBottom: '16px' }} />
-                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Garden Design</h3>
-                <p style={{ color: '#3c4a46', fontSize: '14px' }}>Consult with our masters for your dream oasis.</p>
-              </div>
-              <span style={{ color: '#2dd4bf', fontWeight: 700, marginTop: '16px' }}>Consultation: 500 MAD</span>
-            </div>
-          </section>
+          </div>
+          <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+          </Link>
+        </section>
 
-          {/* DIAMOND MEMBERSHIP BANNER */}
-          <section style={{ marginBottom: '64px' }}>
-            <div style={{ backgroundColor: '#161d1b', color: 'white', borderRadius: '1.5rem', padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px rgba(0,0,0,0.3)', flexWrap: 'wrap' as const, gap: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '1rem', background: 'linear-gradient(135deg, #ffac5a, #8d4f00)', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(3deg)', flexShrink: 0 }}>
-                  <Gem size={40} color="white" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>Diamond Membership</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.6)' }}>Verified sellers, priority support, and exclusive artisan early access.</p>
-                </div>
-              </div>
-              <button style={{ backgroundColor: 'white', color: '#161d1b', padding: '16px 32px', borderRadius: '100px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>Verify My Account</button>
-            </div>
-          </section>
-
-          {/* APP DOWNLOAD CTA */}
-          <section style={{ marginBottom: '64px' }}>
-            <div style={{ backgroundColor: '#e2eae7', borderRadius: '1.5rem', padding: '48px', display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', gap: '32px' }}>
-              <div style={{ flex: 1, minWidth: '280px' }}>
-                <h3 style={{ fontSize: '32px', fontWeight: 700, color: '#2dd4bf', marginBottom: '16px' }}>Join the SouKni Family</h3>
-                <p style={{ color: '#3c4a46', fontSize: '17px', marginBottom: '32px', maxWidth: '500px' }}>Get real-time updates on new artisan drops, message sellers instantly, and track your custom orders directly from your phone.</p>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <button style={{ backgroundColor: '#161d1b', color: 'white', padding: '14px 28px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>📱 App Store</button>
-                  <button style={{ backgroundColor: '#161d1b', color: 'white', padding: '14px 28px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>▶ Play Store</button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-        </div>
-      </main>
-
-      {/* FOOTER */}
+      </div>
     </div>
   )
 }
