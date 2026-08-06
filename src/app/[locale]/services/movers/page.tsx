@@ -194,7 +194,7 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
 
       {/* FILTER BAR */}
       <div style={{ maxWidth:'1440px', margin:'-24px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', display:'flex', alignItems:'stretch', height:'68px' }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', display:'flex', alignItems:'stretch', height:'68px', overflow:'visible' }}>
 
           {/* CITY */}
           <div style={{ flex:1, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, justifyContent:'center', gap:'2px' }}>

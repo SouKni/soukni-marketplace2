@@ -15,7 +15,7 @@ const categories = [
   { slug:'commercial',            label:'Commercial',          count:'1,195',  emoji:'🏪', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
   { slug:'new-projects',          label:'New Projects',        count:'84',     emoji:'🏗️', image:'https://images.pexels.com/photos/1918291/pexels-photo-1918291.jpeg?auto=compress&w=600' },
   { slug:'land-plots',         label:'Lands & Plots',       count:'2,410',  emoji:'🌾', image:'https://images.pexels.com/photos/162553/excavator-construction-site-machine-162553.jpeg?auto=compress&w=600' },
-  { slug:'commercial-properties', label:'Business Investment', count:'568',    emoji:'📈', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
+  { slug:'business-investment',   label:'Business Investment', count:'568',    emoji:'📈', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
 ]
 
 const apartments = [

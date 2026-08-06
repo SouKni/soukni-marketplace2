@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -226,8 +227,8 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
   const [showDiscount, setShowDiscount] = useState(false)
   const [sortOpen,     setSortOpen    ] = useState(false)
 
-  const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
-  const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
+  const cities        = ALL_CITIES
+  const neighborhoods = ['All Neighborhoods', ...getNeighborhoods(city)]
   const priceRanges   = ['Any Price','0 – 500 MAD','500 – 1,500 MAD','1,500 – 5,000 MAD','5,000 – 15,000 MAD','15,000+ MAD']
 
 
@@ -314,7 +315,7 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
       {/* ══ 2. ADVANCED FILTER BAR ═══════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} closeOthers={()=>{setNeighOpen(false);setPriceOpen(false)}} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={(c:string)=>{setCity(c);setNeighborhood("All Neighborhoods")}} closeOthers={()=>{setNeighOpen(false);setPriceOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>

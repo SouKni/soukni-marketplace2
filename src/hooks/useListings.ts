@@ -29,8 +29,8 @@ export function useListings() {
         .eq('status', 'active')
 
       if (filters.query) {
-        // Full-text search with fuzzy fallback
-        query = query.textSearch('search_vector', filters.query, { type: 'websearch', config: 'french' })
+        // ILIKE search on title + description (no search_vector column exists yet)
+        query = query.or(`title.ilike.%${filters.query}%,description.ilike.%${filters.query}%`)
       }
       if (filters.category) query = query.eq('category_slug', filters.category)
       if (filters.city)     query = query.eq('city', filters.city)

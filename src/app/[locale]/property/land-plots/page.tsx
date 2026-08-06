@@ -323,32 +323,32 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
             {LAND_CATS.map(cat=>(
-              <button key={cat.slug} onClick={()=>setZone(cat.slug as ZoneType)} style={{ all:'unset', cursor:'pointer' }}>
+              <Link key={cat.slug} href={`/${locale}/property/land-plots/${cat.slug}`} style={{ textDecoration:'none' }}>
                 <div onMouseEnter={()=>setHovCat(cat.slug)} onMouseLeave={()=>setHovCat(null)}
-                  style={{ position:'relative', borderRadius:22, overflow:'hidden', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat===cat.slug||zone===cat.slug?'scale(1.02)':'scale(1)', boxShadow:hovCat===cat.slug||zone===cat.slug?'0 20px 48px rgba(0,0,0,0.18)':'0 4px 12px rgba(0,0,0,0.08)' }}>
+                  style={{ position:'relative', borderRadius:22, overflow:'hidden', cursor:'pointer', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat===cat.slug?'scale(1.02)':'scale(1)', boxShadow:hovCat===cat.slug?'0 20px 48px rgba(0,0,0,0.18)':'0 4px 12px rgba(0,0,0,0.08)' }}>
                   <div style={{ aspectRatio:'4/3', overflow:'hidden' }}>
                     <img src={cat.image} alt={cat.label} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hovCat===cat.slug?'scale(1.08)':'scale(1)' }} />
                   </div>
-                  <div style={{ position:'absolute', inset:0, background:zone===cat.slug?'linear-gradient(to top,rgba(34,212,168,0.85),rgba(0,0,0,0.05))':hovCat===cat.slug?'linear-gradient(to top,rgba(34,212,168,0.75),rgba(0,0,0,0.05))':'linear-gradient(to top,rgba(15,23,42,0.8),rgba(0,0,0,0.05))' }} />
+                  <div style={{ position:'absolute', inset:0, background:hovCat===cat.slug?'linear-gradient(to top,rgba(34,212,168,0.75),rgba(0,0,0,0.05))':'linear-gradient(to top,rgba(15,23,42,0.8),rgba(0,0,0,0.05))' }} />
                   <div style={{ position:'absolute', top:12, left:12, fontSize:22 }}>{cat.emoji}</div>
                   <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'14px 16px' }}>
                     <p style={{ ...UB, fontSize:15, color:'white', marginBottom:2 }}>{cat.label}</p>
                     <p style={{ fontSize:11, color:'rgba(255,255,255,0.7)', fontWeight:600 }}>{cat.count} plots · {cat.desc}</p>
                   </div>
                 </div>
-              </button>
+              </Link>
             ))}
-            {/* View More */}
-            <button onClick={()=>setZone('all')} style={{ all:'unset', cursor:'pointer' }}>
+            {/* View All */}
+            <Link href={`/${locale}/property/land-plots`} style={{ textDecoration:'none' }}>
               <div onMouseEnter={()=>setHovCat('all')} onMouseLeave={()=>setHovCat(null)}
-                style={{ borderRadius:22, overflow:'hidden', aspectRatio:'4/3', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat==='all'?'scale(1.02)':'scale(1)', boxShadow:hovCat==='all'?'0 20px 48px rgba(0,0,0,0.18)':'0 4px 12px rgba(0,0,0,0.08)', background:hovCat==='all'?`linear-gradient(135deg,${C.mint},${C.mintDk})`:C.ink, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8 }}>
+                style={{ borderRadius:22, overflow:'hidden', aspectRatio:'4/3', cursor:'pointer', transition:'transform 0.2s, box-shadow 0.2s', transform:hovCat==='all'?'scale(1.02)':'scale(1)', boxShadow:hovCat==='all'?'0 20px 48px rgba(0,0,0,0.18)':'0 4px 12px rgba(0,0,0,0.08)', background:hovCat==='all'?`linear-gradient(135deg,${C.mint},${C.mintDk})`:C.ink, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <ChevronRight size={28} color="white"/>
                 <p style={{ ...UB, fontSize:15, color:'white' }}>View All</p>
                 <p style={{ fontSize:11, color:'rgba(255,255,255,0.6)', fontWeight:600 }}>All zone types</p>
               </div>
-            </button>
+            </Link>
           </div>
-        </section>
+                </section>
 
         {/* IMMO PRO BANNER */}
         <section style={{ marginBottom:64 }}>
