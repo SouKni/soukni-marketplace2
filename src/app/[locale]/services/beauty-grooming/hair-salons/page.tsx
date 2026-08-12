@@ -13,7 +13,7 @@ const SIBLINGS = [
   { slug:'wellness', label:'Wellness' },
 ]
 const topChoices = [
-  { id:'t1', title:'Women's Cut & Blowdry', price:200, location:'Rabat', rating:4.7, reviews:14, image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400', desc:'Haircuts, colouring, balayage, keratin and styling services. Certified on SouKni Morocco.' },
+  { id:'t1', title:"Women's Cut & Blowdry", price:200, location:'Rabat', rating:4.7, reviews:14, image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400', desc:'Haircuts, colouring, balayage, keratin and styling services. Certified on SouKni Morocco.' },
   { id:'t2', title:'Balayage & Highlights', price:450, location:'Casablanca', rating:4.8, reviews:26, image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=400', desc:'Haircuts, colouring, balayage, keratin and styling services. Certified on SouKni Morocco.' },
   { id:'t3', title:'Keratin Smoothing', price:700, location:'Marrakech', rating:4.9, reviews:38, image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=400', desc:'Haircuts, colouring, balayage, keratin and styling services. Certified on SouKni Morocco.' },
 ]
@@ -25,7 +25,7 @@ const bentoListings = [
   { id:'b5', title:'Mens Cut & Style', price:870, location:'Meknès', image:'https://images.pexels.com/photos/3997990/pexels-photo-3997990.jpeg?auto=compress&w=400' },
 ]
 const discoveryGrid = [
-  { id:'d1', title:'Women's Cut & Blowdry', price:100, location:'Rabat', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400' },
+  { id:'d1', title:"Women's Cut & Blowdry", price:100, location:'Rabat', image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=400' },
   { id:'d2', title:'Balayage & Highlights', price:230, location:'Casablanca', image:'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&w=400' },
   { id:'d3', title:'Keratin Smoothing', price:360, location:'Marrakech', image:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&w=400' },
   { id:'d4', title:'Full Hair Colour', price:490, location:'Tangier', image:'https://images.pexels.com/photos/1813272/pexels-photo-1813272.jpeg?auto=compress&w=400' },

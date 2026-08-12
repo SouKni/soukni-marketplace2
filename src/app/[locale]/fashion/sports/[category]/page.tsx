@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { ALL_CITIES } from '@/data/moroccoLocations'
 
 const C = {
   mint:   '#22d4a8',
@@ -64,7 +66,7 @@ const CATEGORIES: Record<string,{
   'swimming': {
     label:'Swimming', emoji:'🏊',
     hero:'https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&w=1600',
-    desc:'Competition and leisure swimwear from the world\'s top aquatic brands.',
+    desc:"Competition and leisure swimwear from the world's top aquatic brands.",
     count:'312',
     brands:['Speedo','Arena','TYR','Dolfin','Aqua Sphere','Nike Swim','Adidas Swim'],
     priceRanges:['Any Price','0 – 200 MAD','200 – 600 MAD','600 – 1,500 MAD','1,500+ MAD'],
@@ -88,7 +90,6 @@ const ALL_CATS = [
   { label:'Swimming',    slug:'swimming',    emoji:'🏊' },
   { label:'Team Sports', slug:'team-sports', emoji:'⚽' },
 ]
-
 const SPORT_IMGS = [
   'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&w=400',
   'https://images.pexels.com/photos/4162449/pexels-photo-4162449.jpeg?auto=compress&w=400',
@@ -153,6 +154,49 @@ function ListingCard({ brand, title, price, location, condition, img, badge, siz
   )
 }
 
+function ListRowCard({ brand, title, price, location, condition, img, badge, size }: any) {
+  const [saved, setSaved] = useState(false)
+  const [hov,   setHov  ] = useState(false)
+  return (
+    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'20px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, overflow:'hidden', boxShadow:hov?`0 12px 32px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer', display:'flex', height:'160px' }}>
+      <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'8px', left:'8px', zIndex:10 }}><Badge type={badge} /></div>
+        {condition && <div style={{ position:'absolute', bottom:'8px', left:'8px', zIndex:10, backgroundColor:'rgba(255,255,255,0.92)', padding:'2px 7px', borderRadius:'6px', fontSize:'8px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{condition}</div>}
+      </div>
+      <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between', minWidth:0 }}>
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'12px' }}>
+            <div style={{ minWidth:0 }}>
+              <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>{brand}</p>
+              <h4 style={{ fontSize:'15px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+              {size && <p style={{ fontSize:'10px', ...CB, color:C.muted }}>Size: {size}</p>}
+            </div>
+            <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ flexShrink:0, width:'30px', height:'30px', borderRadius:'50%', backgroundColor:C.surface, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Heart size={13} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
+            </button>
+          </div>
+          {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginTop:'6px' }}><MapPin size={10}/>{location}</p>}
+        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'12px' }}>
+          <p style={{ fontSize:'20px', ...CB, color:C.mint }}>{price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
+            >Message</button>
+            <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20sports%20listing%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
+              style={{ backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', textDecoration:'none', display:'flex', alignItems:'center' }}>
+              WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function makeListings(cat: string, count: number) {
   const titleMap: Record<string,string[]> = {
     'all-sports':  ['Dri-FIT Tee','Ultraboost 22','Align Legging','Bib Shorts II','Vital Seamless','Kayano 29'],
@@ -167,9 +211,10 @@ function makeListings(cat: string, count: number) {
   const titles = titleMap[cat] || titleMap['all-sports']
   const badges: BadgeT[] = ['certified','diamond','featured','new','certified','diamond']
   const sizes  = ['XS','S','M','L','XL','XXL']
-  const locs   = ['Rabat, Agdal','Rabat, Souissi','Casablanca','Rabat, Hay Riad','Rabat, Centre']
+  const locs   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const conds  = ['Like New','New','Excellent','Good',undefined,undefined]
   const colors = ['Black','White','Navy','Red','Green','Grey']
+  const sellers = ['SouKni Members','SouKni Pro','SouKni Members','SouKni Pro']
   return Array.from({length:count},(_,i)=>({
     brand:     cat_data.brands[i%cat_data.brands.length],
     title:     `${titles[i%titles.length]} — ${colors[i%colors.length]}`,
@@ -179,11 +224,74 @@ function makeListings(cat: string, count: number) {
     condition: conds[i%conds.length],
     img:       SPORT_IMGS[i%SPORT_IMGS.length],
     badge:     badges[i%badges.length],
+    seller:    sellers[i%sellers.length],
+    discount:  i%3===0 ? 10+((i*7)%30) : null,
+    isNew:     badges[i%badges.length]==='new' || i%5===0,
   }))
+}
+
+function DDrop({ label, value, options, open, setOpen, onChange, closeOthers, heroStyle }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); if (closeOthers) closeOthers(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
+              <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
 }
 
 export default function SportsCategoryPage() {
   const params   = useParams()
+  const router   = useRouter()
   const locale   = (params?.locale as string) || 'en'
   const catSlug  = (params?.category as string) || 'all-sports'
   const catData  = CATEGORIES[catSlug] || CATEGORIES['all-sports']
@@ -196,43 +304,48 @@ export default function SportsCategoryPage() {
   const [city,         setCity        ] = useState('Rabat')
   const [price,        setPrice       ] = useState('Any Price')
   const [sortBy,       setSortBy      ] = useState('Most Recent')
+  const [sortOpen,     setSortOpen    ] = useState(false)
   const [activeBrand,  setActiveBrand ] = useState('All Brands')
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [showNewOnly,  setShowNewOnly ] = useState(false)
+  const [showDiscount, setShowDiscount] = useState(false)
 
   const listings = makeListings(catSlug, 24)
-  const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const cities   = ALL_CITIES
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+  function parsePriceRange(range: string): [number, number] {
+    if (range === 'Any Price') return [0, Infinity]
+    const nums = range.replace(/MAD/g,'').split('–').map(s=>parseInt(s.replace(/,/g,'').trim()))
+    if (range.includes('+')) return [nums[0], Infinity]
+    return [nums[0], nums[1]]
   }
+  const [minP, maxP] = parsePriceRange(price)
+
+  let filtered = listings.filter(item => {
+    const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+    const matchesPrice   = item.price >= minP && item.price <= maxP
+    const matchesSeller  = activeSeller==='All Sellers' || item.seller===activeSeller
+    const matchesBrand   = activeBrand==='All Brands' || item.brand===activeBrand
+    const matchesNew     = !showNewOnly || item.isNew
+    const matchesDiscount= !showDiscount || item.discount
+    const matchesCity    = item.location === city
+    return matchesKeyword && matchesPrice && matchesSeller && matchesBrand && matchesNew && matchesDiscount && matchesCity
+  })
+
+  if (diamond) {
+    filtered = [...filtered].sort((a,b)=>{
+      const rank = (b:string)=> b==='diamond'?2:b==='certified'?1:0
+      return rank(b.badge) - rank(a.badge)
+    })
+  }
+  if (sortBy === 'Price: Low to High') filtered = [...filtered].sort((a,b)=>a.price-b.price)
+  if (sortBy === 'Price: High to Low') filtered = [...filtered].sort((a,b)=>b.price-a.price)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
 
-      {/* ══ HERO ══════════════════════════════════════════════ */}
+      {/* HERO */}
       <section style={{ position:'relative', height:'360px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
         <img src={catData.hero} alt={catData.label} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
         <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.52)' }} />
@@ -245,18 +358,21 @@ export default function SportsCategoryPage() {
           <div style={{ maxWidth:'620px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'6px', display:'flex', alignItems:'center', gap:'8px' }}>
             <div style={{ flex:1, display:'flex', alignItems:'center', gap:'8px', padding:'0 16px' }}>
               <Search size={16} color="rgba(255,255,255,0.7)" />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={`Search ${catData.label}...`}
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder={`Search ${catData.label}...`}
                 style={{ flex:1, background:'none', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px 28px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer' }}>SEARCH</button>
+            <button onClick={()=>router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`)}
+              style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px 28px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer' }}>SEARCH</button>
           </div>
         </div>
       </section>
 
-      {/* ══ FILTER BAR ════════════════════════════════════════ */}
+      {/* FILTER BAR */}
       <div style={{ maxWidth:'1280px', margin:'-36px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'68px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} closeOthers={()=>setPriceOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
@@ -268,12 +384,9 @@ export default function SportsCategoryPage() {
             </div>
           </div>
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="PRICE (MAD)" value={price} options={catData.priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <DDrop label="PRICE (MAD)" value={price} options={catData.priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} closeOthers={()=>setCityOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >
+          <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', flexShrink:0 }}>
             <SlidersHorizontal size={18} color={C.mint} />
             <span style={{ fontSize:'14px', ...UB, color:C.ink }}>Filters</span>
           </button>
@@ -282,7 +395,7 @@ export default function SportsCategoryPage() {
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
-        {/* ══ BREADCRUMB ════════════════════════════════════════ */}
+        {/* BREADCRUMB */}
         <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
           {[
             { label:'Rabat',              href:`/${locale}` },
@@ -292,126 +405,100 @@ export default function SportsCategoryPage() {
           ].map((c,i,arr)=>(
             <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
               {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none', transition:'color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-                  >{c.label}</Link>
+                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
                 : <span style={{ color:C.ink }}>{c.label}</span>}
               {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
             </span>
           ))}
         </nav>
 
-        {/* ══ TITLE + SORT ══════════════════════════════════════ */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
-          <div>
-            <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>{catData.label} for Sale in Rabat</h2>
-            <p style={{ fontSize:'14px', color:C.mint, ...CB }}>{catData.count} Ads</p>
+        {/* SORT + SAVE */}
+        <div style={{ display:'flex', justifyContent:'flex-end', gap:'10px', marginBottom:'20px' }}>
+          <div style={{ position:'relative' }}>
+            <button onClick={()=>setSortOpen(!sortOpen)} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>↕ Sort: {sortBy}</button>
+            {sortOpen && (
+              <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                {['Most Recent','Price: Low to High','Price: High to Low'].map(opt=>(
+                  <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}>{opt}</button>
+                ))}
+              </div>
+            )}
           </div>
-          <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-            <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
-              style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, outline:'none' }}>
-              {['Most Recent','Price: Low to High','Price: High to Low','Most Popular'].map(s=><option key={s}>{s}</option>)}
-            </select>
-            <button style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>🔖 Save Search</button>
-          </div>
+          <button style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>🔖 Save Search</button>
         </div>
 
-        {/* ══ SUB-CATEGORY PILLS ════════════════════════════════ */}
-        <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px' }}>
-          {ALL_CATS.map(cat=>(
-            <Link key={cat.slug} href={`/${locale}/fashion/sports/${cat.slug}`}
-              style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
-                backgroundColor: catSlug===cat.slug ? C.mint  : 'white',
-                color:           catSlug===cat.slug ? C.ink   : C.muted,
-                borderColor:     catSlug===cat.slug ? C.mint  : 'rgba(186,202,197,0.4)',
-              }}
-              onMouseEnter={e=>{if(catSlug!==cat.slug){e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink}}}
-              onMouseLeave={e=>{if(catSlug!==cat.slug){e.currentTarget.style.borderColor='rgba(186,202,197,0.4)';e.currentTarget.style.color=C.muted}}}
-            >{cat.emoji} {cat.label}</Link>
-          ))}
-        </div>
-
-        {/* ══ SELLER TABS + DIAMOND ══════════════════════════════ */}
+        {/* SELLER TABS + DIAMOND */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap' as const, gap:'14px', marginBottom:'20px' }}>
           <div style={{ display:'flex', gap:'4px', padding:'5px', backgroundColor:'#e8efec', borderRadius:'100px' }}>
             {['All Sellers','SouKni Members','SouKni Pro'].map(tab=>(
               <button key={tab} onClick={()=>setActiveSeller(tab)}
-                style={{ padding:'10px 24px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', border:'none', transition:'all 0.2s',
-                  backgroundColor: activeSeller===tab ? C.ink   : 'transparent',
-                  color:           activeSeller===tab ? 'white' : C.muted,
-                  boxShadow:       activeSeller===tab ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                }}
+                style={{ padding:'10px 24px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', border:'none',
+                  backgroundColor: activeSeller===tab ? C.ink : 'transparent', color: activeSeller===tab ? 'white' : C.muted }}
               >{tab}</button>
             ))}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'12px', cursor:'pointer' }} onClick={()=>setDiamond(!diamond)}>
             <span style={{ fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>Show SouKni Diamond Certified First</span>
-            <div style={{ width:'52px', height:'26px', borderRadius:'100px', backgroundColor:diamond?C.mint:'rgba(107,122,118,0.25)', position:'relative', transition:'background 0.25s' }}>
+            <div style={{ width:'52px', height:'26px', borderRadius:'100px', backgroundColor:diamond?C.mint:'rgba(107,122,118,0.25)', position:'relative' }}>
               <div style={{ position:'absolute', top:'3px', left:diamond?'29px':'3px', width:'20px', height:'20px', borderRadius:'50%', backgroundColor:C.ink, transition:'left 0.25s' }} />
             </div>
           </div>
         </div>
 
-        {/* ══ NEW ARRIVALS + GRID TOGGLE ════════════════════════ */}
+        {/* NEW ARRIVALS + GRID TOGGLE */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'32px' }}>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['✨ New Arrivals','📉 Price Drop Alert'].map(btn=>(
-              <button key={btn}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
-              >{btn}</button>
-            ))}
+            <button onClick={()=>setShowNewOnly(!showNewOnly)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showNewOnly?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showNewOnly?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showNewOnly?C.ink:C.muted }}
+            >✨ New Arrivals</button>
+            <button onClick={()=>setShowDiscount(!showDiscount)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showDiscount?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showDiscount?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showDiscount?C.ink:C.muted }}
+            >📉 Price Drop Alert</button>
           </div>
           <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
-            <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
-            <button onClick={()=>setGridView(false)} style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:!gridView?C.ink:'transparent', color:!gridView?'white':C.muted, transition:'all 0.2s' }}>☰</button>
+            <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted }}>⊞</button>
+            <button onClick={()=>setGridView(false)} style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', fontSize:'17px', backgroundColor:!gridView?C.ink:'transparent', color:!gridView?'white':C.muted }}>☰</button>
           </div>
         </div>
 
-        {/* ══ BRAND FILTER ══════════════════════════════════════ */}
+        {/* BRAND FILTER */}
         <div style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 24px', marginBottom:'32px', border:'1px solid rgba(107,122,118,0.1)', boxShadow:'0 2px 8px rgba(0,0,0,0.04)' }}>
           <p style={{ fontSize:'9px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.14em', marginBottom:'12px' }}>FILTER BY BRAND</p>
           <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' as const }}>
             <button onClick={()=>setActiveBrand('All Brands')}
-              style={{ padding:'7px 16px', borderRadius:'100px', fontSize:'10px', ...UB, border:`1px solid`, cursor:'pointer', transition:'all 0.15s',
-                backgroundColor: activeBrand==='All Brands'?C.mint:'transparent',
-                color:           activeBrand==='All Brands'?C.ink:C.muted,
-                borderColor:     activeBrand==='All Brands'?C.mint:'rgba(107,122,118,0.2)',
-              }}>All Brands</button>
+              style={{ padding:'7px 16px', borderRadius:'100px', fontSize:'10px', ...UB, border:`1px solid`, cursor:'pointer',
+                backgroundColor: activeBrand==='All Brands'?C.mint:'transparent', color: activeBrand==='All Brands'?C.ink:C.muted, borderColor: activeBrand==='All Brands'?C.mint:'rgba(107,122,118,0.2)' }}>All Brands</button>
             {catData.brands.map(brand=>(
               <button key={brand} onClick={()=>setActiveBrand(brand)}
-                style={{ padding:'7px 16px', borderRadius:'100px', fontSize:'10px', ...UB, border:`1px solid`, cursor:'pointer', transition:'all 0.15s',
-                  backgroundColor: activeBrand===brand?C.mint:'transparent',
-                  color:           activeBrand===brand?C.ink:C.muted,
-                  borderColor:     activeBrand===brand?C.mint:'rgba(107,122,118,0.2)',
-                }}
-                onMouseEnter={e=>{if(activeBrand!==brand){e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink}}}
-                onMouseLeave={e=>{if(activeBrand!==brand){e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}}
+                style={{ padding:'7px 16px', borderRadius:'100px', fontSize:'10px', ...UB, border:`1px solid`, cursor:'pointer',
+                  backgroundColor: activeBrand===brand?C.mint:'transparent', color: activeBrand===brand?C.ink:C.muted, borderColor: activeBrand===brand?C.mint:'rgba(107,122,118,0.2)' }}
               >{brand}</button>
             ))}
           </div>
         </div>
 
-        {/* ══ LISTINGS GRID ═════════════════════════════════════ */}
+        {/* LISTINGS GRID */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
-          </div>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {filtered.length} of {catData.count} results</p>
+          {filtered.length === 0 ? (
+            <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters. Try adjusting your search.</p>
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filtered.map((item,i)=><ListingCard key={i} {...item} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filtered.map((item,i)=><ListRowCard key={i} {...item} />)}
+            </div>
+          )}
         </section>
 
-        {/* ══ PAGINATION ════════════════════════════════════════ */}
+        {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
           <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
           {[1,2,3,4,5].map(p=>(
             <button key={p} onClick={()=>setPage(p)}
-              style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p?C.mint:'white',
-                color:           page===p?C.ink:C.muted,
-                borderColor:     page===p?C.mint:'rgba(107,122,118,0.12)',
-              }}
+              style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}
             >{p}</button>
           ))}
           <span style={{ color:C.muted }}>…</span>
@@ -419,16 +506,13 @@ export default function SportsCategoryPage() {
           <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
-        {/* ══ EXPLORE OTHER CATEGORIES ══════════════════════════ */}
+        {/* EXPLORE OTHER CATEGORIES */}
         <section style={{ marginBottom:'48px' }}>
           <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'20px' }}>Explore Other Sport Categories</h3>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'14px' }}>
             {ALL_CATS.filter(c=>c.slug!==catSlug).map(cat=>(
               <Link key={cat.slug} href={`/${locale}/fashion/sports/${cat.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.boxShadow=`0 8px 24px ${C.mint}18`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.1)';e.currentTarget.style.boxShadow='none'}}
-              >
+                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', display:'block' }}>
                 <p style={{ fontSize:'24px', marginBottom:'6px' }}>{cat.emoji}</p>
                 <p style={{ fontSize:'10px', ...UB, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>{cat.label}</p>
               </Link>
@@ -436,12 +520,10 @@ export default function SportsCategoryPage() {
           </div>
         </section>
 
-        {/* ══ BACK TO ALL SPORTS ════════════════════════════════ */}
+        {/* BACK */}
         <div style={{ textAlign:'center' as const }}>
           <Link href={`/${locale}/fashion/sports`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}
+            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}
           >← Back to All Sports</Link>
         </div>
       </main>

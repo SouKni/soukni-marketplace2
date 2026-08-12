@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ALL_CITIES } from '@/data/moroccoLocations'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 
 const C = {
@@ -117,20 +120,86 @@ function makeGrid(count: number) {
   const titles  = ['Takchita Brodée','Kaftan Cérémonie','Djellaba Classique','Gandoura Soie','Babouches Cuir','Caftan Moderne','Ceinture Brodée','Châle Traditionnel']
   const badges: BadgeT[] = ['certified','diamond','featured','new','certified','diamond']
   const imgs    = [I.g1,I.g2,I.g3,I.g4]
+  const sellers = ['SouKni Members','SouKni Pro','SouKni Members','SouKni Pro']
+  const locs = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   return Array.from({length:count},(_,i)=>({
     brand: brands[i%brands.length],
     title: titles[i%titles.length],
     price: 500 + ((i*1973)%15000),
     img:   imgs[i%imgs.length],
     badge: badges[i%badges.length],
+    seller: sellers[i%sellers.length],
+    discount: i%3===0 ? 10+((i*7)%30) : null,
+    isNew: badges[i%badges.length]==='new' || i%5===0,
+    location: locs[i%locs.length],
   }))
 }
 const gridItems = makeGrid(16)
 
 const CATS = ['Takchita','Djellaba','Gandoura','Kaftan','Babouches','Bridal Traditional']
 
+function DDrop({ label, value, options, open, setOpen, onChange, closeOthers, heroStyle }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); if (closeOthers) closeOthers(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
+              <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
+}
+
 export default function TraditionalPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
+  const router = useRouter()
 
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
@@ -141,34 +210,40 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const cities      = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const cities      = ALL_CITIES
   const priceRanges = ['Any Price','0 – 500 MAD','500 – 2,000 MAD','2,000 – 8,000 MAD','8,000 – 20,000 MAD','20,000+ MAD']
+  const [sortBy, setSortBy] = useState('Default')
+  const [sortOpen, setSortOpen] = useState(false)
+  const [showNewOnly, setShowNewOnly] = useState(false)
+  const [showDiscount, setShowDiscount] = useState(false)
+  const [gridView, setGridView] = useState(true)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+  function parsePriceRange(range: string): [number, number] {
+    if (range === 'Any Price') return [0, Infinity]
+    const nums = range.replace(/MAD/g,'').split('–').map(s=>parseInt(s.replace(/,/g,'').trim()))
+    if (range.includes('+')) return [nums[0], Infinity]
+    return [nums[0], nums[1]]
   }
+  const [minP, maxP] = parsePriceRange(price)
+
+  let filteredGrid = gridItems.filter(item => {
+    const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+    const matchesPrice = item.price >= minP && item.price <= maxP
+    const matchesSeller = activeSeller==='All Sellers' || item.seller===activeSeller
+    const matchesNew = !showNewOnly || item.isNew
+    const matchesDiscount = !showDiscount || item.discount
+    const matchesCity = item.location === city
+    return matchesKeyword && matchesPrice && matchesSeller && matchesNew && matchesDiscount && matchesCity
+  })
+  if (diamond) {
+    filteredGrid = [...filteredGrid].sort((a,b)=>{
+      const rank = (b:string)=> b==='diamond'?2:b==='certified'?1:0
+      return rank(b.badge) - rank(a.badge)
+    })
+  }
+  if (sortBy === 'Price: Low to High') filteredGrid = [...filteredGrid].sort((a,b)=>a.price-b.price)
+  if (sortBy === 'Price: High to Low') filteredGrid = [...filteredGrid].sort((a,b)=>b.price-a.price)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -186,14 +261,17 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
           <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
             <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>Rabat <ChevronDown size={14} /></div>
+              <DDrop label="" value={city} options={cities} open={heroCityOpen} setOpen={setHeroCityOpen} onChange={setCity} heroStyle />
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Takchita, Kaftan, Djellaba, Gandoura..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder="Takchita, Kaftan, Djellaba, Gandoura..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer' }}>SEARCH</button>
+            <button onClick={()=>router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`)}
+              style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer' }}>SEARCH</button>
           </div>
         </div>
       </section>
@@ -201,19 +279,21 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
       {/* FILTER BAR */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} closeOthers={()=>setPriceOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
               <Search size={13} color={C.muted} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Takchita, Kaftan, Djellaba..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder="Takchita, Kaftan, Djellaba..."
                 style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'14px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
               {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
           </div>
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} closeOthers={()=>setCityOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
@@ -253,12 +333,17 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
             <p style={{ fontSize:'14px', color:C.mint, ...CB }}>1,680 Ads</p>
           </div>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['Sort: Default','Save Search'].map(b=>(
-              <button key={b} style={{ border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'white', padding:'9px 18px', borderRadius:'12px', fontSize:'10px', ...UB, cursor:'pointer', color:C.muted, letterSpacing:'0.1em', textTransform:'uppercase' as const, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-              >{b}</button>
-            ))}
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)} style={{ border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'white', padding:'9px 18px', borderRadius:'12px', fontSize:'10px', ...UB, cursor:'pointer', color:C.ink, letterSpacing:'0.1em', textTransform:'uppercase' as const }}>Sort: {sortBy}</button>
+              {sortOpen && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}>{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button style={{ border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'white', padding:'9px 18px', borderRadius:'12px', fontSize:'10px', ...UB, cursor:'pointer', color:C.muted, letterSpacing:'0.1em', textTransform:'uppercase' as const }}>Save Search</button>
           </div>
         </div>
 
@@ -295,15 +380,19 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
           </div>
         </div>
 
-        {/* QUICK FILTERS */}
-        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'32px' }}>
+        {/* QUICK FILTERS + GRID TOGGLE */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'32px' }}>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['New Arrivals','Price Drop Alert'].map(btn=>(
-              <button key={btn} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-              >{btn}</button>
-            ))}
+            <button onClick={()=>setShowNewOnly(!showNewOnly)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showNewOnly?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showNewOnly?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showNewOnly?C.ink:C.muted }}
+            >New Arrivals</button>
+            <button onClick={()=>setShowDiscount(!showDiscount)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showDiscount?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showDiscount?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showDiscount?C.ink:C.muted }}
+            >Price Drop Alert</button>
+          </div>
+          <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
+            <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted }}>⊞</button>
+            <button onClick={()=>setGridView(false)} style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', fontSize:'17px', backgroundColor:!gridView?C.ink:'transparent', color:!gridView?'white':C.muted }}>☰</button>
           </div>
         </div>
 
@@ -317,12 +406,29 @@ export default function TraditionalPage({ params }: { params: Promise<{ locale: 
 
         {/* MAIN GRID — 4 rows of 4 */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing 16 of 1,680 results</p>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
-            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-              {row.map((item,j)=><GridCard key={j} {...item} />)}
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {filteredGrid.length} of 1,680 results</p>
+          {filteredGrid.length === 0 ? (
+            <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters.</p>
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filteredGrid.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
-          ))}
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filteredGrid.map((item,j)=>(
+                <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
+                  <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const }} />
+                  <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{item.brand}</p>
+                      <h4 style={{ fontSize:'15px', ...CB, color:C.ink }}>{item.title}</h4>
+                    </div>
+                    <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* PAGINATION */}

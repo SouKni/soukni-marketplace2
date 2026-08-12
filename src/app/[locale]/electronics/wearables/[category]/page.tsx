@@ -260,17 +260,18 @@ export default function WearablesCategoryPage() {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(brandTiles.length,7)},1fr)`, gap:12 }}>
             {brandTiles.map(brand=>(
-              <button key={brand.name} onClick={() => setActiveBrand(activeBrand===brand.name?'All Brands':brand.name)}
-                style={{ position:'relative', borderRadius:20, overflow:'hidden', border:`2px solid ${activeBrand===brand.name?C.mint:'transparent'}`, cursor:'pointer', transition:'all 0.2s', background:'none', padding:0 }}>
-                <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden' }}>
-                  <img src={brand.image} alt={brand.name} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.4s', transform:activeBrand===brand.name?'scale(1.06)':'scale(1)' }} />
-                  <div style={{ position:'absolute', inset:0, background:activeBrand===brand.name?'linear-gradient(to top,rgba(34,212,168,0.7),rgba(0,0,0,0.2))':'linear-gradient(to top,rgba(0,0,0,0.7),rgba(0,0,0,0.1))' }} />
-                  <div style={{ position:'absolute', bottom:10, left:0, right:0, textAlign:'center' }}>
+              <Link key={brand.name} href={`/${locale}/electronics/wearables/${catSlug}/${brand.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}`} style={{ textDecoration:'none' }}>
+                <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', borderRadius:20, border:`2px solid ${activeBrand===brand.name?C.mint:'transparent'}`, cursor:'pointer', transition:'all 0.2s' }}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.borderColor=C.mint}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.borderColor=activeBrand===brand.name?C.mint:'transparent'}}>
+                  <img src={brand.image} alt={brand.name} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.4s' }} />
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.75),rgba(0,0,0,0.1))' }} />
+                  <div style={{ position:'absolute', bottom:10, left:0, right:0, textAlign:'center' as const }}>
                     <p style={{ ...UB, fontSize:11, color:'white', marginBottom:2 }}>{brand.name}</p>
                     <p style={{ fontSize:9, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{brand.count} ads</p>
                   </div>
                 </div>
-              </button>
+              </Link>
             ))}
           </div>
         </section>

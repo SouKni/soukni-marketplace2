@@ -4,9 +4,11 @@ import { NextRequest, NextResponse } from 'next/server'
 const PROTECTED_ROUTES = [
   '/account',
   '/post-ad',
+  '/post-ad-voice',
   '/messages',
   '/orders',
   '/favorites',
+  '/saved-searches',
   '/notifications',
   '/analytics',
   '/bulk-import',
@@ -16,6 +18,8 @@ const PROTECTED_ROUTES = [
   '/escrow',
   '/translate',
   '/qr',
+  '/setup',
+  '/buyer-agent',
 ]
 
 const AUTH_ROUTES = ['/auth', '/login']

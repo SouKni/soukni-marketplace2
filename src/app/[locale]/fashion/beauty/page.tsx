@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
 import React from 'react'
 import Link from 'next/link'
@@ -153,22 +154,48 @@ const CATS = [
 function DDrop({ label, value, options, open, setOpen, onChange, closeOthers }: any) {
   const btnRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
     const closeOnScroll = () => setOpen(false)
     window.addEventListener('scroll', closeOnScroll, true)
-    return () => window.removeEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
   }, [open])
+
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>,
+    document.body
+  ) : null
 
   return (
     <div style={{ position:'relative', flex:1 }}>
       <button ref={btnRef} onClick={(e)=>{
           e.stopPropagation()
-          if (!open && btnRef.current) {
-            const rect = btnRef.current.getBoundingClientRect()
-            setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
-          }
           if (closeOthers) closeOthers()
           setOpen(!open)
         }}
@@ -179,20 +206,7 @@ function DDrop({ label, value, options, open, setOpen, onChange, closeOthers }: 
           <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
         </div>
       </button>
-      {open && (
-        <>
-          <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:9998 }} />
-          <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,220), backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.18)', border:'1px solid rgba(107,122,118,0.12)', zIndex:9999, overflow:'hidden', padding:'8px 0' }}>
-          {options.map((opt:string)=>(
-            <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-              style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-              onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-            >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-          ))}
-        </div>
-        </>
-      )}
+      {dropdown}
     </div>
   )
 }

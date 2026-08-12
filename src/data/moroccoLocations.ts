@@ -1,221 +1,70 @@
-export interface City {
-  name: string;
-  neighborhoods: string[];
+export const ALL_CITIES: string[] = [
+  "Casablanca", "Rabat", "Marrakech", "Tanger", "Agadir", "Fès", "Meknès",
+  "Mohammedia", "Oujda", "Kénitra", "Tétouan", "Salé", "Temara", "Khouribga",
+  "Laâyoune", "Safi", "Beni Mellal", "El Jadida", "Taza", "Nador", "Settat",
+  "Ksar El Kebir", "Larache", "Khemisset", "Tiznit", "Berrechid", "Oued Zem",
+  "Taourirt", "Berkane", "Sidi Slimane", "Errachidia", "Sidi Kacem", "Khenifra",
+  "Tiflet", "Essaouira", "Taroudant", "Oulad Teima", "Sefrou", "Ben Guerir",
+  "Tan-Tan", "Ouazzane", "Guercif", "Ouarzazate", "Al Hoceïma", "Chefchaouen",
+  "Fnidek", "Ifrane", "Asilah", "Azrou", "Guelmim", "Dakhla", "Taghazout",
+  "Skhirate", "Midelt", "Inezgane", "Zagora", "Bouznika", "Bouskoura",
+  "Mediouna", "Tinghir", "Azemmour", "Saidia",
+]
+
+const quartiersCasablanca = [
+  "Californie", "Anfa", "Val d'Anfa", "Ain Diab", "Racine", "Gauthier",
+  "Bourgogne", "Beauséjour", "Nassim", "Triangle d'Or", "Longchamps",
+  "Palmier", "Maarif", "Maârif Extension", "Abdelmoumen", "Oasis",
+  "Casablanca Finance City", "Marina", "Les Princesses",
+  "Centre Ville", "Mers Sultan", "Hôpitaux", "Belvédère", "Hippodrome",
+  "Hermitage", "La Gironde", "Sidi Belyout", "Ben Ejdia", "2 Mars",
+  "Hay Mohammadi", "Lusitania", "Tantonville", "Alsace Lorraine",
+  "Ain Sebaa", "Roches Noires", "Sidi Bernoussi",
+  "Sidi Moumen", "Ben M'sick", "Bachkou", "Industriel Nord",
+  "Hay Hassani", "Oulfa", "Lissasfa", "Hay Moulay Rachid", "Errahma",
+  "Aïn Chock", "Aïn Borja", "Sbata", "Hay Albaraka", "Hay Chrifa",
+  "Sidi Othmane", "Bournazil", "Al Fida", "Sidi Maarouf", "Al Qods",
+  "Route d'El Jadida", "Route d'Azemmour",
+  "Val Fleuri", "Al Madina Aljadida", "Al Mostakbal", "Bouskoura",
+  "Mediouna", "Sour Jdid",
+]
+
+export const NEIGHBORHOODS_BY_CITY: Record<string, string[]> = {
+  Casablanca: quartiersCasablanca,
+  Rabat: [
+    "Agdal", "Hay Riad", "Souissi", "Hassan", "Centre Ville",
+    "Océan", "Orangers", "Aviation", "Akkari", "Youssoufia",
+    "Diour Jamaa", "Madinat Al Irfane", "Hay Nahda",
+  ],
+  Marrakech: [
+    "Guéliz", "Hivernage", "Médina", "Mellah", "Agdal",
+    "Palmeraie", "Massira", "M'Hamid", "Targa", "Hay Mohammadi",
+    "Semlalia", "Sidi Youssef Ben Ali",
+  ],
+  Tanger: [
+    "Centre Ville", "Malabata", "California", "Marchane",
+    "Dradeb", "Béni Makada", "Val Fleuri", "Iberia",
+    "Moujahidine", "Médina", "Rmilat",
+  ],
+  Agadir: [
+    "Centre Ville", "Founty", "Hay Mohammadi", "Tilila",
+    "Anza", "Dcheira", "Hay Almassira", "Secteur Touristique",
+    "Cité Suisse", "Lazaret", "Inezgane",
+  ],
+  Fès: [
+    "Médina", "Ville Nouvelle", "Les Orangers", "Narjiss",
+    "Saiss", "Route Sefrou", "Dhar El Mahraz", "Ben Souda",
+  ],
+  Meknès: [
+    "Centre Ville", "Médina", "Hamria", "Hay Zitoune",
+    "Hay Salam", "Ville Nouvelle",
+  ],
+  Salé: [
+    "Tabriquet", "Hay Salam", "Médina", "Bettana",
+    "Hay Karima", "Hay Arrahma",
+  ],
 }
-
-export interface Province {
-  name: string;
-  cities: City[];
-}
-
-export interface Region {
-  region: string;
-  provinces: Province[];
-}
-
-export const MOROCCO_LOCATIONS: Region[] = [
-  {
-    "region": "Casablanca-Settat",
-    "provinces": [
-      {
-        "name": "Casablanca",
-        "cities": [
-          {
-            "name": "Casablanca",
-            "neighborhoods": [
-              "Anfa", "Maârif", "Gauthier", "Racine", "Palmier", "Ain Diab", "CIL",
-              "Bourgogne", "Belvédère", "Hassan II", "Sidi Belyout", "Centre Ville",
-              "Hay Hassani", "Oulfa", "Lissasfa", "Polo", "California", "Inara",
-              "Ain Sebaâ", "Hay Mohammadi", "Roches Noires", "Sidi Bernoussi",
-              "Sidi Moumen", "Ben M'Sick", "Moulay Rachid", "Sidi Othmane",
-              "Mers Sultan", "Derb Sultan", "Derb Omar", "Habous", "Sbata"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Nouaceur",
-        "cities": [
-          {
-            "name": "Bouskoura",
-            "neighborhoods": ["Ville Verte", "Bouskoura Centre", "Golf City", "Victoria"]
-          },
-          {
-            "name": "Dar Bouazza",
-            "neighborhoods": ["Tamaris", "Jackbeach", "Errahma"]
-          }
-        ]
-      },
-      {
-        "name": "Mohammedia",
-        "cities": [
-          {
-            "name": "Mohammedia",
-            "neighborhoods": ["Kasbah", "La Siesta", "Monica", "Mannesmann", "Riad", "El Alia", "Rachidia"]
-          }
-        ]
-      },
-      {
-        "name": "El Jadida",
-        "cities": [
-          {
-            "name": "El Jadida",
-            "neighborhoods": ["Cité Portugaise", "Plage", "Najmat El Jdida", "Sidi Bouzid", "Plateau", "Koudia"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "region": "Rabat-Salé-Kénitra",
-    "provinces": [
-      {
-        "name": "Rabat",
-        "cities": [
-          {
-            "name": "Rabat",
-            "neighborhoods": [
-              "Agdal", "Hay Riad", "Hassan", "Souissi", "Les Orangers", "Aviation",
-              "Yacoub El Mansour", "Takaddoum", "Océan", "Diour Jamaa", "Médina",
-              "Kasbah des Oudayas", "Hay El Fath", "Mabella", "Kamra"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Salé",
-        "cities": [
-          {
-            "name": "Salé",
-            "neighborhoods": ["Bettana", "Tabriquet", "Sala Al Jadida", "Hay Chmaou", "Rmaila", "Médina"]
-          }
-        ]
-      },
-      {
-        "name": "Skhirate-Témara",
-        "cities": [
-          {
-            "name": "Témara",
-            "neighborhoods": ["Wifaq", "Harhoura", "Fouarat", "Massira", "Nassim", "Al Mansour"]
-          }
-        ]
-      },
-      {
-        "name": "Kénitra",
-        "cities": [
-          {
-            "name": "Kénitra",
-            "neighborhoods": ["Mimosa", "Ville Haute", "Mehdia", "Val Fleuri", "Bir Rami", "Saknia"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "region": "Marrakech-Safi",
-    "provinces": [
-      {
-        "name": "Marrakech",
-        "cities": [
-          {
-            "name": "Marrakech",
-            "neighborhoods": [
-              "Guéliz", "Hivernage", "Médina", "Palmerai", "Sidi Youssef Ben Ali",
-              "Daoudiate", "Targa", "Agdal", "Al Izdirad", "Mhamid", "Massira",
-              "Amerchich", "Camp Ghoul", "Sidi Ghanem", "Sidi Abbad", "Azzouzia"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Essaouira",
-        "cities": [
-          {
-            "name": "Essaouira",
-            "neighborhoods": ["Médina", "Mellah", "Diyar My Ali", "Borj", "Lalla Amina", "Ghazoua"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "region": "Tanger-Tétouan-Al Hoceïma",
-    "provinces": [
-      {
-        "name": "Tanger-Assilah",
-        "cities": [
-          {
-            "name": "Tangier",
-            "neighborhoods": [
-              "Malabata", "Marshan", "Boukhalef", "Iberia", "Centre Ville", "California",
-              "Mesnana", "Charf", "Tanja Balbal", "Bni Makada", "Médina", "Kasbah",
-              "Val Fleuri", "Gzennaya", "Achakkar"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Tétouan",
-        "cities": [
-          {
-            "name": "Tétouan",
-            "neighborhoods": ["Médina", "Ensanche", "Touabel", "Sania Ramel", "Wilaya", "Coelma"]
-          }
-        ]
-      },
-      {
-        "name": "M'diq-Fnideq",
-        "cities": [
-          {
-            "name": "M'diq",
-            "neighborhoods": ["Rincón", "Kabila", "Restinga"]
-          },
-          {
-            "name": "Martil",
-            "neighborhoods": ["Chabar", "Miramar", "Riad"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "region": "Souss-Massa",
-    "provinces": [
-      {
-        "name": "Agadir-Ida Ou Tanane",
-        "cities": [
-          {
-            "name": "Agadir",
-            "neighborhoods": [
-              "Talborjt", "Secteur Touristique", "Charaf", "Dakhla", "Al Houda",
-              "Sonaba", "Hay Dakhla", "Bensergao", "Founty", "Anza", "Illigh", "Tikiouine"
-            ]
-          },
-          {
-            "name": "Taghazout",
-            "neighborhoods": ["Village", "Taghazout Bay"]
-          }
-        ]
-      }
-    ]
-  }
-];
-
-export const ALL_CITIES: string[] = MOROCCO_LOCATIONS.flatMap(region =>
-  region.provinces.flatMap(province =>
-    province.cities.map(city => city.name)
-  )
-);
 
 export function getNeighborhoods(cityName: string): string[] {
-  for (const region of MOROCCO_LOCATIONS) {
-    for (const province of region.provinces) {
-      for (const city of province.cities) {
-        if (city.name === cityName) {
-          return city.neighborhoods;
-        }
-      }
-    }
-  }
-  return [];
+  return NEIGHBORHOODS_BY_CITY[cityName] || []
 }

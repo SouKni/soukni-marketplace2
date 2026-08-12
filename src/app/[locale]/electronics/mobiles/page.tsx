@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
@@ -106,6 +106,43 @@ export default function MobilesPage({ params }: { params: Promise<{ locale:strin
   const [activePill, setActivePill] = useState('All Mobiles')
   const [page, setPage] = useState(1)
   const [viewGrid, setViewGrid] = useState(true)
+  const [heroCity, setHeroCity]       = useState('')
+  const [heroKeyword, setHeroKeyword] = useState('')
+  const [applied, setApplied]         = useState({ city:'', keyword:'' })
+  const [priceRange, setPriceRange]   = useState('Any Price')
+  const [priceOpen, setPriceOpen]     = useState(false)
+  const [conditionVal, setConditionVal] = useState('Any Condition')
+  const [condOpen, setCondOpen]       = useState(false)
+
+  const PRICES = ['Any Price','0–3000 MAD','3000–7000 MAD','7000–12000 MAD','12000+ MAD']
+  const CONDITIONS = ['Any Condition','Like New','New','Excellent','Good','Fair']
+
+  function applySearch() {
+    setApplied({ city: heroCity, keyword: heroKeyword })
+    setPriceOpen(false)
+    setCondOpen(false)
+  }
+
+  function clearAll() {
+    setHeroCity(''); setHeroKeyword('')
+    setApplied({ city:'', keyword:'' })
+    setPriceRange('Any Price'); setConditionVal('Any Condition')
+  }
+
+  const allListings = [...featuredListings, ...exclusiveListings, ...discoveryListings]
+
+  const filtered = useMemo(() => {
+    return allListings.filter(item => {
+      const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
+      const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
+      const mp = priceRange === 'Any Price' ? true
+               : priceRange === '0–3000 MAD'     ? item.price <= 3000
+               : priceRange === '3000–7000 MAD'  ? item.price > 3000  && item.price <= 7000
+               : priceRange === '7000–12000 MAD' ? item.price > 7000  && item.price <= 12000
+               : item.price > 12000
+      return mc && mk && mp
+    })
+  }, [applied, priceRange])
   const pills = [
     { label:'All Mobiles', slug:'all-mobiles' },
     { label:'Apple',       slug:'apple'       },

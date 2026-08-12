@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { ALL_CITIES } from '@/data/moroccoLocations'
 
 const C = {
   mint:   '#22d4a8',
@@ -85,7 +87,7 @@ function Badge({ type }: { type: BadgeT }) {
     certified:{ bg:C.mint,   color:C.ink,  label:'SouKni Certified' },
     diamond:  { bg:C.ink,    color:C.mint, label:'Diamond Member'   },
     featured: { bg:'#fbbf24',color:C.ink,  label:'Featured'         },
-    new:      { bg:C.mint, color:'white', label:'New Arrival'     },
+    new:      { bg:C.mint,   color:'white',label:'New Arrival'      },
   }
   const s = map[type]
   return (
@@ -131,6 +133,49 @@ function ListingCard({ brand, title, price, location, condition, img, badge, siz
   )
 }
 
+function ListRowCard({ brand, title, price, location, condition, img, badge, size }: any) {
+  const [saved, setSaved] = useState(false)
+  const [hov,   setHov  ] = useState(false)
+  return (
+    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'20px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, overflow:'hidden', boxShadow:hov?`0 12px 32px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer', display:'flex', height:'160px' }}>
+      <div style={{ position:'relative', width:'160px', flexShrink:0, overflow:'hidden', backgroundColor:C.cream }}>
+        <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
+        <div style={{ position:'absolute', top:'8px', left:'8px', zIndex:10 }}><Badge type={badge} /></div>
+        {condition && <div style={{ position:'absolute', bottom:'8px', left:'8px', zIndex:10, backgroundColor:'rgba(255,255,255,0.92)', padding:'2px 7px', borderRadius:'6px', fontSize:'8px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{condition}</div>}
+      </div>
+      <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between', minWidth:0 }}>
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'12px' }}>
+            <div style={{ minWidth:0 }}>
+              <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>{brand}</p>
+              <h4 style={{ fontSize:'15px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
+              {size && <p style={{ fontSize:'10px', ...CB, color:C.muted }}>{size}</p>}
+            </div>
+            <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ flexShrink:0, width:'30px', height:'30px', borderRadius:'50%', backgroundColor:C.surface, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Heart size={13} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
+            </button>
+          </div>
+          {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginTop:'6px' }}><MapPin size={10}/>{location}</p>}
+        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'12px' }}>
+          <p style={{ fontSize:'20px', ...CB, color:C.mint }}>{price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'8px' }}>
+            <button style={{ border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
+              onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
+            >Message</button>
+            <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20beauty%20listing%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
+              style={{ backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', textDecoration:'none', display:'flex', alignItems:'center' }}>
+              WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function makeListings(cat: string, count: number) {
   const titleMap: Record<string,string[]> = {
     'all-brands': ['Advanced Serum','Makeup Palette','Oud Perfume','Brush Set','Hair Mask','Foundation'],
@@ -149,8 +194,9 @@ function makeListings(cat: string, count: number) {
   const titles = titleMap[cat] || titleMap['all-brands']
   const sizes  = sizeMap[cat] || []
   const badges: BadgeT[] = ['certified','diamond','featured','new','certified','diamond']
-  const locs  = ['Rabat, Agdal','Rabat, Souissi','Casablanca','Rabat, Hay Riad','Rabat, Centre']
+  const locs  = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const conds = ['New Sealed','Like New','Opened Once','Good',undefined,undefined]
+  const sellers = ['SouKni Members','SouKni Pro','SouKni Members','SouKni Pro']
   return Array.from({length:count},(_,i)=>({
     brand:     cat_data.brands[i%cat_data.brands.length],
     title:     titles[i%titles.length],
@@ -160,11 +206,75 @@ function makeListings(cat: string, count: number) {
     size:      sizes[i%sizes.length],
     img:       BEAUTY_IMGS[i%BEAUTY_IMGS.length],
     badge:     badges[i%badges.length],
+    seller:    sellers[i%sellers.length],
+    discount:  i%3===0 ? 10+((i*7)%30) : null,
+    isNew:     badges[i%badges.length]==='new' || i%5===0,
   }))
+}
+
+function DDrop({ label, value, options, open, setOpen, onChange, closeOthers }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>,
+    document.body
+  ) : null
+
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{
+          e.stopPropagation()
+          if (closeOthers) closeOthers()
+          setOpen(!open)
+        }}
+        style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
+          <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+        </div>
+      </button>
+      {dropdown}
+    </div>
+  )
 }
 
 export default function BeautyCategoryPage() {
   const params   = useParams()
+  const router   = useRouter()
   const locale   = (params?.locale as string) || 'en'
   const catSlug  = (params?.category as string) || 'all-brands'
   const catData  = CATEGORIES[catSlug] || CATEGORIES['all-brands']
@@ -177,42 +287,46 @@ export default function BeautyCategoryPage() {
   const [city,         setCity        ] = useState('Rabat')
   const [price,        setPrice       ] = useState('Any Price')
   const [sortBy,       setSortBy      ] = useState('Most Recent')
+  const [sortOpen,     setSortOpen    ] = useState(false)
   const [activeBrand,  setActiveBrand ] = useState('All Brands')
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [showNewOnly,  setShowNewOnly ] = useState(false)
+  const [showDiscount, setShowDiscount] = useState(false)
 
   const listings = makeListings(catSlug, 24)
-  const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const cities   = ALL_CITIES
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+  function parsePriceRange(range: string): [number, number] {
+    if (range === 'Any Price') return [0, Infinity]
+    const nums = range.replace(/MAD/g,'').split('–').map(s=>parseInt(s.replace(/,/g,'').trim()))
+    if (range.includes('+')) return [nums[0], Infinity]
+    return [nums[0], nums[1]]
   }
+  const [minP, maxP] = parsePriceRange(price)
+
+  let filtered = listings.filter(item => {
+    const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+    const matchesPrice   = item.price >= minP && item.price <= maxP
+    const matchesSeller  = activeSeller==='All Sellers' || item.seller===activeSeller
+    const matchesBrand   = activeBrand==='All Brands' || item.brand===activeBrand
+    const matchesNew     = !showNewOnly || item.isNew
+    const matchesDiscount= !showDiscount || item.discount
+    const matchesCity    = item.location === city
+    return matchesKeyword && matchesPrice && matchesSeller && matchesBrand && matchesNew && matchesDiscount && matchesCity
+  })
+
+  if (diamond) {
+    filtered = [...filtered].sort((a,b)=>{
+      const rank = (b:string)=> b==='diamond'?2:b==='certified'?1:0
+      return rank(b.badge) - rank(a.badge)
+    })
+  }
+  if (sortBy === 'Price: Low to High') filtered = [...filtered].sort((a,b)=>a.price-b.price)
+  if (sortBy === 'Price: High to Low') filtered = [...filtered].sort((a,b)=>b.price-a.price)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
-
       {/* HERO */}
       <section style={{ position:'relative', height:'360px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
         <img src={catData.hero} alt={catData.label} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
@@ -224,18 +338,20 @@ export default function BeautyCategoryPage() {
           <div style={{ maxWidth:'620px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'6px', display:'flex', alignItems:'center', gap:'8px' }}>
             <div style={{ flex:1, display:'flex', alignItems:'center', gap:'8px', padding:'0 16px' }}>
               <Search size={16} color="rgba(255,255,255,0.7)" />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={`Search ${catData.label}...`}
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder={`Search ${catData.label}...`}
                 style={{ flex:1, background:'none', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px 28px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer' }}>SEARCH</button>
+            <button onClick={()=>router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`)}
+              style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px 28px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer' }}>SEARCH</button>
           </div>
         </div>
       </section>
-
       {/* FILTER BAR */}
       <div style={{ maxWidth:'1280px', margin:'-36px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'68px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} closeOthers={()=>setPriceOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
@@ -247,7 +363,7 @@ export default function BeautyCategoryPage() {
             </div>
           </div>
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="PRICE (MAD)" value={price} options={catData.priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <DDrop label="PRICE (MAD)" value={price} options={catData.priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} closeOthers={()=>setCityOpen(false)} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
@@ -260,7 +376,6 @@ export default function BeautyCategoryPage() {
       </div>
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
-
         {/* BREADCRUMB */}
         <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
           {[
@@ -288,14 +403,23 @@ export default function BeautyCategoryPage() {
             <p style={{ fontSize:'14px', color:C.mint, ...CB }}>{catData.count} Ads</p>
           </div>
           <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-            <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
-              style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, outline:'none' }}>
-              {['Most Recent','Price: Low to High','Price: High to Low','Most Popular'].map(s=><option key={s}>{s}</option>)}
-            </select>
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)}
+                style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}
+              >↕ Sort: {sortBy}</button>
+              {sortOpen && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Most Recent','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}}
+                      style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}
+                    >{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>🔖 Save Search</button>
           </div>
         </div>
-
         {/* SUB-CATEGORY PILLS */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px' }}>
           {ALL_CATS.map(cat=>(
@@ -331,17 +455,15 @@ export default function BeautyCategoryPage() {
             </div>
           </div>
         </div>
-
-        {/* GRID TOGGLE */}
+        {/* NEW ARRIVALS + GRID TOGGLE */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'32px' }}>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['✨ New Arrivals','📉 Price Drop Alert'].map(btn=>(
-              <button key={btn}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
-              >{btn}</button>
-            ))}
+            <button onClick={()=>setShowNewOnly(!showNewOnly)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showNewOnly?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showNewOnly?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showNewOnly?C.ink:C.muted, transition:'all 0.15s' }}
+            >✨ New Arrivals</button>
+            <button onClick={()=>setShowDiscount(!showDiscount)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showDiscount?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showDiscount?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showDiscount?C.ink:C.muted, transition:'all 0.15s' }}
+            >📉 Price Drop Alert</button>
           </div>
           <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
             <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
@@ -367,12 +489,33 @@ export default function BeautyCategoryPage() {
           </div>
         </div>
 
+        {/* ACTIVE FILTER CHIPS */}
+        {(city!=='Rabat' || price!=='Any Price' || keyword.trim()!=='' || activeBrand!=='All Brands' || showNewOnly || showDiscount) && (
+          <div style={{ display:'flex', flexWrap:'wrap' as const, gap:'8px', marginBottom:'16px', alignItems:'center' }}>
+            <span style={{ fontSize:'11px', color:C.muted, ...CB }}>Active filters:</span>
+            {city!=='Rabat' && <button onClick={()=>setCity('Rabat')} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>{city} ✕</button>}
+            {price!=='Any Price' && <button onClick={()=>setPrice('Any Price')} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>{price} ✕</button>}
+            {activeBrand!=='All Brands' && <button onClick={()=>setActiveBrand('All Brands')} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>{activeBrand} ✕</button>}
+            {keyword.trim()!=='' && <button onClick={()=>setKeyword('')} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>"{keyword}" ✕</button>}
+            {showNewOnly && <button onClick={()=>setShowNewOnly(false)} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>New Arrivals ✕</button>}
+            {showDiscount && <button onClick={()=>setShowDiscount(false)} style={{ padding:'6px 12px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', fontSize:'11px', ...CB, cursor:'pointer' }}>Price Drop ✕</button>}
+          </div>
+        )}
+
         {/* LISTINGS GRID */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
-          </div>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {filtered.length} of {catData.count} results</p>
+          {filtered.length === 0 ? (
+            <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters. Try adjusting your search.</p>
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filtered.map((item,i)=><ListingCard key={i} {...item} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filtered.map((item,i)=><ListRowCard key={i} {...item} />)}
+            </div>
+          )}
         </section>
 
         {/* PAGINATION */}
@@ -405,7 +548,6 @@ export default function BeautyCategoryPage() {
             ))}
           </div>
         </section>
-
         {/* BACK */}
         <div style={{ textAlign:'center' as const }}>
           <Link href={`/${locale}/fashion/beauty`}

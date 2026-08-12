@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, Heart } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useMarket } from '@/context/MarketContext'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
@@ -89,8 +90,17 @@ function ListingCard({ item, locale }: { item: MotorItem; locale: string }) {
 
 export default function MotorsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
+  const router = useRouter()
   const [keyword, setKeyword] = useState('')
+  const [city, setCity] = useState('')
   const [hovCat, setHovCat] = useState<string|null>(null)
+
+  function goSearch() {
+    const params = new URLSearchParams()
+    if (keyword) params.set('q', keyword)
+    if (city) params.set('city', city)
+    router.push(`/${locale}/motors/cars${params.toString() ? '?' + params.toString() : ''}`)
+  }
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -111,13 +121,13 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="All Morocco" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Make, model, year..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goSearch()} placeholder="Make, model, year..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+            <button onClick={goSearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
               <Search size={16} /> Search

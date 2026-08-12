@@ -372,7 +372,7 @@ export default function NewProjectsSubPage() {
         </div>
 
         <p style={{ fontSize:13, color:C.muted, fontWeight:600, marginBottom:20 }}>
-          {projects.length} {data.label.toLowerCase()} projects {status!=='all'?`· ${STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].label}`:''} {devType!=='all'?`· ${devType==='pro'?'Pro Developers':'Private Sellers'}':''}
+          {projects.length} {data.label.toLowerCase()} projects {status!=='all'?`· ${STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].label}`:''} {devType!=='all'?`· ${devType==='pro'?'Pro Developers':'Private Sellers'}`:''}
         </p>
 
         {/* PROJECTS */}

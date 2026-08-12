@@ -248,7 +248,7 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
         </div>
 
         <section style={{ marginBottom:'40px' }}>
-          <h3 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'16px', color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'16px' }}>Explore Other Customer Service Categories</h3>
+          <h3 style={{ fontWeight:900, letterSpacing:'0.06em', marginBottom:'16px' }}>Explore Other Customer Service Categories</h3>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'12px' }}>
             {ALL_CS_CATS.filter(c=>c.slug!=='customer-success').map(c=>(
               <Link key={c.slug} href={`/${locale}/jobs/customer-service/${c.slug}`}
