@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Camera, Mic, MicOff, Check, X, Sparkles, ArrowRight,
-  ChevronRight, RotateCcw, Upload, Loader
+  ChevronRight, RotateCcw, Upload, Loader, AlertTriangle
 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useListings } from '@/hooks/useListings'
+import { CATEGORIES, CONDITION_TO_DB, matchCategory } from '@/lib/categories'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -35,20 +38,40 @@ export default function VoicePostAdPage({ params }: { params: Promise<{ locale: 
   const fileRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
 
+  const { user } = useAuth()
+  const { createListing } = useListings()
+
   const [stage, setStage]         = useState<Stage>('photo')
   const [photos, setPhotos]       = useState<string[]>([])
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [listening, setListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [finalTranscript, setFinalTranscript] = useState('')
   const [parsed, setParsed]       = useState<ParsedAd | null>(null)
+  const [categorySlug, setCategorySlug] = useState('')
   const [error, setError]         = useState('')
+  const [publishing, setPublishing] = useState(false)
+  const [createdListingId, setCreatedListingId] = useState<string | null>(null)
 
-  const handlePhotos = (files: FileList) => {
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = e => setPhotos(prev => prev.length < 8 ? [...prev, e.target?.result as string] : prev)
-      reader.readAsDataURL(file)
-    })
+  const handlePhotos = async (files: FileList) => {
+    const list = Array.from(files)
+    if (!list.length) return
+    setUploadingPhotos(true)
+    for (const file of list) {
+      if (photos.length >= 8) break
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'listing')
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        if (data.url) setPhotos(prev => prev.length < 8 ? [...prev, data.url] : prev)
+      } catch {
+        // upload failures are non-fatal — the ad can still publish without this photo
+      }
+    }
+    setUploadingPhotos(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const startListening = () => {
@@ -101,13 +124,13 @@ export default function VoicePostAdPage({ params }: { params: Promise<{ locale: 
 
 "${transcript}"
 
-Extract a complete, professional listing. Categories available: Motors, Property, Electronics, Fashion, Home & Living, The Vault, Jobs, Services, Baby & Kids, Pets, Sports.
+Extract a complete, professional listing. Categories available: ${CATEGORIES.map(c => c.label).join(', ')}.
 
 Respond ONLY with valid JSON:
 {
   "title": "<compelling title max 80 chars>",
   "description": "<professional description 100-250 words based on what they said, filling gaps naturally>",
-  "category": "<best matching category>",
+  "category": "<best matching category, exactly one of the labels listed above>",
   "subcategory": "<specific subcategory>",
   "price": <number in MAD if mentioned, else null>,
   "condition": "<new|like_new|good|fair, best guess from context>",
@@ -121,20 +144,52 @@ Respond ONLY with valid JSON:
       const text = data.content?.[0]?.text || '{}'
       const result = JSON.parse(text.replace(/```json|```/g, '').trim())
       setParsed(result)
+      setCategorySlug(matchCategory(result.category)?.slug || '')
       setStage('review')
     } catch {
       setParsed({
         title: transcript.slice(0, 60),
         description: transcript,
-        category: 'Other', subcategory: 'Other',
+        category: '', subcategory: '',
         price: null, condition: 'good', city: '', currency: 'MAD'
       })
+      setCategorySlug('')
       setStage('review')
     }
   }
 
-  const publish = () => {
-    setStage('success')
+  const publish = async () => {
+    if (!parsed) return
+    if (!user) {
+      setError('You must be signed in to post an ad.')
+      return
+    }
+    if (!categorySlug) {
+      setError('Please pick a category before publishing.')
+      return
+    }
+    setPublishing(true)
+    setError('')
+    try {
+      const listing = await createListing({
+        seller_id: user.id,
+        title: parsed.title,
+        description: parsed.description,
+        category_slug: categorySlug,
+        subcategory: parsed.subcategory || '',
+        condition: CONDITION_TO_DB[parsed.condition] || (['new', 'like_new', 'good', 'fair', 'for_parts'].includes(parsed.condition) ? parsed.condition : null),
+        city: parsed.city || '',
+        images: photos,
+        price: Number(parsed.price || 0),
+        currency: parsed.currency || 'MAD',
+      })
+      setCreatedListingId(listing?.id ?? null)
+      setStage('success')
+    } catch (e: any) {
+      setError(e?.message || 'Something went wrong publishing your ad. Please try again.')
+    } finally {
+      setPublishing(false)
+    }
   }
 
   const StageIndicator = () => {
@@ -173,8 +228,12 @@ Respond ONLY with valid JSON:
           <strong style={{ color: INK }}>{parsed?.title}</strong> is now live. No typing needed!
         </p>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Link href={`/${locale}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 900, fontSize: '14px', textAlign: 'center' }}>Home</Link>
-          <button onClick={() => { setStage('photo'); setPhotos([]); setTranscript(''); setParsed(null) }}
+          {createdListingId ? (
+            <Link href={`/${locale}/listing/${createdListingId}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 900, fontSize: '14px', textAlign: 'center' }}>View My Ad</Link>
+          ) : (
+            <Link href={`/${locale}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 900, fontSize: '14px', textAlign: 'center' }}>Home</Link>
+          )}
+          <button onClick={() => { setStage('photo'); setPhotos([]); setTranscript(''); setParsed(null); setCategorySlug(''); setCreatedListingId(null); setError('') }}
             style={{ flex: 1, padding: '13px', borderRadius: '12px', background: MINT, color: 'white', border: 'none', fontWeight: 900, fontSize: '14px', cursor: 'pointer', fontFamily: FONT }}>
             Post Another
           </button>
@@ -219,10 +278,10 @@ Respond ONLY with valid JSON:
               <h2 style={{ fontSize: '18px', fontWeight: 900, color: INK, marginBottom: '6px', letterSpacing: '-0.03em' }}>Take a photo of your item</h2>
               <p style={{ fontSize: '13px', color: MUTED, fontWeight: 700, marginBottom: '20px' }}>You can add up to 8 photos</p>
 
-              <div onClick={() => fileRef.current?.click()}
-                style={{ border: `2px dashed ${MINT}`, borderRadius: '18px', padding: '40px 24px', textAlign: 'center', cursor: 'pointer', background: '#f0fdf9', marginBottom: '16px' }}>
+              <div onClick={() => !uploadingPhotos && fileRef.current?.click()}
+                style={{ border: `2px dashed ${MINT}`, borderRadius: '18px', padding: '40px 24px', textAlign: 'center', cursor: uploadingPhotos ? 'not-allowed' : 'pointer', background: '#f0fdf9', marginBottom: '16px', opacity: uploadingPhotos ? 0.6 : 1 }}>
                 <Camera size={36} color={MINT} style={{ marginBottom: '10px' }} />
-                <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>{photos.length === 0 ? 'Tap to take or upload photo' : `${photos.length} photo(s) added`}</p>
+                <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>{uploadingPhotos ? 'Uploading…' : photos.length === 0 ? 'Tap to take or upload photo' : `${photos.length} photo(s) added`}</p>
               </div>
 
               {photos.length > 0 && (
@@ -320,9 +379,13 @@ Respond ONLY with valid JSON:
                 <div style={{ flex: 1 }}>
                   <input value={parsed.title} onChange={e => setParsed({ ...parsed, title: e.target.value })}
                     style={{ width: '100%', fontSize: '15px', fontWeight: 900, color: INK, border: 'none', borderBottom: '2px solid #e2eae6', outline: 'none', padding: '4px 0', fontFamily: FONT, background: 'transparent' }} />
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 900, padding: '2px 8px', borderRadius: '100px', background: '#f0fdf9', color: MINT }}>{parsed.category}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 900, padding: '2px 8px', borderRadius: '100px', background: SURFACE, color: MUTED }}>{parsed.subcategory}</span>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+                    <select value={categorySlug} onChange={e => setCategorySlug(e.target.value)}
+                      style={{ fontSize: '11px', fontWeight: 900, padding: '4px 8px', borderRadius: '100px', background: categorySlug ? '#f0fdf9' : '#fef2f2', color: categorySlug ? MINT : '#ef4444', border: 'none', fontFamily: FONT, cursor: 'pointer' }}>
+                      <option value="">{parsed.category ? `AI guessed "${parsed.category}" — pick category` : 'Pick a category'}</option>
+                      {CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.emoji} {c.label}</option>)}
+                    </select>
+                    {parsed.subcategory && <span style={{ fontSize: '11px', fontWeight: 900, padding: '2px 8px', borderRadius: '100px', background: SURFACE, color: MUTED }}>{parsed.subcategory}</span>}
                   </div>
                 </div>
               </div>
@@ -347,14 +410,23 @@ Respond ONLY with valid JSON:
                 </div>
               </div>
 
+              {error && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', borderRadius: '10px', background: '#fef2f2', border: '1.5px solid #fecaca', marginBottom: '14px' }}>
+                  <AlertTriangle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#b91c1c' }}>{error}</span>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => { setStage('voice'); setTranscript(''); setParsed(null) }}
-                  style={{ padding: '13px 20px', borderRadius: '12px', border: '1.5px solid #e2eae6', background: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, color: INK }}>
+                <button onClick={() => { setStage('voice'); setTranscript(''); setParsed(null); setError('') }} disabled={publishing}
+                  style={{ padding: '13px 20px', borderRadius: '12px', border: '1.5px solid #e2eae6', background: 'white', fontSize: '14px', fontWeight: 900, cursor: publishing ? 'not-allowed' : 'pointer', fontFamily: FONT, color: INK, opacity: publishing ? 0.6 : 1 }}>
                   <RotateCcw size={14} style={{ display: 'inline', marginRight: '6px' }} /> Redo
                 </button>
-                <button onClick={publish}
-                  style={{ flex: 1, padding: '13px', borderRadius: '12px', background: `linear-gradient(135deg, ${MINT}, #0f9b8e)`, border: 'none', color: 'white', fontSize: '15px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <Sparkles size={16} /> Publish Ad
+                <button onClick={publish} disabled={publishing}
+                  style={{ flex: 1, padding: '13px', borderRadius: '12px', background: publishing ? MUTED : `linear-gradient(135deg, ${MINT}, #0f9b8e)`, border: 'none', color: 'white', fontSize: '15px', fontWeight: 900, cursor: publishing ? 'not-allowed' : 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  {publishing
+                    ? <><span style={{ width: '15px', height: '15px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.35)', borderTopColor: 'white', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} /> Publishing...</>
+                    : <><Sparkles size={16} /> Publish Ad</>}
                 </button>
               </div>
             </div>

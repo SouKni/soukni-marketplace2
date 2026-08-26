@@ -8,6 +8,7 @@ import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Cam
 import { useAuth } from '@/hooks/useAuth'
 import { useListings } from '@/hooks/useListings'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { CATEGORIES, CONDITION_TO_DB } from '@/lib/categories'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -25,36 +26,9 @@ const STEPS = [
   { id: 5, label: 'Review',    icon: <Eye size={16} /> },
 ]
 
-// category_slug values here MUST match what each browse page's fetchListings()
-// actually queries (src/app/[locale]/<slug>/page.tsx) — verified live, see
-// scripts/verify-category-slugs.mjs. Jobs/Services/Other were removed: no
-// browse page exists for them (job/service postings don't fit this table's
-// goods-oriented columns), so an ad posted there could never be found.
-const CATEGORIES = [
-  { slug: 'motors',                label: 'Motors',                  emoji: '🚗', subs: ['Used Cars', 'New Cars', 'Rental Cars', 'Parts & Accessories', 'Moto & Scooters', 'Trucks & Vans', 'Agro & Heavy', 'Car Services & Garages', 'Other Motors'] },
-  { slug: 'property',              label: 'Property',                emoji: '🏠', subs: ['For Sale', 'For Rent', 'Rooms', 'Daily Rentals', 'Commercial', 'New Projects', 'Land for Sale', 'Vacation Properties', 'Other Property'] },
-  { slug: 'electronics',           label: 'Mobiles & Electronics',   emoji: '📱', subs: ['Mobiles', 'Tablets', 'Laptops', 'Desktops', 'Audio', 'Wearables', 'Cameras', 'Projectors & TVs', 'Car Electronics', 'Accessories', 'Other Electronics'] },
-  { slug: 'fashion',               label: 'Fashion',                 emoji: '👗', subs: ["Women's Clothing", "Men's Clothing", 'Shoes', 'Bags', 'Traditional Wear', 'Sports & Activewear', 'Vintage & Thrift', 'Wedding & Eveningwear', 'Other Fashion'] },
-  { slug: 'home-garden',           label: 'Home & Garden',           emoji: '🛋️', subs: ['Furniture', 'Outdoors & Gardens', 'Curtains & Textiles', 'Lighting', 'Rugs & Carpets', 'Kitchen', 'Decor', 'Tools & DIY', 'Other Home'] },
-  { slug: 'home-appliances',       label: 'Home Appliances',         emoji: '🔌', subs: ['Washing Machines', 'Refrigerators', 'Kitchen Appliances', 'Air Conditioners', 'Vacuum Cleaners', 'Coffee Machines', 'Other Appliances'] },
-  { slug: 'jewelry-watches',       label: 'Jewelry & Watches',       emoji: '💍', subs: ['Luxury Watches', 'Rings', 'Necklaces', 'Bracelets', 'Earrings', 'Vintage & Antique'] },
-  { slug: 'musical-instruments',   label: 'Musical Instruments',     emoji: '🎸', subs: ['Guitars', 'Pianos & Keys', 'Drums & Percussion', 'Wind & Brass', 'String & Bowed', 'Traditional Instruments', 'Studio & DJ'] },
-  { slug: 'gaming',                label: 'Gaming',                  emoji: '🎮', subs: ['Consoles', 'Gaming PCs', 'Monitors', 'Headsets', 'Controllers', 'VR & AR', 'Handheld'] },
-  { slug: 'toys',                  label: 'Toys',                    emoji: '🎲', subs: ['Building & LEGO', 'Video Games', 'Action Figures', 'Dolls & Plush', 'Outdoor & Sport', 'Board Games', 'Educational Toys'] },
-  { slug: 'tickets-vouchers',      label: 'Tickets & Vouchers',      emoji: '🎟️', subs: ['Events & Shows', 'Sports & Golf', 'Dining & Restaurants', 'Shopping Vouchers', 'Travel & Hotels', 'Wellness & Spa', 'Gift Cards'] },
-  { slug: 'collectibles-treasures',label: 'Collectibles & Treasures',emoji: '🏺', subs: ['Vintage Watches', 'Amazigh & Berber Jewelry', 'Vintage Rugs', 'Pottery & Ceramics', 'Coins & Banknotes', 'Stamps & Postcards', 'Vintage Posters', 'Other Collectibles'] },
-  { slug: 'vault-other',           label: 'Vault — Other',           emoji: '💎', subs: ['Rare Collectibles', 'Art & Antiques', 'Vintage Items', 'Other Vault Items'] },
-  { slug: 'baby-items',            label: 'Baby & Kids',             emoji: '🧸', subs: ['Baby Clothes', 'Toys', 'Strollers & Prams', 'Car Seats', 'Baby Gear', 'Kids Furniture', 'School Supplies', 'Other Baby & Kids'] },
-  { slug: 'pets-accessories',      label: 'Pets',                    emoji: '🐾', subs: ['Dogs', 'Cats', 'Birds', 'Fish & Aquarium', 'Pet Food', 'Pet Accessories', 'Vet Services', 'Other Pets'] },
-  { slug: 'sports-equipment',      label: 'Sports & Hobbies',        emoji: '⚽', subs: ['Football', 'Fitness & Gym', 'Cycling', 'Martial Arts', 'Swimming', 'Tennis & Racket', 'Outdoor & Hiking', 'Books & Magazines', 'Art & Craft', 'Other Sports'] },
-]
-
 const CONDITIONS  = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
 const CITIES      = ['Rabat', 'Casablanca', 'Marrakech', 'Fès', 'Tangier', 'Agadir', 'Meknès', 'Oujda', 'Kenitra', 'Tétouan', 'Settat', 'Laâyoune']
 const CURRENCIES  = ['MAD', 'EUR', 'USD', 'GBP']
-
-// `listings.condition` is a lowercase/underscore DB enum; the form shows human labels.
-const CONDITION_TO_DB: Record<string, string> = { 'New': 'new', 'Like New': 'like_new', 'Good': 'good', 'Fair': 'fair', 'For Parts': 'for_parts' }
 
 export default function PostAdPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
