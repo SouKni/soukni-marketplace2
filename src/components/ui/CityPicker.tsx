@@ -2,23 +2,28 @@
 import { useState, useRef, useEffect } from 'react'
 import { MapPin, ChevronDown } from 'lucide-react'
 import { cities, quartiersByCity } from '@/data/locations'
+import { useDictionary } from '@/lib/useDictionary'
 
 interface CityPickerProps {
   onSelect?: (city: string, quartier?: string) => void
   placeholder?: string
   light?: boolean
+  locale?: string
 }
 
-export default function CityPicker({ onSelect, placeholder = 'All Morocco', light = false }: CityPickerProps) {
+export default function CityPicker({ onSelect, placeholder, light = false, locale = 'en' }: CityPickerProps) {
+  const t = useDictionary(locale)
   const [open, setOpen] = useState(false)
   const [selectedCity, setSelectedCity] = useState('')
   const [selectedQuartier, setSelectedQuartier] = useState('')
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
+  const resolvedPlaceholder = placeholder ?? t.locations.allMorocco
+
   const quartiers = selectedCity ? (quartiersByCity[selectedCity] || []) : []
   const filtered = cities.filter(c => c.toLowerCase().includes(search.toLowerCase()))
-  const label = selectedQuartier ? `${selectedCity}, ${selectedQuartier}` : selectedCity || placeholder
+  const label = selectedQuartier ? `${selectedCity}, ${selectedQuartier}` : selectedCity || resolvedPlaceholder
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -46,7 +51,6 @@ export default function CityPicker({ onSelect, placeholder = 'All Morocco', ligh
 
   const textColor = light ? 'rgba(255,255,255,0.9)' : '#161d1b'
   const mutedColor = light ? 'rgba(255,255,255,0.6)' : '#6b7a76'
-  const borderColor = light ? 'rgba(255,255,255,0.2)' : '#f1f5f9'
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }} onClick={() => setOpen(!open)}>
@@ -62,13 +66,13 @@ export default function CityPicker({ onSelect, placeholder = 'All Morocco', ligh
             <>
               <div style={{ padding: '12px 14px', borderBottom: '1px solid #f8fafc' }}>
                 <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search city..." onClick={e => e.stopPropagation()}
+                  placeholder={t.locations.searchCity} onClick={e => e.stopPropagation()}
                   style={{ width: '100%', border: 'none', outline: 'none', fontSize: '13px', fontFamily: 'Inter, sans-serif', color: '#161d1b', backgroundColor: '#f4fbf8', padding: '8px 12px', borderRadius: '100px' }} />
               </div>
               <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
                 <div onClick={() => { setSelectedCity(''); setSelectedQuartier(''); onSelect?.(''); setOpen(false) }}
                   style={{ padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: '#22d4a8', cursor: 'pointer', borderBottom: '1px solid #f8fafc' }}>
-                  All Morocco
+                  {t.locations.allMorocco}
                 </div>
                 {filtered.map(city => (
                   <div key={city} onClick={() => pickCity(city)}
@@ -87,12 +91,12 @@ export default function CityPicker({ onSelect, placeholder = 'All Morocco', ligh
                   style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#22d4a8', fontSize: '13px', fontWeight: 700, padding: 0, fontFamily: 'Inter, sans-serif' }}>
                   ← {selectedCity}
                 </button>
-                <span style={{ fontSize: '13px', color: '#6b7a76' }}>· pick a neighbourhood</span>
+                <span style={{ fontSize: '13px', color: '#6b7a76' }}>· {t.locations.pickNeighbourhood}</span>
               </div>
               <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
                 <div onClick={() => { onSelect?.(selectedCity); setOpen(false) }}
                   style={{ padding: '9px 16px', fontSize: '13px', fontWeight: 600, color: '#22d4a8', cursor: 'pointer', borderBottom: '1px solid #f8fafc' }}>
-                  All {selectedCity}
+                  {t.locations.all} {selectedCity}
                 </div>
                 {quartiers.map(q => (
                   <div key={q} onClick={() => pickQuartier(q)}

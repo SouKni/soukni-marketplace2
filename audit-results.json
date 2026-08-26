@@ -1,0 +1,503 @@
+[
+  {
+    "route": "/en",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/welcome",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/search",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/search?q=iphone",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/feed",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/map",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/ar-finder",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>\n      <RedirectBoundary>\n        <RedirectErrorBoundary router={{...}}>\n          <InnerLayoutRouter url=\"/en/ar-finder\" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>\n            <SegmentViewNode type=\"page\" pagePath=\"[locale]/a...\">\n              <SegmentTrieNode>\n              <ClientPageRoot Component={function ARFinderPage} searchParams={{}} params={{locale:\"en\"}}>\n                <ARFinderPage params={Promise} searchParams={Promise}>\n                  <div style={{...}}>\n                    <style>\n                    <div style={{position:\"...\", ...}}>\n                      <div style={{width:\"100%\", ...}}>\n                        <div>\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            ...\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            ...\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            ...\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                        <div style={{position:\"...\", ...}}>\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.8)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.1)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,0,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 0, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                          <div style={{position:\"...\", ...}}>\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                            <div\n                              style={{\n+                               flex: 1\n+                               background: \"rgba(255,255,200,0.1)\"\n+                               borderRadius: \"1px\"\n-                               flex-grow: \"1\"\n-                               flex-shrink: \"1\"\n-                               flex-basis: \"0%\"\n-                               background-image: \"initial\"\n-                               background-position-x: \"initial\"\n-                               background-position-y: \"initial\"\n-                               background-size: \"initial\"\n-                               background-repeat: \"initial\"\n-                               background-attachment: \"initial\"\n-                               background-origin: \"initial\"\n-                               background-clip: \"initial\"\n-                               background-color: \"rgba(255, 255, 200, 0.8)\"\n-                               border-top-left-radius: \"1px\"\n-                               border-top-right-radius: \"1px\"\n-                               border-bottom-right-radius: \"1px\"\n-                               border-bottom-left-radius: \"1px\"\n                              }}\n                            >\n                        ...\n                      ...\n            ...\n          ...\n"
+    ]
+  },
+  {
+    "route": "/en/help",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/safety",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/contact",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/terms",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/privacy",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/about",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/listing/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/listing/4",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/listing/iphone-15-pro-max",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 400 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/auction/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/auction/10",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/seller/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/seller/youssef-alami",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/auth",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/login",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/setup",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/account",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/account/my-ads",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/account/edit-ad/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/account/edit-ad/2",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/account/edit-ad/3",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/favorites",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/saved-searches",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/post-ad",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/post-ad-voice",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/bulk-import",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/boost/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/boost/2",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/boost/3",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/orders",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/messages",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/notifications",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/escrow/TXN-2026-0029",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/review/TXN-2026-0029",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/review/TXN-2026-0041",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/report/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/report/2",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/report/8",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/diamond",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/buyer-agent",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/analytics",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/qr/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/translate/1",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/admin",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/motors",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/property",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/vault",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/fashion",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/jobs",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/electronics",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/home-garden",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/services",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/property/for-sale",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/property/for-rent",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/property/rooms",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/property/commercial",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/property/daily-rentals",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/property/new-projects",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": []
+  },
+  {
+    "route": "/en/property/land-plots",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  },
+  {
+    "route": "/en/property/business-investment",
+    "status": 200,
+    "pageError": "This page could not be found",
+    "error": null,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  }
+]

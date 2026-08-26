@@ -1,66 +1,6 @@
 [
   {
-    "url": "http://localhost:3000/fr/community/pro-services",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/wellness-spa",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/other-services",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/consultants",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/tutors",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/home-maintenance",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/community/movers",
-    "status": 404
-  },
-  {
-    "url": "http://localhost:3000/fr/services/beauty-grooming/hair-salons",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/services/pro-services",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/services/tutors",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/electronics",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/fashion",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/property",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/motors",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/favorites",
-    "status": 500
-  },
-  {
-    "url": "http://localhost:3000/fr/notifications",
+    "url": "http://localhost:3000/fr",
     "status": 500
   },
   {

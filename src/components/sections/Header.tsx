@@ -6,28 +6,33 @@ import VisualSearch from '@/components/ui/VisualSearch'
 import { useState, useEffect } from 'react'
 import { Bell, Heart, Menu, X, ChevronDown, Search, User } from 'lucide-react'
 import CityPicker from '@/components/ui/CityPicker'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import type { Locale } from '@/lib/types'
 import { useMarket, type Currency } from '@/context/MarketContext'
 
 const verticals = [
-  { key: 'motors',      slug: 'motors',      label: { en: 'Motors',               fr: 'Voitures',        ar: 'سيارات',     es: 'Motores',    de: 'Motoren'    } },
-  { key: 'property',    slug: 'property',    label: { en: 'Property',             fr: 'Immobilier',      ar: 'عقارات',     es: 'Propiedad',  de: 'Immobilien' } },
-  { key: 'vault',       slug: 'vault',       label: { en: 'The Vault',            fr: 'Le Vault',        ar: 'الخزنة',     es: 'El Vault',   de: 'Der Vault'  } },
-  { key: 'fashion',     slug: 'fashion',     label: { en: 'Fashion',              fr: 'Mode',            ar: 'موضة',       es: 'Moda',       de: 'Mode'       } },
-  { key: 'jobs',        slug: 'jobs',        label: { en: 'Jobs',                 fr: 'Emplois',         ar: 'وظائف',      es: 'Empleo',     de: 'Jobs'       } },
-  { key: 'electronics', slug: 'electronics', label: { en: 'Mobiles & Electronics',fr: 'Électronique',    ar: 'إلكترونيات', es: 'Electrónica',de: 'Elektronik' } },
-  { key: 'home-garden', slug: 'home-garden', label: { en: 'Home & Garden',        fr: 'Maison & Jardin', ar: 'منزل وحديقة',es: 'Hogar',      de: 'Haus'       } },
-  { key: 'services',    slug: 'services',    label: { en: 'Services',             fr: 'Services',        ar: 'خدمات',      es: 'Servicios',  de: 'Dienste'    } },
+  { key: 'motors',      slug: 'motors',      label: { en: 'Motors',               fr: 'Voitures',        ar: 'سيارات',     es: 'Motores',    de: 'Motoren',    ber: 'ⵜⵉⴽⵕⴰⵙ'      } },
+  { key: 'property',    slug: 'property',    label: { en: 'Property',             fr: 'Immobilier',      ar: 'عقارات',     es: 'Propiedad',  de: 'Immobilien', ber: 'ⵜⵉⵖⵔⵎⵜ'       } },
+  { key: 'vault',       slug: 'vault',       label: { en: 'The Vault',            fr: 'Le Vault',        ar: 'الخزنة',     es: 'El Vault',   de: 'Der Vault',  ber: 'ⴰⵙⵎⴽⵍ'        } },
+  { key: 'fashion',     slug: 'fashion',     label: { en: 'Fashion',              fr: 'Mode',            ar: 'موضة',       es: 'Moda',       de: 'Mode',       ber: 'ⵍⵍⵉⴱⴰⵙ'       } },
+  { key: 'jobs',        slug: 'jobs',        label: { en: 'Jobs',                 fr: 'Emplois',         ar: 'وظائف',      es: 'Empleo',     de: 'Jobs',       ber: 'ⵜⵉⵡⵓⵔⵉⵡⵉⵏ'    } },
+  { key: 'electronics', slug: 'electronics', label: { en: 'Mobiles & Electronics',fr: 'Électronique',    ar: 'إلكترونيات', es: 'Electrónica',de: 'Elektronik', ber: 'ⵜⵉⵎⵙⵙⵉⵢⵉⵏ'    } },
+  { key: 'home-garden', slug: 'home-garden', label: { en: 'Home & Garden',        fr: 'Maison & Jardin', ar: 'منزل وحديقة',es: 'Hogar',      de: 'Haus',       ber: 'ⴰⵅⵅⴰⵎ ⴷ ⵓⵔⵜⵉ' } },
+  { key: 'services',    slug: 'services',    label: { en: 'Services',             fr: 'Services',        ar: 'خدمات',      es: 'Servicios',  de: 'Dienste',    ber: 'ⵜⵉⵎⴰⵡⴰⵙⵉⵏ'    } },
 ]
 
 const languages: { code: Locale; label: string }[] = [
-  { code: 'en', label: 'English'  },
-  { code: 'fr', label: 'Français' },
-  { code: 'ar', label: 'العربية'  },
-  { code: 'es', label: 'Español'  },
-  { code: 'de', label: 'Deutsch'  },
+  { code: 'en',  label: 'English'   },
+  { code: 'fr',  label: 'Français'  },
+  { code: 'ar',  label: 'العربية'   },
+  { code: 'ber', label: 'ⵜⴰⵎⴰⵣⵉⵖⵜ'  },
+  { code: 'es',  label: 'Español'   },
+  { code: 'de',  label: 'Deutsch'   },
 ]
+
+const shortCode: Record<Locale, string> = {
+  en: 'EN', fr: 'FR', ar: 'ع', ber: 'ⵣ', es: 'ES', de: 'DE',
+}
 
 const currencies: Currency[] = ['MAD', 'EUR', 'USD', 'GBP']
 
@@ -36,7 +41,11 @@ interface HeaderProps {
   currentSlug?: string
 }
 
-export default function Header({ locale, currentSlug }: HeaderProps) {
+export default function Header({ locale, currentSlug: currentSlugProp }: HeaderProps) {
+  const pathname = usePathname()
+  // Derive the path after /{locale}/ so language switching preserves the current page
+  const computedSlug = pathname?.split('/').slice(2).join('/') || ''
+  const currentSlug = currentSlugProp ?? computedSlug
   const [scrolled,    setScrolled   ] = useState(false)
   const [mobileOpen,  setMobileOpen ] = useState(false)
   const [langOpen,    setLangOpen   ] = useState(false)
@@ -95,7 +104,7 @@ export default function Header({ locale, currentSlug }: HeaderProps) {
               </div>
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '100px', backgroundColor: '#e8efec', fontSize: '12px', fontWeight: 600, color: '#3c4a46', position: 'relative', zIndex: 100 }}>
-              <CityPicker placeholder="All Morocco" />
+              <CityPicker locale={locale} />
             </div>
           </div>
 
@@ -116,8 +125,8 @@ export default function Header({ locale, currentSlug }: HeaderProps) {
             {/* Language */}
             <div data-dropdown style={{ position: 'relative' }}>
               <button onClick={() => { setLangOpen(!langOpen); setCurrOpen(false); setUserOpen(false) }}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', borderRadius: '8px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '12px', fontWeight: 700, color: '#6b7a76', textTransform: 'uppercase' }}>
-                {locale} <ChevronDown size={11} />
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', borderRadius: '8px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '12px', fontWeight: 700, color: '#6b7a76' }}>
+                {shortCode[locale] ?? locale.toUpperCase()} <ChevronDown size={11} />
               </button>
               {langOpen && (
                 <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', overflow: 'hidden', minWidth: '140px', zIndex: 200 }}>
@@ -246,7 +255,7 @@ export default function Header({ locale, currentSlug }: HeaderProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', overflowX: 'auto', flex: 1 }}>
             {verticals.map(v => {
               const label = v.label[locale] ?? v.label.en
-              const isActive = currentSlug === v.slug
+              const isActive = currentSlug === v.slug || currentSlug.startsWith(v.slug + '/')
               return (
                 <Link key={v.slug} href={`/${locale}/${v.slug}`}
                   style={{ textDecoration: 'none', padding: '6px 14px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: isActive ? '#22d4a8' : '#64748b', borderBottom: isActive ? '2px solid #22d4a8' : '2px solid transparent', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', transition: 'color 0.15s' }}

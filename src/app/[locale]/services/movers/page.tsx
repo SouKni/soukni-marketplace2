@@ -1,5 +1,7 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { ALL_CITIES } from '@/data/moroccoLocations'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, X, SlidersHorizontal } from 'lucide-react'
 
@@ -38,6 +40,69 @@ const allListings = [
 
 const BUDGETS = ['Any Budget','0-1000 MAD','1000-3000 MAD','3000-8000 MAD','8000+ MAD']
 const AVAILABILITIES = ['Anytime','This Week','This Month','Urgent Same-Day']
+
+function CityDDrop({ value, onChange, open, setOpen, closeOthers, heroStyle }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        <button onClick={()=>{ onChange(''); setOpen(false) }}
+          style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontWeight:600, color:value===''?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+          onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'}
+          onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+        >Any City{value===''&&<span style={{color:'#22d4a8'}}>✓</span>}</button>
+        {ALL_CITIES.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontWeight:600, color:opt===value?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:'#22d4a8'}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+  return (
+    <>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); if (closeOthers) closeOthers(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', flexDirection:'column' as const, gap:2, textAlign:'left' as const, width:'100%' }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        <span style={heroStyle
+          ? { fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }
+          : { fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'2px' }}>City</span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={heroStyle
+            ? { fontSize:'13px', fontWeight:600, color:'white' }
+            : { fontSize:'14px', fontWeight:600, color: value ? '#161d1b' : '#6b7a76' }}>{value || 'Any city'}</span>
+          {!heroStyle && <span style={{ color:'#22d4a8', fontSize:'10px', transition:'transform 0.2s', display:'inline-block', transform:open?'rotate(180deg)':'rotate(0)' }}>▾</span>}
+        </div>
+      </button>
+      {dropdown}
+    </>
+  )
+}
+
 
 function CertifiedBadge() {
   return <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span>
@@ -110,6 +175,34 @@ function ListingCard({ item, locale }: { item: typeof allListings[0], locale: st
   )
 }
 
+function GridListingCard({ item, locale }: { item: typeof allListings[0], locale: string }) {
+  const [saved, setSaved] = useState(false)
+  const [hov, setHov] = useState(false)
+  return (
+    <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{ backgroundColor:'white', borderRadius:'20px', overflow:'hidden', border:`1px solid ${hov?'#22d4a8':'#f1f5f9'}`, boxShadow:hov?'0 16px 32px rgba(0,0,0,0.1)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.25s', cursor:'pointer' }}>
+        <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden' }}>
+          <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
+          <div style={{ position:'absolute', top:'10px', left:'10px' }}><CertifiedBadge /></div>
+          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'30px', height:'30px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Heart size={13} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#6b7a76'} />
+          </button>
+        </div>
+        <div style={{ padding:'14px 16px' }}>
+          <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'4px', display:'flex', alignItems:'center', gap:'3px' }}><MapPin size={10} />{item.location}</p>
+          <h4 style={{ fontWeight:900, letterSpacing:'-0.03em', fontSize:'13px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{item.title}</h4>
+          <p style={{ fontWeight:900, fontSize:'16px', color:'#22d4a8', marginBottom:'10px' }}>{item.price.toLocaleString()} MAD</p>
+          <div style={{ display:'flex', gap:'6px' }}>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'7px', borderRadius:'100px', fontWeight:700, fontSize:'10px', cursor:'pointer' }}>Message</button>
+            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'7px', borderRadius:'100px', fontWeight:700, fontSize:'10px', cursor:'pointer' }}>WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 export default function MoversPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
 
@@ -123,6 +216,8 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
   const [availability, setAvailability] = useState('Anytime')
   const [budgetOpen, setBudgetOpen]   = useState(false)
   const [availOpen, setAvailOpen]     = useState(false)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
+  const [cityOpen, setCityOpen]       = useState(false)
 
   // UI state
   const [tab, setTab]     = useState('All')
@@ -170,9 +265,8 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
           <h1 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'clamp(28px,5vw,52px)', color:'white', marginBottom:'12px', lineHeight:1.05 }}>Movers & Storage</h1>
           <p style={{ fontSize:'15px', color:'rgba(255,255,255,0.82)', marginBottom:'28px' }}>Local moves, long distance, international relocation, storage and packing across Morocco</p>
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'620px', margin:'0 auto' }}>
-            <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
-              <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input value={heroCity} onChange={e=>setHeroCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Rabat, Casablanca..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+            <div style={{ padding:'12px 20px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)' }}>
+              <CityDDrop value={heroCity} onChange={setHeroCity} open={heroCityOpen} setOpen={setHeroCityOpen} heroStyle />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
@@ -197,9 +291,8 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', display:'flex', alignItems:'stretch', height:'68px', overflow:'visible' }}>
 
           {/* CITY */}
-          <div style={{ flex:1, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, justifyContent:'center', gap:'2px' }}>
-            <span style={{ fontSize:'9px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>CITY</span>
-            <input value={heroCity} onChange={e=>setHeroCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Any city" style={{ fontSize:'14px', fontWeight:600, color:'#161d1b', border:'none', outline:'none', background:'none', width:'100%' }} />
+          <div style={{ position:'relative', flex:1, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)' }}>
+            <CityDDrop value={heroCity} onChange={setHeroCity} open={cityOpen} setOpen={setCityOpen} closeOthers={()=>{setBudgetOpen(false);setAvailOpen(false)}} />
           </div>
 
           {/* KEYWORD */}
@@ -392,8 +485,11 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
               <button onClick={clearAll} style={{ padding:'11px 28px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', border:'none', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Clear Filters</button>
             </div>
           ) : (
-            <div style={{ display:'grid', gridTemplateColumns:grid?'1fr 1fr':'1fr', gap:'16px' }}>
-              {filtered.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            <div style={{ display:'grid', gridTemplateColumns:grid?'repeat(4,1fr)':'1fr', gap:'16px' }}>
+              {filtered.map(item=> grid
+                ? <GridListingCard key={item.id} item={item} locale={locale} />
+                : <ListingCard key={item.id} item={item} locale={locale} />
+              )}
             </div>
           )}
         </section>

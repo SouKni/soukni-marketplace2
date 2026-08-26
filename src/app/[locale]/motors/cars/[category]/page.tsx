@@ -4,7 +4,9 @@ import { useState } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
 
 const C = {
@@ -123,12 +125,14 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
+  const CardTag: any = id ? Link : 'div'
+  const cardProps: any = id ? { href: `/${locale}/listing/${id}` } : {}
   return (
-    <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ backgroundColor:'white', borderRadius:'24px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, overflow:'hidden', boxShadow:hov?`0 20px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const }}>
+    <CardTag {...cardProps} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ backgroundColor:'white', borderRadius:'24px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, overflow:'hidden', boxShadow:hov?`0 20px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer', display:'flex', flexDirection:'column' as const, textDecoration:'none' }}>
       <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
         <div style={{ position:'absolute', top:'10px', left:'10px', zIndex:10 }}><Badge type={badge} /></div>
@@ -155,7 +159,7 @@ function ListingCard({ brand, title, price, location, condition, img, badge, yea
           </a>
         </div>
       </div>
-    </article>
+    </CardTag>
   )
 }
 
@@ -196,20 +200,71 @@ export default function CarsCategoryPage() {
   const catData  = CATEGORIES[catSlug] || CATEGORIES['all-cars']
   const { formatPrice } = useMarket()
 
+  const searchParams = useSearchParams()
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
   const [gridView,     setGridView    ] = useState(true)
   const [page,         setPage        ] = useState(1)
-  const [makeModel,    setMakeModel   ] = useState('')
-  const [city,         setCity        ] = useState('All Morocco')
+  const [makeModel,    setMakeModel   ] = useState(searchParams?.get('q') || '')
+  const [city,         setCity        ] = useState(searchParams?.get('city') || 'All Morocco')
   const [price,        setPrice       ] = useState('Any Price')
   const [sortBy,       setSortBy      ] = useState('Most Recent')
   const [activeBrand,  setActiveBrand ] = useState('All Brands')
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
-  const cities   = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const PRICE_MAP: Record<string,{min?:number;max?:number}> = {
+    'Any Price': {},
+    'Under 100,000 MAD': { max: 100000 },
+    '100,000 – 300,000 MAD': { min: 100000, max: 300000 },
+    '300,000 – 700,000 MAD': { min: 300000, max: 700000 },
+    '700,000+ MAD': { min: 700000 },
+  }
+  const SORT_MAP: Record<string,'newest'|'price_asc'|'price_desc'> = {
+    'Most Recent': 'newest',
+    'Price: Low to High': 'price_asc',
+    'Price: High to Low': 'price_desc',
+  }
+
+  const { fetchListings, loading } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  const [searchTrigger, setSearchTrigger] = useState(0)
+  const LIMIT = 24
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const priceFilter = PRICE_MAP[price] || {}
+      fetchListings({
+        category: 'motors',
+        query: makeModel || undefined,
+        city: city !== 'All Morocco' ? city : undefined,
+        minPrice: priceFilter.min,
+        maxPrice: priceFilter.max,
+        sortBy: SORT_MAP[sortBy] || 'newest',
+        limit: LIMIT,
+        offset: (page - 1) * LIMIT,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [makeModel, city, price, sortBy, page, searchTrigger])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.make || row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      condition: row.condition || 'Used',
+      img: (row.images && row.images[0]) || CAR_IMGS[0],
+      badge: row.badge || 'verified',
+      year: row.year || '',
+      id: row.id,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -406,7 +461,7 @@ export default function CarsCategoryPage() {
         <section style={{ marginBottom:'48px' }}>
           <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} formatPrice={formatPrice} />)}
+            {listings.map((item,i)=><ListingCard key={item.id||i} {...item} formatPrice={formatPrice} locale={locale} />)}
           </div>
         </section>
 

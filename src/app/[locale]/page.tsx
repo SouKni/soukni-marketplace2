@@ -5,25 +5,11 @@ import Link from 'next/link'
 import { Search, MapPin, ChevronRight, Star } from 'lucide-react'
 import CityPicker from '@/components/ui/CityPicker'
 import { useRouter } from 'next/navigation'
+import { useDictionary } from '@/lib/useDictionary'
 
-const categories = [
-  { label: 'Motors', count: '24,180', icon: '🚗', slug: 'motors', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600', color: '#2dd4bf' },
-  { label: 'Electronics', count: '38,400', icon: '📱', slug: 'electronics', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=600', color: '#2dd4bf' },
-  { label: 'Fashion', count: '6,388', icon: '👗', slug: 'fashion', image: 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600', color: '#2dd4bf' },
-  { label: 'Property', count: '12,450', icon: '🏡', slug: 'property', image: 'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=600', color: '#2dd4bf' },
-]
+// categories/bentoStack moved inside component to support translation
 
-const bentoStack = [
-  { label: 'Home &amp; Living', count: '9,200', icon: '🛋️', slug: 'home-living', image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600' },
-  { label: 'New Cars', count: '1,540', icon: '🚙', slug: 'motors/new-cars', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
-]
-
-const stats = [
-  { value: '2M+', label: 'Active Users' },
-  { value: '91K+', label: 'Listings' },
-  { value: '12', label: 'Cities' },
-  { value: '100%', label: 'Free to Post' },
-]
+// stats moved inside component to support translation
 
 const motors = [
   { title: 'BMW M5 Competition', price: '1,250,000 MAD', badge: 'Diamond', meta: 'Casablanca • 2023 • 12k km', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=500' },
@@ -59,7 +45,7 @@ const testimonials = [
   { text: 'SouKni is the only marketplace I trust. Verified sellers and instant WhatsApp contact. Perfect.', author: 'Karim M.', city: 'Marrakech', initials: 'KM', color: '#e6e2d9' },
 ]
 
-function ListingCard({ item, isVault, locale }: { item: any, isVault?: boolean, locale: string }) {
+function ListingCard({ item, isVault, locale, t }: { item: any, isVault?: boolean, locale: string, t: any }) {
   const [liked, setLiked] = useState(false)
   const [hovered, setHovered] = useState(false)
   return (
@@ -90,12 +76,12 @@ function ListingCard({ item, isVault, locale }: { item: any, isVault?: boolean, 
           <button style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '10px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'opacity 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            WhatsApp
+            {t.homepage.whatsapp}
           </button>
           <button style={{ flex: 1, border: isVault ? '1.5px solid #8d4f00' : '1.5px solid #2dd4bf', color: isVault ? '#8d4f00' : '#2dd4bf', backgroundColor: 'transparent', padding: '10px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = isVault ? 'rgba(141,79,0,0.06)' : 'rgba(0,107,95,0.06)'}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-            Message
+            {t.homepage.message}
           </button>
         </div>
       </div>
@@ -103,8 +89,8 @@ function ListingCard({ item, isVault, locale }: { item: any, isVault?: boolean, 
   )
 }
 
-function SectionRow({ title, subtitle, items, isVault, bg, href, locale }: {
-  title: string, subtitle: string, items: any[], isVault?: boolean, bg?: string, href: string, locale: string
+function SectionRow({ title, subtitle, items, isVault, bg, href, locale, t }: {
+  title: string, subtitle: string, items: any[], isVault?: boolean, bg?: string, href: string, locale: string, t: any
 }) {
   return (
     <section style={{ backgroundColor: bg || 'transparent', padding: '72px 0' }}>
@@ -117,11 +103,11 @@ function SectionRow({ title, subtitle, items, isVault, bg, href, locale }: {
           <Link href={`/${locale}${href}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isVault ? '#8d4f00' : '#2dd4bf', fontWeight: 700, fontSize: '14px', textDecoration: 'none', transition: 'gap 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.gap = '10px'}
             onMouseLeave={e => e.currentTarget.style.gap = '6px'}>
-            View All <ChevronRight size={16} />
+            {t.homepage.viewAll} <ChevronRight size={16} />
           </Link>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-          {items.map((item, i) => <ListingCard key={i} item={item} isVault={isVault} locale={locale} />)}
+          {items.map((item, i) => <ListingCard key={i} item={item} isVault={isVault} locale={locale} t={t} />)}
         </div>
       </div>
     </section>
@@ -131,6 +117,23 @@ function SectionRow({ title, subtitle, items, isVault, bg, href, locale }: {
 export default function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
   const router = useRouter()
+  const t = useDictionary(locale)
+  const stats = [
+    { value: '2M+',  label: t.homepage.statUsers },
+    { value: '91K+', label: t.homepage.statListings },
+    { value: '12',   label: t.homepage.statCities },
+    { value: '100%', label: t.homepage.statFree },
+  ]
+  const categories = [
+    { label: t.categories.motors,      count: '24,180', icon: '🚗', slug: 'motors',      image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600', color: '#2dd4bf' },
+    { label: t.categories.electronics, count: '38,400', icon: '📱', slug: 'electronics', image: 'https://images.pexels.com/photos/303383/pexels-photo-303383.jpeg?auto=compress&w=600', color: '#2dd4bf' },
+    { label: t.categories.fashion,     count: '6,388',  icon: '👗', slug: 'fashion',     image: 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600', color: '#2dd4bf' },
+    { label: t.categories.property,    count: '12,450', icon: '🏡', slug: 'property',    image: 'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=600', color: '#2dd4bf' },
+  ]
+  const bentoStack = [
+    { label: t.categories.homeLiving, count: '9,200', icon: '🛋️', slug: 'home-living',     image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600' },
+    { label: t.categories.newCars,    count: '1,540', icon: '🚙', slug: 'motors/new-cars', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
+  ]
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -161,42 +164,51 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(45,212,191,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(45,212,191,0.3)', borderRadius: '100px', padding: '6px 16px', marginBottom: '24px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2dd4bf', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#62fae3', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Morocco's #1 Premium Marketplace</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#62fae3', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.homepage.badge}</span>
           </div>
 
           <h1 style={{ fontSize: '60px', fontWeight: 900, color: 'white', letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: '20px' }}>
-            The Market in<br />
-            <span style={{ color: '#2dd4bf' }}>your Pocket</span>
+            {t.homepage.heroTitle1}<br />
+            <span style={{ color: '#2dd4bf' }}>{t.homepage.heroTitle2}</span>
           </h1>
           <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '40px', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 40px' }}>
-            Buy and sell luxury motors, premium property, fashion, electronics and rare collectibles across Morocco.
+            {t.homepage.heroSubtitle}
           </p>
 
           {/* Search tabs */}
           <div style={{ maxWidth: '720px', margin: '0 auto', position: 'relative', zIndex: 50 }}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', justifyContent: 'center' }}>
-              {['All', 'Motors', 'Property', 'Electronics', 'Fashion'].map(tab => (
+              {[
+                { key: 'All',         label: t.homepage.searchAnything.charAt(0).toUpperCase()+t.homepage.searchAnything.slice(1) },
+                { key: 'Motors',      label: t.categories.motors },
+                { key: 'Property',    label: t.categories.property },
+                { key: 'Electronics', label: t.categories.electronics },
+                { key: 'Fashion',     label: t.categories.fashion },
+              ].map(tabObj => {
+                const tab = tabObj.key
+                return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   style={{ padding: '6px 16px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em', backgroundColor: activeTab === tab ? '#2dd4bf' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', color: activeTab === tab ? '#00201c' : 'white', transition: 'all 0.15s' }}>
-                  {tab}
+                  {tabObj.label}
                 </button>
-              ))}
+                )
+              })}
             </div>
             <div style={{ display: 'flex', gap: '0', backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '20px', padding: '8px', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', borderRight: '1px solid rgba(255,255,255,0.15)' }}>
                 <Search size={18} color="rgba(255,255,255,0.6)" style={{ flexShrink: 0 }} />
-                <input type="text" placeholder={`Search ${activeTab === 'All' ? 'anything' : activeTab.toLowerCase()}...`}
+                <input type="text" placeholder={`${t.homepage.searchPlaceholder.replace('{category}', activeTab === 'All' ? t.homepage.searchAnything : (t.categories[activeTab.toLowerCase()] || activeTab).toLowerCase())}`}
                   value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', fontSize: '16px', color: 'white', fontFamily: 'Inter, sans-serif' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderRight: '1px solid rgba(255,255,255,0.15)' }}>
-                <CityPicker light placeholder="All Morocco" />
+                <CityPicker light locale={locale} />
               </div>
               <button onClick={handleSearch} style={{ backgroundColor: '#2dd4bf', color: '#00201c', border: 'none', padding: '14px 32px', borderRadius: '14px', fontWeight: 800, fontSize: '14px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', letterSpacing: '0.05em', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
                 onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#0f9b8e'; e.currentTarget.style.transform = 'scale(1.02)' }}
                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#2dd4bf'; e.currentTarget.style.transform = 'scale(1)' }}>
-                Search
+                {t.homepage.searchButton}
               </button>
             </div>
           </div>
@@ -204,7 +216,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
 
         {/* Scroll indicator */}
         <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', opacity: scrolled ? 0 : 1, transition: 'opacity 0.3s' }}>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll to explore</span>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.homepage.scrollToExplore}</span>
           <div style={{ width: '24px', height: '40px', border: '2px solid rgba(255,255,255,0.3)', borderRadius: '100px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
             <div style={{ width: '4px', height: '8px', backgroundColor: '#2dd4bf', borderRadius: '100px' }} />
           </div>
@@ -227,10 +239,10 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
       <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 40px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '40px' }}>
           <div>
-            <p style={{ fontSize: '12px', fontWeight: 700, color: '#2dd4bf', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '8px' }}>What are you looking for?</p>
-            <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Browse by Category</h2>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#2dd4bf', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.homepage.whatLookingFor}</p>
+            <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>{t.homepage.browseByCategory}</h2>
           </div>
-          <p style={{ fontSize: '14px', color: '#64748b' }}>91,000+ active listings across Morocco</p>
+          <p style={{ fontSize: '14px', color: '#64748b' }}>{t.homepage.activeListings}</p>
         </div>
 
         {/* ROW 1 — Motors (big, left) + 2x2 grid of Electronics/Fashion/Property/Services (right) */}
@@ -245,7 +257,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '32px' }}>
                 <p style={{ color: '#62fae3', fontSize: '13px', fontWeight: 700, marginBottom: '6px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{categories[0].count} listings</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <h3 style={{ color: 'white', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em' }}>Motors</h3>
+                  <h3 style={{ color: 'white', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em' }}>{t.categories.motors}</h3>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <ChevronRight size={20} color="white" />
                   </div>
@@ -256,7 +268,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
           </Link>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '16px', height: '496px' }}>
-            {[categories[1], categories[2], categories[3], { label: 'Services', count: '9,200', icon: '🔧', slug: 'community', image: 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' }].map(cat => (
+            {[categories[1], categories[2], categories[3], { label: t.nav.services, count: '9,200', icon: '🔧', slug: 'community', image: 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' }].map(cat => (
               <Link key={cat.slug} href={`/${locale}/${cat.slug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
                 <div style={{ position: 'relative', height: '100%', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }}
                   onMouseEnter={e => { const img = e.currentTarget.querySelector('img') as HTMLImageElement; if (img) img.style.transform = 'scale(1.08)' }}
@@ -315,7 +327,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '48px' }}>
             <div style={{ maxWidth: '480px' }}>
               <span style={{ fontSize: '10px', fontWeight: 800, color: '#62fae3', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '12px' }}>SouKni Immo Pro</span>
-              <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'white', marginBottom: '12px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>Premium Property in Morocco</h2>
+              <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'white', marginBottom: '12px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{t.homepage.sectionPropertyTitle}</h2>
               <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '16px', marginBottom: '28px', lineHeight: 1.6 }}>Luxury villas, riads, penthouse apartments and commercial spaces across all major cities.</p>
               <Link href={`/${locale}/property`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'white', color: '#2dd4bf', padding: '14px 28px', borderRadius: '100px', fontWeight: 800, fontSize: '14px', textDecoration: 'none', transition: 'all 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#62fae3'}
@@ -327,8 +339,8 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
         </div>
       </section>
 
-      <SectionRow title="Featured Property" subtitle="Premium residential and commercial opportunities" items={property} bg="#f4fbf8" href="/property" locale={locale} />
-      <SectionRow title="Mobiles & Electronics" subtitle="Latest high-end devices and tech essentials" items={electronics} bg="#f8fafc" href="/electronics" locale={locale} />
+      <SectionRow title={t.homepage.sectionPropertyTitle} subtitle={t.homepage.sectionPropertySub} items={property} bg="#f4fbf8" href="/property" locale={locale} t={t} />
+      <SectionRow title={t.homepage.sectionElectronicsTitle} subtitle={t.homepage.sectionElectronicsSub} items={electronics} bg="#f8fafc" href="/electronics" locale={locale} t={t} />
 
       {/* ── DIAMOND BANNER ── */}
       <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px 72px' }}>
@@ -339,23 +351,23 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
               <span style={{ fontSize: '14px' }}>💎</span>
               <span style={{ fontSize: '11px', fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Exclusive Status</span>
             </div>
-            <h2 style={{ fontSize: '40px', fontWeight: 900, color: 'white', marginBottom: '16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>Become a SouKni Diamond Member</h2>
-            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '17px', marginBottom: '32px', lineHeight: 1.6 }}>Priority listings, exclusive vault access, verified badge, and dedicated support. Sell 5x faster and reach premium buyers first.</p>
+            <h2 style={{ fontSize: '40px', fontWeight: 900, color: 'white', marginBottom: '16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>{t.homepage.diamondTitle}</h2>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '17px', marginBottom: '32px', lineHeight: 1.6 }}>{t.homepage.diamondSubtitle}</p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button style={{ backgroundColor: 'white', color: '#2dd4bf', border: 'none', padding: '14px 32px', borderRadius: '100px', fontWeight: 800, fontSize: '15px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#62fae3'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
-                Get Verified Now
+                {t.homepage.getVerifiedNow}
               </button>
               <button style={{ backgroundColor: 'transparent', color: 'white', border: '2px solid rgba(255,255,255,0.4)', padding: '14px 32px', borderRadius: '100px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'white'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'}>
-                Learn More
+                {t.homepage.learnMore}
               </button>
             </div>
           </div>
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '16px', flexShrink: 0 }}>
-            {[{ icon: '🏆', title: 'Priority', desc: 'Top placement on all searches' }, { icon: '✅', title: 'Verified', desc: 'Trusted badge on your profile' }, { icon: '📊', title: 'Analytics', desc: 'Track views and inquiries' }].map(f => (
+            {[{ icon: '🏆', title: t.homepage.featPriority, desc: t.homepage.featPriorityDesc }, { icon: '✅', title: t.homepage.featVerified, desc: t.homepage.featVerifiedDesc }, { icon: '📊', title: t.homepage.featAnalytics, desc: t.homepage.featAnalyticsDesc }].map(f => (
               <div key={f.title} style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '20px', padding: '24px 20px', textAlign: 'center', width: '130px' }}>
                 <div style={{ fontSize: '28px', marginBottom: '10px' }}>{f.icon}</div>
                 <p style={{ fontSize: '13px', fontWeight: 800, color: 'white', marginBottom: '4px' }}>{f.title}</p>
@@ -367,14 +379,14 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
       </section>
 
       {/* ── THE VAULT ── */}
-      <SectionRow title="Trending in The Vault" subtitle="Rare collectibles, fine watches, and horological masterpieces" items={vault} isVault bg="#0f172a" href="/vault" locale={locale} />
+      <SectionRow title={t.homepage.sectionVaultTitle} subtitle={t.homepage.sectionVaultSub} items={vault} isVault bg="#0f172a" href="/vault" locale={locale} t={t} />
 
       {/* ── TESTIMONIALS ── */}
       <section style={{ backgroundColor: '#eef5f2', padding: '80px 0' }}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
           <div style={{ textAlign: 'center', marginBottom: '56px' }}>
             <p style={{ fontSize: '12px', fontWeight: 700, color: '#2dd4bf', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '12px' }}>What our community says</p>
-            <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '16px' }}>Trusted by 2M+ Moroccans</h2>
+            <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '16px' }}>{t.homepage.testimonialsTitle}</h2>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               {[1,2,3,4,5].map(i => <Star key={i} size={20} fill="#f59e0b" color="#f59e0b" />)}
               <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginLeft: '8px' }}>4.9/5</span>
@@ -382,17 +394,17 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-            {testimonials.map((t, i) => (
+            {testimonials.map((item, i) => (
               <div key={i} style={{ backgroundColor: 'white', borderRadius: '24px', padding: '32px', border: '1px solid rgba(186,202,197,0.2)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transform: i === 1 ? 'scale(1.03)' : 'scale(1)', position: 'relative', zIndex: i === 1 ? 2 : 1 }}>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
                   {[1,2,3,4,5].map(s => <Star key={s} size={14} fill="#f59e0b" color="#f59e0b" />)}
                 </div>
-                <p style={{ fontSize: '15px', color: '#3c4a46', fontStyle: 'italic', lineHeight: 1.7, marginBottom: '24px' }}>"{t.text}"</p>
+                <p style={{ fontSize: '15px', color: '#3c4a46', fontStyle: 'italic', lineHeight: 1.7, marginBottom: '24px' }}>"{item.text}"</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{t.initials}</div>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{item.initials}</div>
                   <div>
-                    <p style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>{t.author}</p>
-                    <p style={{ fontSize: '12px', color: '#64748b' }}>{t.city}</p>
+                    <p style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>{item.author}</p>
+                    <p style={{ fontSize: '12px', color: '#64748b' }}>{item.city}</p>
                   </div>
                 </div>
               </div>
@@ -407,15 +419,15 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
         <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.05)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'center' }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <p style={{ fontSize: '12px', fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>Join the SouKni Family</p>
+            <p style={{ fontSize: '12px', fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.homepage.joinFamily}</p>
             <h2 style={{ fontSize: '48px', fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '20px' }}>
-              The Market in<br />your Pocket
+              {t.homepage.heroTitle1}<br />{t.homepage.heroTitle2}
             </h2>
             <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '40px', lineHeight: 1.6, maxWidth: '420px' }}>
-              Get real-time alerts, instant WhatsApp contact, and manage your listings from anywhere across Morocco.
+              {t.homepage.appSubtitle}
             </p>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '48px' }}>
-              {[{ icon: '🍎', store: 'App Store', sub: 'Download on the' }, { icon: '▶', store: 'Google Play', sub: 'Get it on' }].map(btn => (
+              {[{ icon: '🍎', store: 'App Store', sub: t.footer.downloadOnThe }, { icon: '▶', store: 'Google Play', sub: t.footer.getItOn }].map(btn => (
                 <button key={btn.store} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '14px 24px', borderRadius: '16px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.3)'}>

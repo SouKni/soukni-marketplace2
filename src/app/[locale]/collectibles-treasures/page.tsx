@@ -1,7 +1,7 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, X, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
 
@@ -123,8 +123,39 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
   const [diamond, setDiamond] = useState(true)
   const [page, setPage] = useState(1)
   const [grid, setGrid] = useState(true)
-  const [city, setCity] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [city, setCity]             = useState('')
+  const [keyword, setKeyword]       = useState('')
+  const [applied, setApplied]       = useState({ city:'', keyword:'' })
+  const [price, setPrice]           = useState('Any Price')
+  const [catFilter, setCatFilter]   = useState('All Categories')
+  const [priceOpen, setPriceOpen]   = useState(false)
+  const [catOpen, setCatOpen]       = useState(false)
+  const [cityOpen, setCityOpen]     = useState(false)
+  const [sortBy, setSortBy]         = useState('Default')
+  const [sortOpen, setSortOpen]     = useState(false)
+  const [savedSearch, setSavedSearch] = useState(false)
+  const [activeChip, setActiveChip] = useState('New Arrivals')
+
+  const PRICES = ['Any Price','0–500 MAD','500–2,000 MAD','2,000–8,000 MAD','8,000+ MAD']
+  const CAT_OPTIONS = ['All Categories','All Collectibles','Vintage Watches','Berber Jewelry','Vintage Rugs','Pottery','Metalwork','Art & Prints','Coins']
+
+  function applySearch() {
+    setApplied({ city, keyword })
+    setPriceOpen(false); setCatOpen(false); setCityOpen(false)
+  }
+
+  const filteredDiscovery = useMemo(() => {
+    return discoveryGrid.filter(item => {
+      const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
+      const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
+      const mp = price === 'Any Price' ? true
+               : price === '0–500 MAD'      ? item.price <= 500
+               : price === '500–2,000 MAD'  ? item.price > 500   && item.price <= 2000
+               : price === '2,000–8,000 MAD'? item.price > 2000  && item.price <= 8000
+               : item.price > 8000
+      return mc && mk && mp
+    })
+  }, [applied, price])
 
   const VISIBLE_COUNT = 8
   const visibleSubcats = showAll ? ALL_SUBCATS : ALL_SUBCATS.slice(0, VISIBLE_COUNT)
@@ -147,27 +178,98 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Marrakech" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+              <input value={city} onChange={e=>setCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Marrakech" autoComplete="off" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Amazigh silver, vintage rug, zellige..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Amazigh silver, vintage rug, zellige..." autoComplete="off" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
 
       {/* FILTER BAR */}
       <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
-          {[['City','Rabat'],['Keyword','Berber jewelry, vintage rug, zellige...'],['Category','All Categories'],['Price','Any Range'],['Filters','All Filters']].map(([l,v],i)=>(
-            <div key={l} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
-              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
-              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center', overflow:'visible' }}>
+          {/* CITY */}
+          <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.3)' }}>
+            <button onClick={()=>{setCityOpen(!cityOpen);setPriceOpen(false);setCatOpen(false)}}
+              style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'6px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>CITY</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:'13px', fontWeight:600, color:city?'#161d1b':'#6b7a76' }}>{city||'All Cities'}</span>
+                <span style={{ color:'#22d4a8', fontSize:'10px', transform:cityOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
+              </div>
+            </button>
+            {cityOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:220, backgroundColor:'white', borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0', maxHeight:280, overflowY:'auto' as const }}>
+                {['All Cities','Casablanca','Rabat','Marrakech','Fès','Tangier','Agadir','Meknès'].map(opt=>(
+                  <button key={opt} onClick={()=>{setCity(opt==='All Cities'?'':opt);setCityOpen(false)}}
+                    style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontWeight:600, color:(opt==='All Cities'?!city:city===opt)?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {opt}{(opt==='All Cities'?!city:city===opt)&&<span style={{color:'#22d4a8'}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* KEYWORD */}
+          <div style={{ flex:2, padding:'6px 20px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>KEYWORD</span>
+            <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+              <Search size={12} color="#6b7a76" />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Berber jewelry, vintage rug..." autoComplete="off"
+                style={{ fontSize:'13px', fontWeight:600, color:'#161d1b', border:'none', outline:'none', background:'none', flex:1 }} />
+              {keyword && <button onClick={()=>{setKeyword('');setApplied(p=>({...p,keyword:''}))}} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7a76', display:'flex' }}><X size={13}/></button>}
             </div>
-          ))}
-          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}><Search size={16} /> SEARCH</button>
+          </div>
+          {/* CATEGORY */}
+          <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.3)' }}>
+            <button onClick={()=>{setCatOpen(!catOpen);setPriceOpen(false);setCityOpen(false)}}
+              style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'6px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>CATEGORY</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:'13px', fontWeight:600, color:catFilter==='All Categories'?'#6b7a76':'#161d1b' }}>{catFilter}</span>
+                <span style={{ color:'#22d4a8', fontSize:'10px', transform:catOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
+              </div>
+            </button>
+            {catOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:220, backgroundColor:'white', borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0', maxHeight:280, overflowY:'auto' as const }}>
+                {CAT_OPTIONS.map(opt=>(
+                  <button key={opt} onClick={()=>{setCatFilter(opt);setCatOpen(false)}}
+                    style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontWeight:600, color:catFilter===opt?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {opt}{catFilter===opt&&<span style={{color:'#22d4a8'}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* PRICE */}
+          <div style={{ position:'relative', flex:1 }}>
+            <button onClick={()=>{setPriceOpen(!priceOpen);setCatOpen(false);setCityOpen(false)}}
+              style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'6px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:'1px' }}>
+              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>PRICE</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:'13px', fontWeight:600, color:price==='Any Price'?'#6b7a76':'#161d1b' }}>{price}</span>
+                <span style={{ color:'#22d4a8', fontSize:'10px', transform:priceOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s', display:'inline-block' }}>▾</span>
+              </div>
+            </button>
+            {priceOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:200, backgroundColor:'white', borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0' }}>
+                {PRICES.map(opt=>(
+                  <button key={opt} onClick={()=>{setPrice(opt);setPriceOpen(false)}}
+                    style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontWeight:600, color:price===opt?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {opt}{price===opt&&<span style={{color:'#22d4a8'}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px', transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}><Search size={16} /> SEARCH</button>
         </div>
       </div>
 
@@ -183,15 +285,34 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Collectibles &amp; Treasures in Rabat</h2>
           <div style={{ display:'flex', gap:'8px' }}>
-            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: Default
-            </button>
-            <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#161d1b' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Save Search
+<div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:sortOpen?'#161d1b':'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:sortOpen?'white':'#161d1b', transition:'all 0.15s' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>Sort: {sortBy}
+              </button>
+              {sortOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', fontWeight:700, color:sortBy===opt?'#22d4a8':'#161d1b', cursor:'pointer' }}>{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={()=>setSavedSearch(!savedSearch)} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 14px', borderRadius:'12px', border:'1px solid rgba(186,202,197,0.4)', backgroundColor:savedSearch?'#22d4a8':'#eef5f2', fontSize:'12px', fontWeight:700, cursor:'pointer', color:savedSearch?'white':'#161d1b', transition:'all 0.15s' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>{savedSearch?'Saved':'Save Search'}
             </button>
           </div>
         </div>
-        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom:'24px' }}>4,280 Collectibles &amp; Treasures across Morocco</p>
+        <p style={{ fontSize:'14px', color:'#6b7a76', marginBottom: (applied.city||applied.keyword||price!=='Any Price') ? '12px' : '24px' }}>
+          {filteredDiscovery.length} of 4,280 Collectibles &amp; Treasures across Morocco
+        </p>
+        {(applied.city||applied.keyword||price!=='Any Price') && (
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'20px', flexWrap:'wrap' as const }}>
+            {applied.city && <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'4px 12px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', fontSize:'12px', fontWeight:700 }}>{applied.city}<button onClick={()=>{setApplied(p=>({...p,city:''}));setCity('')}} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button></span>}
+            {applied.keyword && <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'4px 12px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', fontSize:'12px', fontWeight:700 }}>"{applied.keyword}"<button onClick={()=>{setApplied(p=>({...p,keyword:''}));setKeyword('')}} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button></span>}
+            {price!=='Any Price' && <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'4px 12px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', fontSize:'12px', fontWeight:700 }}>{price}<button onClick={()=>setPrice('Any Price')} style={{ background:'none', border:'none', cursor:'pointer', color:'white', display:'flex', padding:0 }}><X size={11}/></button></span>}
+            <button onClick={()=>{setCity('');setKeyword('');setApplied({city:'',keyword:''});setPrice('Any Price')}} style={{ padding:'4px 14px', borderRadius:'100px', border:'1px solid #ef4444', backgroundColor:'white', fontSize:'12px', fontWeight:700, cursor:'pointer', color:'#ef4444' }}>Clear All</button>
+          </div>
+        )}
 
         {/* SUB-CATEGORY TILES WITH VIEW MORE/LESS */}
         <section style={{ marginBottom:'32px' }}>
@@ -250,8 +371,11 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
 
         {/* QUICK CHIPS */}
         <div style={{ display:'flex', gap:'8px', marginBottom:'32px', flexWrap:'wrap' as const }}>
-          {[{emoji:'✨',label:'New Arrivals',active:true},{emoji:'💎',label:'Rare Finds',active:false},{emoji:'🏷️',label:'Best Value',active:false}].map(c=>(
-            <button key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:c.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:c.active?'#161d1b':'white', color:c.active?'white':'#3c4a46' }}>{c.emoji} {c.label}</button>
+          {[{emoji:'✨',label:'New Arrivals'},{emoji:'💎',label:'Rare Finds'},{emoji:'🏷️',label:'Best Value'}].map(ch=>(
+            <button key={ch.label} onClick={()=>setActiveChip(ch.label)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'100px', fontSize:'12px', fontWeight:700, cursor:'pointer', border:activeChip===ch.label?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:activeChip===ch.label?'#161d1b':'white', color:activeChip===ch.label?'white':'#3c4a46', transition:'all 0.15s' }}
+              onMouseEnter={e=>{if(activeChip!==ch.label){e.currentTarget.style.borderColor='#22d4a8';e.currentTarget.style.color='#161d1b'}}}
+              onMouseLeave={e=>{if(activeChip!==ch.label){e.currentTarget.style.borderColor='rgba(186,202,197,0.5)';e.currentTarget.style.color='#3c4a46'}}}>{ch.emoji} {ch.label}</button>
           ))}
         </div>
 
@@ -336,9 +460,39 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
             <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'20px', color:'#161d1b' }}>More Collectibles &amp; Treasures</h2>
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
-          </div>
+          {filteredDiscovery.length === 0 ? (
+            <div style={{ textAlign:'center' as const, padding:'48px 20px', backgroundColor:'white', borderRadius:'24px' }}>
+              <p style={{ fontSize:'16px', fontWeight:700, color:'#161d1b', marginBottom:'8px' }}>No results found</p>
+              <p style={{ fontSize:'13px', color:'#6b7a76', marginBottom:'16px' }}>Try a different city, keyword or price range</p>
+              <button onClick={()=>{setCity('');setKeyword('');setApplied({city:'',keyword:''});setPrice('Any Price')}}
+                style={{ padding:'10px 24px', borderRadius:'100px', backgroundColor:'#22d4a8', color:'white', border:'none', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>Clear Filters</button>
+            </div>
+          ) : grid ? (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+              {filteredDiscovery.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'12px' }}>
+              {filteredDiscovery.map(item=>(
+                <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'120px' }}>
+                  <img src={item.image} alt={item.title} style={{ width:'120px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                  <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'11px', color:'#6b7a76', marginBottom:'3px' }}>{item.location}</p>
+                      <h4 style={{ fontSize:'14px', fontWeight:900, color:'#161d1b' }}>{item.title}</h4>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <p style={{ fontSize:'17px', fontWeight:900, color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
+                      <div style={{ display:'flex', gap:'8px' }}>
+                        <button style={{ padding:'7px 14px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>Message</button>
+                        <button style={{ padding:'7px 14px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>WhatsApp</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* PAGINATION */}

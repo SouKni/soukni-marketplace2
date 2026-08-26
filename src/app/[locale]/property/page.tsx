@@ -3,20 +3,12 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight } from 'lucide-react'
+import { useDictionary } from '@/lib/useDictionary'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
 
-const categories = [
-  { slug:'for-sale',              label:'For Sale',            count:'25,180', emoji:'🏢', image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
-  { slug:'for-rent',              label:'For Rent',            count:'1,840',  emoji:'🏡', image:'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&w=600' },
-  { slug:'rooms',                 label:'Rooms',               count:'3,215',  emoji:'🚪', image:'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&w=600' },
-  { slug:'daily-rentals',         label:'Daily Rentals',       count:'642',    emoji:'🏖️', image:'https://images.pexels.com/photos/2872755/pexels-photo-2872755.jpeg?auto=compress&w=600' },
-  { slug:'commercial',            label:'Commercial',          count:'1,195',  emoji:'🏪', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
-  { slug:'new-projects',          label:'New Projects',        count:'84',     emoji:'🏗️', image:'https://images.pexels.com/photos/1918291/pexels-photo-1918291.jpeg?auto=compress&w=600' },
-  { slug:'land-plots',         label:'Lands & Plots',       count:'2,410',  emoji:'🌾', image:'https://images.pexels.com/photos/162553/excavator-construction-site-machine-162553.jpeg?auto=compress&w=600' },
-  { slug:'business-investment',   label:'Business Investment', count:'568',    emoji:'📈', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
-]
+// categories moved inside component to support translation
 
 const apartments = [
   { id:'ap1', title: 'Marina Waterfront View 2BR', price: '12,500', unit: 'MAD/mo', location: 'Casablanca', badges: ['Diamond', 'Verified'], attr1: { icon: '🛏️', label: '2 Beds' }, attr2: { icon: '🛁', label: '2 Baths' }, image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=500' },
@@ -48,7 +40,7 @@ const commercial = [
 
 type PropItem = typeof apartments[0]
 
-function PropertyCard({ item }: { item: PropItem }) {
+function PropertyCard({ item, t }: { item: PropItem; t: any }) {
   const [liked, setLiked] = useState(false)
   const [hovered, setHovered] = useState(false)
   return (
@@ -58,10 +50,10 @@ function PropertyCard({ item }: { item: PropItem }) {
         <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.06)' : 'scale(1)' }} />
         <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {item.badges.includes('Diamond') && (
-            <span style={{ background: `linear-gradient(135deg, ${C.mint}, ${C.mintDk})`, color: 'white', fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>💎 Diamond</span>
+            <span style={{ background: `linear-gradient(135deg, ${C.mint}, ${C.mintDk})`, color: 'white', fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>💎 {t.common.diamond}</span>
           )}
           {item.badges.includes('Verified') && (
-            <span style={{ backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: C.mint, fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>✓ Verified</span>
+            <span style={{ backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: C.mint, fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>✓ {t.common.verified}</span>
           )}
         </div>
         <button onClick={() => setLiked(!liked)} style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -80,8 +72,8 @@ function PropertyCard({ item }: { item: PropItem }) {
           <span style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>{item.attr2.icon} {item.attr2.label}</span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button style={{ flex: 1, backgroundColor: C.surface, color: '#3c4a46', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>Message</button>
-          <button style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>💬 WhatsApp</button>
+          <button style={{ flex: 1, backgroundColor: C.surface, color: '#3c4a46', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>{t.common.message}</button>
+          <button style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>💬 {t.common.whatsapp}</button>
         </div>
       </div>
     </article>
@@ -90,8 +82,19 @@ function PropertyCard({ item }: { item: PropItem }) {
 
 export default function PropertyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
+  const t = useDictionary(locale)
   const [keyword, setKeyword] = useState('')
   const [hovCat, setHovCat] = useState<string|null>(null)
+  const categories = [
+    { slug:'for-sale',            label:t.property.catForSale,            count:'25,180', emoji:'🏢', image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
+    { slug:'for-rent',            label:t.property.catForRent,            count:'1,840',  emoji:'🏡', image:'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&w=600' },
+    { slug:'rooms',               label:t.property.catRooms,              count:'3,215',  emoji:'🚪', image:'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&w=600' },
+    { slug:'daily-rentals',       label:t.property.catDailyRentals,       count:'642',    emoji:'🏖️', image:'https://images.pexels.com/photos/2872755/pexels-photo-2872755.jpeg?auto=compress&w=600' },
+    { slug:'commercial',          label:t.property.catCommercial,         count:'1,195',  emoji:'🏪', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
+    { slug:'new-projects',        label:t.property.catNewProjects,        count:'84',     emoji:'🏗️', image:'https://images.pexels.com/photos/1918291/pexels-photo-1918291.jpeg?auto=compress&w=600' },
+    { slug:'land-plots',          label:t.property.catLandPlots,          count:'2,410',  emoji:'🌾', image:'https://images.pexels.com/photos/162553/excavator-construction-site-machine-162553.jpeg?auto=compress&w=600' },
+    { slug:'business-investment', label:t.property.catBusinessInvestment, count:'568',    emoji:'📈', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
+  ]
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -102,26 +105,26 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
           style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
         <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
-          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>SouKni Property</p>
+          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>{t.property.badge}</p>
           <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,68px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
-            PREMIUM.<br />PROPERTY.<br />MOROCCO.
+            {t.property.heroLine1}<br />{t.property.heroLine2}<br />{t.property.heroLine3}
           </h1>
           <p style={{ fontSize:16, color:'rgba(255,255,255,0.75)', marginBottom:32, maxWidth:520, margin:'0 auto 32px' }}>
-            Apartments, villas, vacation homes and commercial spaces
+            {t.property.heroSubtitle}
           </p>
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
-              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.city}</span>
               <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
-              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Apartment, villa, riad..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.keyword}</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={t.property.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
             <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
-              <Search size={16} /> Search
+              <Search size={16} /> {t.common.search}
             </button>
           </div>
         </div>
@@ -131,10 +134,10 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
       <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
           {[
-            { label:'City', val:'Rabat', w:1 },
-            { label:'Keyword', val:'Apartment, villa, riad...', w:2 },
-            { label:'Type', val:'All Property', w:1 },
-            { label:'Price (MAD)', val:'Select Range', w:1 },
+            { label:t.common.city, val:'Rabat', w:1 },
+            { label:t.common.keyword, val:t.property.keywordPlaceholder, w:2 },
+            { label:t.property.type, val:t.property.allProperty, w:1 },
+            { label:t.common.price, val:t.common.selectRange, w:1 },
           ].map((f,i)=>(
             <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
               <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
@@ -142,7 +145,7 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
             </div>
           ))}
           <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
-            <Search size={15} /> SEARCH
+            <Search size={15} /> {t.common.search.toUpperCase()}
           </button>
         </div>
       </div>
@@ -151,15 +154,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
 
         {/* BREADCRUMB */}
         <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <span style={{ color:C.ink }}>Property</span>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>{t.common.home}</Link><span>›</span>
+          <span style={{ color:C.ink }}>{t.property.badge}</span>
         </nav>
 
         {/* CATEGORY GRID */}
         <section style={{ marginBottom:32 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Browse by Category</h2>
-            <span style={{ fontSize:14, color:C.muted }}>34,134 total listings</span>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.common.browseByCategory}</h2>
+            <span style={{ fontSize:14, color:C.muted }}>34,134 {t.common.totalListings}</span>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
             {categories.map(cat=>(
@@ -174,7 +177,7 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                       <div>
                         <p style={{ ...UB, fontSize:15, color:'white', marginBottom:3 }}>{cat.label}</p>
-                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} ads</p>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} {t.common.ads}</p>
                       </div>
                       <div style={{ width:36, height:36, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
                         {cat.emoji}
@@ -193,14 +196,14 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
             <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(34,212,168,0.08)' }} />
             <div style={{ fontSize: '40px' }}>📷</div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '15px', fontWeight: 900, color: 'white', marginBottom: '3px', letterSpacing: '-0.03em' }}>Walk the street, find apartments</p>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 700 }}>Point your camera — see available properties overlaid in AR/AI</p>
+              <p style={{ fontSize: '15px', fontWeight: 900, color: 'white', marginBottom: '3px', letterSpacing: '-0.03em' }}>{t.property.arBannerTitle}</p>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 700 }}>{t.property.arBannerSub}</p>
             </div>
             <Link href={`/${locale}/ar-finder`}
               style={{ padding: '10px 20px', borderRadius: '12px', background: C.mint, color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', flexShrink: 0, transition:'background 0.15s' }}
               onMouseEnter={e=>(e.currentTarget as HTMLElement).style.backgroundColor=C.mintDk}
               onMouseLeave={e=>(e.currentTarget as HTMLElement).style.backgroundColor=C.mint}>
-              Try AR/AI →
+              {t.property.tryAR}
             </Link>
           </div>
         </section>
@@ -212,13 +215,13 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
             <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
-              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
-              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>{t.property.immoProBadge}</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>{t.property.immoProTitle}<br/>{t.property.immoProTitle2}</h2>
               <div style={{ display:'flex', gap:12 }}>
                 <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
-                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Get Certified</button>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>{t.common.getCertified}</button>
                 </Link>
-                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>{t.common.contactExpert}</button>
               </div>
             </div>
           </div>
@@ -228,15 +231,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
             <div>
-              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>Luxury Apartments for Rent</h2>
-              <p style={{ fontSize:14, color:C.muted }}>Curated selection of Morocco's finest urban living.</p>
+              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>{t.property.luxAptsTitle}</h2>
+              <p style={{ fontSize:14, color:C.muted }}>{t.property.luxAptsSub}</p>
             </div>
             <Link href={`/${locale}/property/for-rent`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {apartments.map(item => <PropertyCard key={item.id} item={item} />)}
+            {apartments.map(item => <PropertyCard key={item.id} item={item} t={t} />)}
           </div>
         </section>
 
@@ -247,13 +250,13 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
             <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
-              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
-              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>{t.property.autoProBadge}</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>{t.property.autoProTitle}<br/>{t.property.autoProTitle2}</h2>
               <div style={{ display:'flex', gap:12 }}>
                 <Link href={`/${locale}/motors`} style={{ textDecoration:'none' }}>
-                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Browse &amp; Explore</button>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>{t.property.browseExplore}</button>
                 </Link>
-                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>{t.common.contactExpert}</button>
               </div>
             </div>
           </div>
@@ -263,21 +266,21 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
             <div>
-              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>Premium Villas for Sale</h2>
-              <p style={{ fontSize:14, color:C.muted }}>Exclusive estates in Morocco's most prestigious locations.</p>
+              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>{t.property.premVillasTitle}</h2>
+              <p style={{ fontSize:14, color:C.muted }}>{t.property.premVillasSub}</p>
             </div>
             <Link href={`/${locale}/property/for-sale`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {villas.map(item => <PropertyCard key={item.id} item={item} />)}
+            {villas.map(item => <PropertyCard key={item.id} item={item} t={t} />)}
           </div>
         </section>
 
         {/* TRENDING SEARCHES */}
         <section style={{ marginBottom:64 }}>
-          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>Trending in Property</h2>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>{t.property.trendingTitle}</h2>
           <div style={{ display:'flex', gap:10, flexWrap:'wrap' as const }}>
             {['Villa Marrakech','Apartment Casablanca','Riad Medina','Beachfront Agadir','Studio Rabat','Commercial Space','New Projects','Hay Riad','Palmeraie','Ocean View','Penthouse','Investment Property'].map(tag=>(
               <Link key={tag} href={`/${locale}/property/for-sale`} style={{ textDecoration:'none' }}>
@@ -295,15 +298,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
             <div>
-              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>Featured Vacation Homes</h2>
-              <p style={{ fontSize:14, color:C.muted }}>Hand-picked short-term stays across Morocco.</p>
+              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>{t.property.vacationTitle}</h2>
+              <p style={{ fontSize:14, color:C.muted }}>{t.property.vacationSub}</p>
             </div>
             <Link href={`/${locale}/property/daily-rentals`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {vacations.map(item => <PropertyCard key={item.id} item={item} />)}
+            {vacations.map(item => <PropertyCard key={item.id} item={item} t={t} />)}
           </div>
         </section>
 
@@ -311,15 +314,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
             <div>
-              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>Featured Commercial Properties</h2>
-              <p style={{ fontSize:14, color:C.muted }}>Strategic business locations across Morocco.</p>
+              <h2 style={{ ...UB, fontSize:28, color:C.ink, marginBottom:4 }}>{t.property.commercialTitle}</h2>
+              <p style={{ fontSize:14, color:C.muted }}>{t.property.commercialSub}</p>
             </div>
             <Link href={`/${locale}/property/commercial`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {commercial.map(item => <PropertyCard key={item.id} item={item} />)}
+            {commercial.map(item => <PropertyCard key={item.id} item={item} t={t} />)}
           </div>
         </section>
 
@@ -329,14 +332,14 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
             style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
           <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
-            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Become a Diamond Certified Member.</h2>
-            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Boost your trust score, get exclusive access to off-market listings, and enjoy priority support.</p>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>{t.common.diamondBadge}</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>{t.property.diamondTitle}</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>{t.property.diamondSubtitle}</p>
             <div style={{ display:'flex', gap:12 }}>
               <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Certified Now</button>
+                <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>{t.common.getVerifiedNow}</button>
               </Link>
-              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>{t.common.learnMore}</button>
             </div>
           </div>
         </section>
@@ -344,15 +347,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
         {/* JOIN THE SOUKNI FAMILY */}
         <section style={{ borderRadius:40, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
           <div>
-            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>LIST YOUR PROPERTY TODAY</h2>
-            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Reach millions of serious buyers and renters across Morocco for free.</p>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>{t.property.listPropertyTitle}</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>{t.property.listPropertySub}</p>
             <div style={{ display:'flex', gap:12, marginTop:24 }}>
-              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
-              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 {t.common.appStore}</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ {t.common.googlePlay}</button>
             </div>
           </div>
           <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
-            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>{t.common.postFreeAd}</span>
           </Link>
         </section>
 

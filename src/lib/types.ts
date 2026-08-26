@@ -1,4 +1,4 @@
-export type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
+export type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de' | 'ber'
 
 export interface Listing {
   id: string

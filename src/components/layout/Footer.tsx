@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import type { Locale } from '@/lib/types'
+import { useDictionary } from '@/lib/useDictionary'
 
 export default function Footer({ locale }: { locale: Locale }) {
+  const t = useDictionary(locale)
+
   return (
     <footer style={{ backgroundColor: '#161d1b', color: 'white', paddingTop: '72px', paddingBottom: '32px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px' }}>
@@ -14,7 +17,7 @@ export default function Footer({ locale }: { locale: Locale }) {
           {/* Brand */}
           <div>
             <div style={{ fontWeight: 900, letterSpacing: '-0.05em', fontSize: '28px', color: 'white', marginBottom: '10px' }}>soukni</div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: '24px', lineHeight: 1.6 }}>Morocco's #1 Premium Marketplace — Motors, Property, Fashion, Electronics &amp; more.</p>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: '24px', lineHeight: 1.6 }}>{t.footer.brandTagline}</p>
             <div style={{ display: 'flex', gap: '10px' }}>
               {[
                 { href:'https://facebook.com',  svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> },
@@ -35,10 +38,10 @@ export default function Footer({ locale }: { locale: Locale }) {
 
           {/* Contact */}
           <div>
-            <h5 style={{ fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(255,255,255,0.35)', marginBottom:'20px' }}>Contact</h5>
+            <h5 style={{ fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(255,255,255,0.35)', marginBottom:'20px' }}>{t.footer.contact}</h5>
             <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
               <div>
-                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>Address</p>
+                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>{t.footer.address}</p>
                 <a href="https://maps.google.com/?q=Bldg+7+%26+8,+Av.+Attine,+Rabat+10100,+Morocco" target="_blank" rel="noopener noreferrer"
                   style={{ fontSize:'13px', color:'rgba(255,255,255,0.75)', textDecoration:'none', lineHeight:1.6, display:'block', transition:'color 0.2s' }}
                   onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'}
@@ -47,7 +50,7 @@ export default function Footer({ locale }: { locale: Locale }) {
                 </a>
               </div>
               <div>
-                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>Email</p>
+                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>{t.footer.email}</p>
                 <a href="mailto:contact@soukni.ma" style={{ fontSize:'13px', color:'rgba(255,255,255,0.75)', textDecoration:'none', transition:'color 0.2s' }}
                   onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'}
                   onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.75)'}>
@@ -55,7 +58,7 @@ export default function Footer({ locale }: { locale: Locale }) {
                 </a>
               </div>
               <div>
-                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>Phone</p>
+                <p style={{ fontSize:'11px', color:'rgba(255,255,255,0.35)', marginBottom:'3px', textTransform:'uppercase', letterSpacing:'0.08em' }}>{t.footer.phone}</p>
                 <a href="tel:+212530136072" style={{ fontSize:'13px', color:'rgba(255,255,255,0.75)', textDecoration:'none', transition:'color 0.2s' }}
                   onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'}
                   onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.75)'}>
@@ -67,51 +70,51 @@ export default function Footer({ locale }: { locale: Locale }) {
 
           {/* Newsletter */}
           <div>
-            <h5 style={{ fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(255,255,255,0.35)', marginBottom:'20px' }}>Stay in the loop</h5>
-            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.5)', marginBottom:'16px', lineHeight:1.6 }}>Get the latest listings, market trends, and exclusive deals delivered to your inbox.</p>
+            <h5 style={{ fontSize:'11px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(255,255,255,0.35)', marginBottom:'20px' }}>{t.footer.newsletterTitle}</h5>
+            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.5)', marginBottom:'16px', lineHeight:1.6 }}>{t.footer.newsletterSub}</p>
             <div style={{ display:'flex', gap:'8px' }}>
-              <input type="email" placeholder="your@email.com"
+              <input type="email" placeholder={t.footer.emailPlaceholder}
                 style={{ flex:1, backgroundColor:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'100px', padding:'12px 18px', color:'white', fontSize:'13px', outline:'none', fontFamily:'Inter, sans-serif', transition:'border 0.2s' }}
                 onFocus={e=>e.currentTarget.style.borderColor='#22d4a8'}
                 onBlur={e=>e.currentTarget.style.borderColor='rgba(255,255,255,0.1)'} />
               <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'12px 22px', borderRadius:'100px', fontWeight:700, fontSize:'13px', cursor:'pointer', whiteSpace:'nowrap', transition:'background 0.2s' }}
                 onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>Subscribe</button>
+                onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>{t.footer.subscribe}</button>
             </div>
           </div>
         </div>
 
-        {/* MIDDLE ROW — fully wired links */}
+        {/* MIDDLE ROW */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'32px', marginBottom:'56px' }}>
           {[
-            { title:'Marketplace', links:[
-              { label:'Motors',       href:`/${locale}/motors`      },
-              { label:'Property',     href:`/${locale}/property`    },
-              { label:'The Vault',    href:`/${locale}/vault`       },
-              { label:'Jobs',         href:`/${locale}/jobs`        },
-              { label:'Services',     href:`/${locale}/services`    },
-              { label:'Fashion',      href:`/${locale}/fashion`     },
-              { label:'Electronics',  href:`/${locale}/electronics` },
-              { label:'Home & Garden',href:`/${locale}/home-garden` },
+            { title: t.footer.marketplace, links:[
+              { label: t.footer.motors,      href:`/${locale}/motors`      },
+              { label: t.footer.property,    href:`/${locale}/property`    },
+              { label: t.footer.vault,       href:`/${locale}/vault`       },
+              { label: t.footer.jobs,        href:`/${locale}/jobs`        },
+              { label: t.footer.services,    href:`/${locale}/services`    },
+              { label: t.footer.fashion,     href:`/${locale}/fashion`     },
+              { label: t.footer.electronics, href:`/${locale}/electronics` },
+              { label: t.footer.homeGarden,  href:`/${locale}/home-garden` },
             ]},
-            { title:'Company', links:[
-              { label:'About Us',       href:`/${locale}/about`   },
-              { label:'Careers',        href:`/${locale}/about`   },
-              { label:'Press',          href:`/${locale}/about`   },
-              { label:'Sustainability', href:`/${locale}/about`   },
-              { label:'Legal',          href:`/${locale}/terms`   },
+            { title: t.footer.company, links:[
+              { label: t.footer.aboutUs,       href:`/${locale}/about`   },
+              { label: t.footer.careers,       href:`/${locale}/about`   },
+              { label: t.footer.press,         href:`/${locale}/about`   },
+              { label: t.footer.sustainability,href:`/${locale}/about`   },
+              { label: t.footer.legal,         href:`/${locale}/terms`   },
             ]},
-            { title:'Support', links:[
-              { label:'Help Center',  href:`/${locale}/help`    },
-              { label:'Safety Tips',  href:`/${locale}/safety`  },
-              { label:'Trust & Safety',href:`/${locale}/safety` },
-              { label:'Contact Us',   href:`/${locale}/contact` },
+            { title: t.footer.support, links:[
+              { label: t.footer.helpCenter,  href:`/${locale}/help`    },
+              { label: t.footer.safetyTips,  href:`/${locale}/safety`  },
+              { label: t.footer.trustSafety, href:`/${locale}/safety`  },
+              { label: t.footer.contactUs,   href:`/${locale}/contact` },
             ]},
-            { title:'Resources', links:[
-              { label:'Market Trends', href:`/${locale}/feed`         },
-              { label:'App Download',  href:`/${locale}/welcome`      },
-              { label:'Advertising',   href:`/${locale}/diamond`      },
-              { label:'Partner with Us',href:`/${locale}/contact`     },
+            { title: t.footer.resources, links:[
+              { label: t.footer.marketTrends,  href:`/${locale}/feed`     },
+              { label: t.footer.appDownload,   href:`/${locale}/welcome`  },
+              { label: t.footer.advertising,   href:`/${locale}/diamond`  },
+              { label: t.footer.partnerWithUs, href:`/${locale}/contact`  },
             ]},
           ].map(({ title, links }) => (
             <div key={title}>
@@ -132,10 +135,10 @@ export default function Footer({ locale }: { locale: Locale }) {
 
         {/* APP DOWNLOAD */}
         <div style={{ marginBottom:'40px', paddingBottom:'40px', borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:'16px', flexWrap:'wrap' }}>
-          <span style={{ fontSize:'12px', fontWeight:600, color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'0.08em', marginRight:'8px' }}>Download</span>
+          <span style={{ fontSize:'12px', fontWeight:600, color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'0.08em', marginRight:'8px' }}>{t.footer.download}</span>
           {[
-            { label:'App Store',    sublabel:'Download on the', href:`/${locale}/welcome`, svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg> },
-            { label:'Google Play',  sublabel:'Get it on',       href:`/${locale}/welcome`, svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="m3 20.5v-17c0-.83 1-.98 1.45-.5l14 8.5c.41.25.41.75 0 1l-14 8.5c-.45.48-1.45.33-1.45-.5z"/></svg> },
+            { label:'App Store',    sublabel: t.footer.downloadOnThe, href:`/${locale}/welcome`, svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg> },
+            { label:'Google Play',  sublabel: t.footer.getItOn,       href:`/${locale}/welcome`, svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="m3 20.5v-17c0-.83 1-.98 1.45-.5l14 8.5c.41.25.41.75 0 1l-14 8.5c-.45.48-1.45.33-1.45-.5z"/></svg> },
           ].map(app=>(
             <Link key={app.label} href={app.href}
               style={{ display:'flex', alignItems:'center', gap:'10px', backgroundColor:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.08)', padding:'10px 18px', borderRadius:'100px', textDecoration:'none', transition:'all 0.2s' }}
@@ -154,10 +157,10 @@ export default function Footer({ locale }: { locale: Locale }) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'12px' }}>
           <div style={{ display:'flex', gap:'24px' }}>
             {[
-              { label:'Privacy Policy',   href:`/${locale}/privacy` },
-              { label:'Terms of Service', href:`/${locale}/terms`   },
-              { label:'Cookie Policy',    href:`/${locale}/terms`   },
-              { label:'Sitemap',          href:`/${locale}/about`   },
+              { label: t.footer.privacyPolicy,   href:`/${locale}/privacy` },
+              { label: t.footer.termsOfService,  href:`/${locale}/terms`   },
+              { label: t.footer.cookiePolicy,    href:`/${locale}/terms`   },
+              { label: t.footer.sitemap,         href:`/${locale}/about`   },
             ].map(({ label, href }) => (
               <Link key={label} href={href}
                 style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)', textDecoration:'none', transition:'color 0.2s' }}
@@ -167,7 +170,7 @@ export default function Footer({ locale }: { locale: Locale }) {
               </Link>
             ))}
           </div>
-          <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)' }}>© 2026 SouKni Marketplace. All rights reserved.</span>
+          <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)' }}>{t.footer.allRightsReserved}</span>
         </div>
 
       </div>

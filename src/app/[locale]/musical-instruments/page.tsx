@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 
@@ -162,6 +163,68 @@ const CATS = [
   { label:'Studio & DJ',     slug:'studio'          },
 ]
 
+
+function DDrop({ label, value, options, open, setOpen, onChange, heroStyle }: any) {
+  const btnRef = React.useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = React.useState({ top:0, left:0, width:0 })
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => { setMounted(true) }, [])
+  React.useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontFamily:'Inter,sans-serif', fontWeight:900, color:opt===value?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:'#22d4a8'}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900 }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:'9px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'0.14em', textTransform:'uppercase' as const, color:'#6b7a76', marginBottom:'3px' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900, color:'#161d1b' }}>{value}</span>
+              <ChevronDown size={14} color="#22d4a8" style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
+}
+
 export default function MusicalInstrumentsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
   const [activeSeller, setActiveSeller] = useState('All Sellers')
@@ -173,38 +236,53 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
   const [neighborhood, setNeighborhood] = useState('All Neighborhoods')
   const [price,        setPrice       ] = useState('Any Price')
   const [cityOpen,     setCityOpen    ] = useState(false)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
   const [neighOpen,    setNeighOpen   ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [applied, setApplied]         = useState({ keyword:'' })
+
+  function applySearch() {
+    setApplied({ keyword })
+    setTimeout(() => {
+      document.getElementById('instruments-results')?.scrollIntoView({ behavior:'smooth', block:'start' })
+    }, 50)
+  }
+
+  const filteredItems = React.useMemo(() => {
+    let items = [...gridItems]
+    if (applied.keyword.trim()) {
+      items = items.filter(item =>
+        item.title.toLowerCase().includes(applied.keyword.toLowerCase()) ||
+        item.brand.toLowerCase().includes(applied.keyword.toLowerCase())
+      )
+    }
+    if (city && city !== 'Rabat') {
+      items = items.filter(item => (item as any).location && (item as any).location.toLowerCase().includes(city.toLowerCase()))
+    }
+    if (activeSeller !== 'All Sellers') {
+      items = items.filter(item => (item as any).seller === activeSeller)
+    }
+    if (diamond) {
+      items = [...items].sort((a,b)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
+    }
+    return items
+  }, [applied, activeSeller, diamond, city])
 
   const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
-  const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
+  const neighborhoodMap: Record<string,string[]> = {
+    'Rabat':       ['All Neighborhoods','Agdal','Hay Riad','Hassan','Souissi','Médina','Océan','Aviation'],
+    'Casablanca':  ['All Neighborhoods','Maârif','Anfa','Gauthier','Racine','Palmier','Ain Diab','Bourgogne','Belvédère'],
+    'Marrakech':   ['All Neighborhoods','Guéliz','Hivernage','Médina','Palmeraie','Daoudiate','Targa','Agdal'],
+    'Fès':         ['All Neighborhoods','Médina','Ville Nouvelle','Narjiss','Bensouda','Atlas','Oued Fès'],
+    'Tanger':      ['All Neighborhoods','Malabata','Marshan','Boukhalef','Centre Ville','Médina','Kasbah'],
+    'Agadir':      ['All Neighborhoods','Talborjt','Secteur Touristique','Founty','Anza','Bensergao'],
+    'Meknès':      ['All Neighborhoods','Hamria','Ismaïlia','Marjane','Médina','Bassatine'],
+  }
+  const neighborhoods = neighborhoodMap[city] || ['All Neighborhoods']
   const priceRanges   = ['Any Price','0 – 1,000 MAD','1,000 – 5,000 MAD','5,000 – 20,000 MAD','20,000 – 80,000 MAD','80,000+ MAD']
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setNeighOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
+  // DDrop defined outside component
+
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -220,14 +298,15 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
           <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
             <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>Rabat <ChevronDown size={14} /></div>
+              <DDrop label="" value={city} options={cities} open={heroCityOpen} setOpen={setHeroCityOpen}
+                onChange={(v:string)=>{setCity(v);setNeighborhood('All Neighborhoods')}} heroStyle />
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search brands, models, instruments..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search brands, models, instruments..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -237,8 +316,8 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
 
       {/* ══ 2. FILTER BAR ════════════════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px', overflow:'visible' }}>
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={(v:string)=>{setCity(v);setNeighborhood('All Neighborhoods')}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
@@ -496,11 +575,39 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
             <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>All Instrument Discoveries</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
-            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-              {row.map((item,j)=><GridCard key={j} {...item} />)}
+          {filteredItems.length === 0 ? (
+            <div style={{ textAlign:'center' as const, padding:'60px 20px', backgroundColor:'white', borderRadius:'24px', border:'1px solid rgba(107,122,118,0.1)' }}>
+              <p style={{ fontSize:'18px', ...UB, color:C.ink, marginBottom:'8px' }}>No instruments found</p>
+              <p style={{ fontSize:'14px', color:C.muted, marginBottom:'20px' }}>Try a different keyword or clear your filters</p>
+              <button onClick={()=>{setKeyword('');setApplied({keyword:''})}}
+                style={{ padding:'11px 28px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', ...UB, fontSize:'13px', cursor:'pointer' }}>Clear Search</button>
             </div>
-          ))}
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filteredItems.map((item,j)=><GridCard key={j} {...item} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filteredItems.map((item,j)=>(
+                <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
+                  <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                  <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{item.brand}</p>
+                      <h4 style={{ fontSize:'15px', ...CB, color:C.ink }}>{item.title}</h4>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
+                      <div style={{ display:'flex', gap:'8px' }}>
+                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:'10px', cursor:'pointer' }}>Message</button>
+                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', cursor:'pointer' }}>WhatsApp</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -151,7 +151,7 @@ function ListingCard({ brand, title, price, location, condition, img, badge, era
 
 function makeListings(cat: string, count: number) {
   const titleMap: Record<string,string[]> = {
-    'all-vintage':  ['501 Selvedge 1980s','Carré Scarf 1970s','Tweed Jacket 1990s','Submariner 1968','Bamboo Bag 1950s','Wrap Dress 1970s'],
+    'all-vintage':  ['501 Selvedge 1980s','Carré Scarf 1970s','Tweed Jacket 1990s','Submariner 5513','Bamboo Bag 1950s','Wrap Dress 1970s','Nautilus 3700','Royal Oak A-Series','Art Deco Diamond Ring','Platform Boot 1970s','Mary Jane 1960s','Carré Silk Scarf','Shift Dress 1960s','Logo Belt 1990s','Tweed Suit 1980s','Campaign Poster'],
     'clothing':     ['501 Selvedge Denim','New Look Dress','Wrap Dress','Tweed Suit','Platform Dress','Palazzo Pants','Maxi Skirt','Shift Dress'],
     'accessories':  ['Carré Silk Scarf','Bamboo Handle Bag','Logo Belt','Chain Belt','Silk Turban','Leather Gloves'],
     'watches':      ['Submariner 5513','Nautilus 3700','Royal Oak A-Series','Santos Cartier','Speedmaster Pre-Moon','Calatrava Ref 96'],
@@ -176,6 +176,33 @@ function makeListings(cat: string, count: number) {
   }))
 }
 
+
+function DDrop({ label, value, options, open, setOpen, onChange }: any) {
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button onClick={()=>setOpen(!open)}
+        style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        <span style={{ fontSize:'9px', fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'0.14em', textTransform:'uppercase' as const, color:'#6b7a76', marginBottom:'3px' }}>{label}</span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900, color:'#161d1b' }}>{value}</span>
+          <ChevronDown size={14} color="#22d4a8" style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+        </div>
+      </button>
+      {open && (
+        <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
+          {options.map((opt:string)=>(
+            <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+              style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900, color:opt===value?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'}
+              onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+            >{opt}{opt===value&&<span style={{color:'#22d4a8'}}>✓</span>}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function VintageCategoryPage() {
   const params   = useParams()
   const locale   = (params?.locale as string) || 'en'
@@ -195,34 +222,29 @@ export default function VintageCategoryPage() {
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
+  const listings = React.useMemo(() => {
+    const all = makeListings(catSlug, 24)
+    let items = all.filter(item => {
+      const mk = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+      const ma = activeEra==='All Eras' || item.era===activeEra
+      const mb = activeBrand==='All Brands' || item.brand===activeBrand
+      const ms = activeSeller==='All Sellers' || (item as any).seller===activeSeller
+      const mp = (() => {
+        if (price==='Any Price') return true
+        const nums = price.replace(/MAD/g,'').split('–').map((s:string)=>parseInt(s.replace(/,/g,'').trim()))
+        const [mn, mx] = price.includes('+') ? [nums[0], Infinity] : [nums[0], nums[1]]
+        return item.price >= mn && item.price <= mx
+      })()
+      return mk && ma && mb && ms && mp
+    })
+    if (diamond) items = [...items].sort((a,b)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
+    if (sortBy==='Price: Low to High') items = [...items].sort((a,b)=>a.price-b.price)
+    if (sortBy==='Price: High to Low') items = [...items].sort((a,b)=>b.price-a.price)
+    return items
+  }, [catSlug, keyword, activeEra, activeBrand, activeSeller, price, diamond, sortBy])
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
+  // DDrop defined outside component
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -250,7 +272,7 @@ export default function VintageCategoryPage() {
 
       {/* ══ FILTER BAR ════════════════════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-36px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'68px' }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'68px', overflow:'visible' }}>
           <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
@@ -416,9 +438,32 @@ export default function VintageCategoryPage() {
         {/* ══ LISTINGS GRID ═════════════════════════════════════ */}
         <section style={{ marginBottom:'48px' }}>
           <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
-          </div>
+          {gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {listings.map((item,i)=><ListingCard key={i} {...item} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {listings.map((item,j)=>(
+                <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
+                  <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                  <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'9px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'#22d4a8', textTransform:'uppercase' as const }}>{item.brand} · {item.era}</p>
+                      <h4 style={{ fontSize:'15px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'#161d1b' }}>{item.title}</h4>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <p style={{ fontSize:'18px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
+                      <div style={{ display:'flex', gap:'8px' }}>
+                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', cursor:'pointer' }}>Message</button>
+                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', cursor:'pointer' }}>WhatsApp</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ══ PAGINATION ════════════════════════════════════════ */}

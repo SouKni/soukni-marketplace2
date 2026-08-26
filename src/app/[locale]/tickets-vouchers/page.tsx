@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Calendar, Tag } from 'lucide-react'
 import Link from 'next/link'
@@ -174,6 +175,67 @@ const CATS = [
   { label:'Gift Cards',     slug:'gift-cards'     },
 ]
 
+function DDrop({ label, value, options, open, setOpen, onChange, heroStyle }: any) {
+  const btnRef = React.useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = React.useState({ top:0, left:0, width:0 })
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => { setMounted(true) }, [])
+  React.useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', fontFamily:'Inter,sans-serif', fontWeight:900, color:opt===value?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:'#22d4a8'}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900 }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:'9px', fontFamily:'Inter,sans-serif', fontWeight:900, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:'#6b7a76', marginBottom:'3px' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:900, color:'#161d1b' }}>{value}</span>
+              <ChevronDown size={14} color="#22d4a8" style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
+}
+
 export default function TicketsVouchersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
   const [activeSeller, setActiveSeller] = useState('All Sellers')
@@ -187,36 +249,42 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [neighOpen,    setNeighOpen   ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
+  const [applied, setApplied]         = useState({ keyword:'' })
+
+  function applySearch() {
+    setApplied({ keyword })
+  }
+
+
+  const [sortBy, setSortBy] = useState('Default')
+  const [sortOpen, setSortOpen] = useState(false)
+  const [savedSearch, setSavedSearch] = useState(false)
 
   const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
   const priceRanges   = ['Any Price','0 – 100 MAD','100 – 300 MAD','300 – 800 MAD','800 – 2,000 MAD','2,000+ MAD']
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setNeighOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
+  const filteredItems = useMemo(() => {
+    let items = [...gridItems]
+    if (applied.keyword.trim()) {
+      items = items.filter((item:any) =>
+        (item.title && item.title.toLowerCase().includes(applied.keyword.toLowerCase())) ||
+        (item.brand && item.brand.toLowerCase().includes(applied.keyword.toLowerCase()))
+      )
+    }
+    if (activeSeller !== 'All Sellers') {
+      items = items.filter((item:any) => item.seller === activeSeller)
+    }
+    if (diamond) {
+      items = [...items].sort((a:any,b:any)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
+    }
+    return items
+  }, [applied, activeSeller, diamond])
+
+
+
+
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -232,14 +300,15 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
           <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
             <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>Rabat <ChevronDown size={14} /></div>
+              <DDrop label="" value={city} options={cities} open={heroCityOpen} setOpen={setHeroCityOpen}
+                onChange={(v:string)=>{setCity(v);setNeighborhood('All Neighborhoods')}} heroStyle />
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search events, vouchers, deals..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search events, vouchers, deals..." autoComplete="off"
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -249,14 +318,14 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
 
       {/* ══ 2. FILTER BAR ════════════════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px', overflow:'visible' }}>
           <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
               <Search size={13} color={C.muted} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. Concert, Golf, Restaurant..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="e.g. Concert, Golf, Restaurant..." autoComplete="off"
                 style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'14px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
               {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
@@ -294,12 +363,21 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
             <p style={{ fontSize:'14px', color:C.mint, ...CB }}>1,842 Active Deals</p>
           </div>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['↕ Sort: Default','🔖 Save Search'].map(b=>(
-              <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
-              >{b}</button>
-            ))}
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)} style={{ backgroundColor:sortOpen?C.ink:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:sortOpen?'white':C.ink, transition:'all 0.15s' }}>
+                ↕ Sort: {sortBy}
+              </button>
+              {sortOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}>{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={()=>setSavedSearch(!savedSearch)} style={{ backgroundColor:savedSearch?C.mint:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:savedSearch?'white':C.ink, transition:'all 0.15s' }}>
+              🔖 {savedSearch?'Saved':'Save Search'}
+            </button>
           </div>
         </div>
 
@@ -518,11 +596,33 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
             <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>All Deals & Vouchers</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
-            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-              {row.map((item,j)=><GridCard key={j} {...item} />)}
+          {filteredItems.length === 0 ? (
+            <div style={{ textAlign:'center' as const, padding:'60px 20px', backgroundColor:'white', borderRadius:'24px', border:'1px solid rgba(107,122,118,0.1)' }}>
+              <p style={{ fontSize:'18px', ...UB, color:C.ink, marginBottom:'8px' }}>No deals found</p>
+              <p style={{ fontSize:'14px', color:C.muted, marginBottom:'20px' }}>Try a different keyword or clear your search</p>
+              <button onClick={()=>{setKeyword('');setApplied({keyword:''})}}
+                style={{ padding:'11px 28px', borderRadius:'100px', backgroundColor:C.mint, color:C.ink, border:'none', ...UB, fontSize:'13px', cursor:'pointer' }}>Clear Search</button>
             </div>
-          ))}
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filteredItems.map((item:any,j:number)=><GridCard key={j} {...item} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filteredItems.map((item:any,j:number)=>(
+                <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
+                  <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                  <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{item.brand}</p>
+                      <h4 style={{ fontSize:'15px', ...CB, color:C.ink }}>{item.title}</h4>
+                    </div>
+                    <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price?.toLocaleString?.()} MAD</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}

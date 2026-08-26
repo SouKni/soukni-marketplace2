@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle, ChevronDown, X } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 
 const I = {
@@ -109,6 +110,68 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
   )
 }
 
+
+function DDrop({ label, value, options, open, setOpen, onChange, heroStyle }: any) {
+  const btnRef = React.useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = React.useState({ top:0, left:0, width:0 })
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => { setMounted(true) }, [])
+  React.useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:320, overflowY:'auto' as const, backgroundColor:'white', borderRadius:16, boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontFamily:'Inter,sans-serif', fontWeight:900, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:6, color:'white', fontSize:14, fontFamily:'Inter,sans-serif', fontWeight:900 }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 20px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{value}</span>
+              <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
+}
+
 export default function PetsAccessoriesPage({ params }: { params: Promise<{ locale:string }> }) {
   const { locale } = React.use(params)
   const [activeSeller, setActiveSeller] = useState('All Sellers')
@@ -116,6 +179,41 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
   const [activePill, setActivePill] = useState('All Pets')
   const [page, setPage] = useState(1)
   const [viewGrid, setViewGrid] = useState(true)
+  const [heroCity, setHeroCity]       = useState('')
+  const [heroKeyword, setHeroKeyword] = useState('')
+  const [applied, setApplied]         = useState({ city:'', keyword:'' })
+  const [price, setPrice]             = useState('Any Price')
+  const [neighborhood, setNeighborhood] = useState('All Neighborhoods')
+  const [cityOpen, setCityOpen]       = useState(false)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
+  const [neighOpen, setNeighOpen]     = useState(false)
+  const [priceOpen, setPriceOpen]     = useState(false)
+  const [sortBy, setSortBy]           = useState('Default')
+  const [sortOpen, setSortOpen]       = useState(false)
+  const [savedSearch, setSavedSearch] = useState(false)
+  const [activeChip, setActiveChip]   = useState('New Arrivals')
+
+  const CITIES = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
+  const PRICES = ['Any Price','0–500 MAD','500–2,000 MAD','2,000–8,000 MAD','8,000+ MAD']
+  const NEIGHBORHOODS = ['All Neighborhoods','Agdal','Hay Riad','Souissi','Hassan','Médina']
+
+  function applySearch() {
+    setApplied({ city: heroCity, keyword: heroKeyword })
+    setPriceOpen(false); setNeighOpen(false); setCityOpen(false)
+  }
+
+  const filteredDiscovery = useMemo(() => {
+    return discoveryListings.filter(item => {
+      const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
+      const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
+      const mp = price === 'Any Price' ? true
+               : price === '0–500 MAD'      ? item.price <= 500
+               : price === '500–2,000 MAD'  ? item.price > 500   && item.price <= 2000
+               : price === '2,000–8,000 MAD'? item.price > 2000  && item.price <= 8000
+               : item.price > 8000
+      return mc && mk && mp
+    })
+  }, [applied, price])
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
@@ -132,16 +230,16 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+              <DDrop label="" value={heroCity||'All Cities'} options={CITIES} open={heroCityOpen} setOpen={setHeroCityOpen} onChange={setHeroCity} heroStyle />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input placeholder="Dog bed, cat tree, fish tank..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Dog bed, cat tree, fish tank..." autoComplete="off" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+              onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
-              Search
+              <Search size={16} /> Search
             </button>
           </div>
         </div>
@@ -149,22 +247,22 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
 
       {/* ADVANCED FILTER BAR */}
       <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
-        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
-          {[
-            { label:'City', val:'Casablanca', w:1 },
-            { label:'Keyword', val:'Dog, cat, bird, fish...', w:2 },
-            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
-            { label:'Price (MAD)', val:'Select Range', w:1 },
-          ].map((f,i)=>(
-            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
-              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
-              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+        <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center', overflow:'visible' }}>
+          <DDrop label="CITY" value={heroCity||'All Cities'} options={['All Cities',...CITIES]} open={cityOpen} setOpen={setCityOpen}
+            onChange={(v:string)=>setHeroCity(v==='All Cities'?'':v)} />
+          <div style={{ flex:2, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>KEYWORD</span>
+            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <Search size={12} color={C.muted} />
+              <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search pet items..." autoComplete="off"
+                style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', background:'none', flex:1 }} />
+              {heroKeyword && <button onClick={()=>{setHeroKeyword('');setApplied(p=>({...p,keyword:''}))}} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, display:'flex' }}><X size={13}/></button>}
             </div>
-          ))}
-          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
-            <SlidersHorizontal size={14} /> All Filters
-          </button>
-          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+          </div>
+          <DDrop label="NEIGHBORHOOD" value={neighborhood} options={NEIGHBORHOODS} open={neighOpen} setOpen={setNeighOpen} onChange={setNeighborhood} />
+          <DDrop label="PRICE (MAD)" value={price} options={PRICES} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <button onClick={applySearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6, transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk} onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
             <Search size={15} /> SEARCH
           </button>
         </div>
@@ -183,13 +281,22 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
           <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Pets &amp; Accessories in Rabat</h2>
           <div style={{ display:'flex', gap:8 }}>
-            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
-              Sort: Default
-            </button>
-            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:sortOpen?C.ink:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:sortOpen?'white':C.ink, transition:'all 0.15s' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+                Sort: {sortBy}
+              </button>
+              {sortOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:14, boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:180 }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:11, fontWeight:700, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}>{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={()=>setSavedSearch(!savedSearch)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:savedSearch?C.mint:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:savedSearch?'white':C.ink, transition:'all 0.15s' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              Save Search
+              {savedSearch?'Search Saved':'Save Search'}
             </button>
           </div>
         </div>
@@ -237,11 +344,14 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
         {/* QUICK FILTER CHIPS */}
         <div style={{ display:'flex', gap:8, marginBottom:28, flexWrap:'wrap' as const }}>
           {[
-            { emoji:'✨', label:'New Arrivals', active:true },
-            { emoji:'📉', label:'Price Drop Alert', active:false },
-            { emoji:'🛍️', label:'Shop Sellers', active:false },
+            { emoji:'✨', label:'New Arrivals' },
+            { emoji:'📉', label:'Price Drop Alert' },
+            { emoji:'🛍️', label:'Shop Sellers' },
           ].map(chip=>(
-            <button key={chip.label} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:chip.active?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:chip.active?C.ink:'white', color:chip.active?'white':'#3c4a46' }}>
+            <button key={chip.label} onClick={()=>setActiveChip(chip.label)}
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', border:activeChip===chip.label?'none':'1px solid rgba(186,202,197,0.5)', backgroundColor:activeChip===chip.label?C.ink:'white', color:activeChip===chip.label?'white':'#3c4a46' }}
+              onMouseEnter={e=>{if(activeChip!==chip.label){e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink}}}
+              onMouseLeave={e=>{if(activeChip!==chip.label){e.currentTarget.style.borderColor='rgba(186,202,197,0.5)';e.currentTarget.style.color='#3c4a46'}}}>
               {chip.emoji} {chip.label}
             </button>
           ))}
@@ -253,9 +363,26 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
             <h2 style={{ ...UB, fontSize:13, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>FEATURED PREMIUM PET ITEMS</h2>
             <Link href="#" style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
-          </div>
+          {viewGrid ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+              {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:12 }}>
+              {featuredListings.map(item=>(
+                <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:20, border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:120 }}>
+                  <img src={item.image} alt={item.title} style={{ width:120, height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                  <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:11, color:C.muted, marginBottom:3 }}>{item.location}</p>
+                      <h4 style={{ fontSize:14, fontWeight:900, color:C.ink }}>{item.title}</h4>
+                    </div>
+                    <p style={{ fontSize:17, fontWeight:900, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* IMMO PRO BANNER */}
@@ -362,11 +489,39 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
             <Link href="#" style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
-            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
-              <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
-                {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+            {filteredDiscovery.length === 0 ? (
+              <div style={{ textAlign:'center' as const, padding:'48px 20px', backgroundColor:'white', borderRadius:24 }}>
+                <p style={{ fontSize:16, fontWeight:700, color:C.ink, marginBottom:8 }}>No results found</p>
+                <p style={{ fontSize:13, color:C.muted, marginBottom:16 }}>Try a different city, keyword or price range</p>
+                <button onClick={()=>{setHeroCity('');setHeroKeyword('');setApplied({city:'',keyword:''});setPrice('Any Price')}}
+                  style={{ padding:'10px 24px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontWeight:700, fontSize:13, cursor:'pointer' }}>Clear Filters</button>
               </div>
-            ))}
+            ) : viewGrid ? (
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+                {filteredDiscovery.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column' as const, gap:12 }}>
+                {filteredDiscovery.map(item=>(
+                  <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:20, border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:120 }}>
+                    <img src={item.image} alt={item.title} style={{ width:120, height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
+                    <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                      <div>
+                        <p style={{ fontSize:11, color:C.muted, marginBottom:3 }}>{item.location}</p>
+                        <h4 style={{ fontSize:14, fontWeight:900, color:C.ink }}>{item.title}</h4>
+                      </div>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <p style={{ fontSize:17, fontWeight:900, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
+                        <div style={{ display:'flex', gap:8 }}>
+                          <button style={{ padding:'7px 14px', borderRadius:10, border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:10, fontWeight:700, cursor:'pointer' }}>Chat</button>
+                          <button style={{ padding:'7px 14px', borderRadius:10, border:'none', backgroundColor:'#25D366', color:'white', fontSize:10, fontWeight:700, cursor:'pointer' }}>WhatsApp</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

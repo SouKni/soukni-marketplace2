@@ -4,20 +4,12 @@ import Link from 'next/link'
 import { Search, ChevronRight, Heart } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMarket } from '@/context/MarketContext'
+import { useDictionary } from '@/lib/useDictionary'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
 
-const categories = [
-  { slug:'cars',            label:'Used Cars',              count:'24,180', emoji:'🚗', image:'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
-  { slug:'new-cars',        label:'New Cars',                count:'1,540',  emoji:'🆕', image:'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&w=600' },
-  { slug:'rental',          label:'Rental Cars',             count:'1,840',  emoji:'🔑', image:'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=600' },
-  { slug:'accessories',     label:'Parts & Accessories',     count:'3,215',  emoji:'🔧', image:'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&w=600' },
-  { slug:'motorcycles',     label:'Moto & Scooters',         count:'642',    emoji:'🏍️', image:'https://images.pexels.com/photos/2607554/pexels-photo-2607554.jpeg?auto=compress&w=600' },
-  { slug:'trucks-vans',     label:'Trucks & Vans',           count:'195',    emoji:'🚚', image:'https://images.pexels.com/photos/2199293/pexels-photo-2199293.jpeg?auto=compress&w=600' },
-  { slug:'heavy-vehicles',  label:'Agro & Heavy',            count:'84',     emoji:'🚜', image:'https://images.pexels.com/photos/1595109/pexels-photo-1595109.jpeg?auto=compress&w=600' },
-  { slug:'car-services',    label:'Car Services & Garages',  count:'1,120',  emoji:'🛠️', image:'https://images.pexels.com/photos/3807386/pexels-photo-3807386.jpeg?auto=compress&w=600' },
-]
+// categories array moved inside component to support translation
 
 const usedCars = [
   { id:'uc1', title: 'BMW M4 Competition',        price: 785000,  location: 'Casablanca', time: 'Just now',    badge: 'diamond', year: '2023', km: '12,500 km', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
@@ -50,7 +42,7 @@ const truckVans = [
 
 type MotorItem = typeof usedCars[0]
 
-function ListingCard({ item, locale }: { item: MotorItem; locale: string }) {
+function ListingCard({ item, locale, t }: { item: MotorItem; locale: string; t: any }) {
   const [saved, setSaved] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { formatPrice } = useMarket()
@@ -61,10 +53,10 @@ function ListingCard({ item, locale }: { item: MotorItem; locale: string }) {
         <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
           <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.06)' : 'scale(1)' }} />
           {item.badge === 'diamond' && (
-            <span style={{ position: 'absolute', top: '10px', left: '10px', background: `linear-gradient(135deg, ${C.mint}, ${C.mintDk})`, color: 'white', fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>💎 Diamond</span>
+            <span style={{ position: 'absolute', top: '10px', left: '10px', background: `linear-gradient(135deg, ${C.mint}, ${C.mintDk})`, color: 'white', fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>💎 {t.common.diamond}</span>
           )}
           {item.badge === 'verified' && (
-            <span style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: C.mint, fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>✓ Verified</span>
+            <span style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: C.mint, fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>✓ {t.common.verified}</span>
           )}
           <button onClick={e => { e.preventDefault(); setSaved(!saved) }} style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Heart size={14} color={saved ? '#ef4444' : 'white'} fill={saved ? '#ef4444' : 'none'} />
@@ -73,14 +65,14 @@ function ListingCard({ item, locale }: { item: MotorItem; locale: string }) {
         <div style={{ padding: '16px 18px' }}>
           <h3 style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight: 900, letterSpacing: '-0.03em', fontSize: '14px', color: C.ink, marginBottom: '8px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
           <div style={{ display: 'flex', gap: '14px', padding: '10px 0', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', marginBottom: '10px' }}>
-            <div><p style={{ fontSize: '9px', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '2px' }}>Year</p><p style={{ fontSize: '12px', fontWeight: 700, color: C.ink }}>{item.year}</p></div>
-            <div><p style={{ fontSize: '9px', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '2px' }}>Mileage</p><p style={{ fontSize: '12px', fontWeight: 700, color: C.ink }}>{item.km}</p></div>
+            <div><p style={{ fontSize: '9px', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '2px' }}>{t.common.year}</p><p style={{ fontSize: '12px', fontWeight: 700, color: C.ink }}>{item.year}</p></div>
+            <div><p style={{ fontSize: '9px', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '2px' }}>{t.common.mileage}</p><p style={{ fontSize: '12px', fontWeight: 700, color: C.ink }}>{item.km}</p></div>
           </div>
           <div style={{ fontFamily:"'Hanken Grotesk',sans-serif", fontWeight: 900, letterSpacing: '-0.03em', fontSize: '18px', color: C.mint, marginBottom: '8px' }}>{formatPrice(item.price)}</div>
           <p style={{ fontSize: '11px', color: C.muted, marginBottom: '12px' }}>📍 {item.location} • {item.time}</p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={e => e.preventDefault()} style={{ flex: 1, backgroundColor: C.surface, color: '#3c4a46', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>Chat</button>
-            <button onClick={e => e.preventDefault()} style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>💬 WhatsApp</button>
+            <button onClick={e => e.preventDefault()} style={{ flex: 1, backgroundColor: C.surface, color: '#3c4a46', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>{t.common.chat}</button>
+            <button onClick={e => e.preventDefault()} style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '9px', borderRadius: '100px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>💬 {t.common.whatsapp}</button>
           </div>
         </div>
       </article>
@@ -91,6 +83,17 @@ function ListingCard({ item, locale }: { item: MotorItem; locale: string }) {
 export default function MotorsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
   const router = useRouter()
+  const t = useDictionary(locale)
+  const categories = [
+    { slug:'cars',            label:t.motors.catUsedCars,      count:'24,180', emoji:'🚗', image:'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
+    { slug:'new-cars',        label:t.motors.catNewCars,        count:'1,540',  emoji:'🆕', image:'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&w=600' },
+    { slug:'rental',          label:t.motors.catRental,         count:'1,840',  emoji:'🔑', image:'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&w=600' },
+    { slug:'accessories',     label:t.motors.catAccessories,    count:'3,215',  emoji:'🔧', image:'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&w=600' },
+    { slug:'motorcycles',     label:t.motors.catMotorcycles,    count:'642',    emoji:'🏍️', image:'https://images.pexels.com/photos/2607554/pexels-photo-2607554.jpeg?auto=compress&w=600' },
+    { slug:'trucks-vans',     label:t.motors.catTrucksVans,     count:'195',    emoji:'🚚', image:'https://images.pexels.com/photos/2199293/pexels-photo-2199293.jpeg?auto=compress&w=600' },
+    { slug:'heavy-vehicles',  label:t.motors.catHeavyVehicles,  count:'84',     emoji:'🚜', image:'https://images.pexels.com/photos/1595109/pexels-photo-1595109.jpeg?auto=compress&w=600' },
+    { slug:'car-services',    label:t.motors.catCarServices,    count:'1,120',  emoji:'🛠️', image:'https://images.pexels.com/photos/3807386/pexels-photo-3807386.jpeg?auto=compress&w=600' },
+  ]
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
   const [hovCat, setHovCat] = useState<string|null>(null)
@@ -111,26 +114,26 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
           style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(15,23,42,0.88),rgba(15,23,42,0.32))' }} />
         <div style={{ position:'relative', zIndex:10, textAlign:'center', padding:'0 24px', maxWidth:760, width:'100%' }}>
-          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>SouKni Motors</p>
+          <p style={{ fontSize:11, fontWeight:800, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.2em', marginBottom:16 }}>{t.motors.badge}</p>
           <h1 style={{ ...UB, fontSize:'clamp(36px,6vw,68px)', color:'white', lineHeight:1.0, marginBottom:20, textTransform:'uppercase' as const }}>
-            YOUR ENGINE.<br />YOUR ROAD.<br />YOUR MARKET.
+            {t.motors.heroLine1}<br />{t.motors.heroLine2}<br />{t.motors.heroLine3}
           </h1>
           <p style={{ fontSize:16, color:'rgba(255,255,255,0.75)', marginBottom:32, maxWidth:520, margin:'0 auto 32px' }}>
-            24,180+ verified listings across Morocco
+            {t.motors.heroSubtitle}
           </p>
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
-              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="All Morocco" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.city}</span>
+              <input value={city} onChange={e=>setCity(e.target.value)} placeholder={t.locations.allMorocco} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
-              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goSearch()} placeholder="Make, model, year..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.keyword}</span>
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goSearch()} placeholder={t.motors.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
             <button onClick={goSearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
-              <Search size={16} /> Search
+              <Search size={16} /> {t.common.search}
             </button>
           </div>
         </div>
@@ -140,10 +143,10 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
       <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
           {[
-            { label:'City', val:'Rabat', w:1 },
-            { label:'Keyword', val:'Make, model, year...', w:2 },
-            { label:'Category', val:'All Motors', w:1 },
-            { label:'Price (MAD)', val:'Select Range', w:1 },
+            { label:t.common.city, val:'Rabat', w:1 },
+            { label:t.common.keyword, val:t.motors.keywordPlaceholder, w:2 },
+            { label:t.common.category, val:t.common.allMotors, w:1 },
+            { label:t.common.price, val:t.common.selectRange, w:1 },
           ].map((f,i)=>(
             <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
               <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
@@ -151,7 +154,7 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
             </div>
           ))}
           <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
-            <Search size={15} /> SEARCH
+            <Search size={15} /> {t.common.search.toUpperCase()}
           </button>
         </div>
       </div>
@@ -160,15 +163,15 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
 
         {/* BREADCRUMB */}
         <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <span style={{ color:C.ink }}>Motors</span>
+          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>{t.common.home}</Link><span>›</span>
+          <span style={{ color:C.ink }}>{t.motors.badge}</span>
         </nav>
 
         {/* CATEGORY GRID */}
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Browse by Category</h2>
-            <span style={{ fontSize:14, color:C.muted }}>32,816 total listings</span>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.common.browseByCategory}</h2>
+            <span style={{ fontSize:14, color:C.muted }}>32,816 {t.common.totalListings}</span>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
             {categories.map(cat=>(
@@ -183,7 +186,7 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                       <div>
                         <p style={{ ...UB, fontSize:15, color:'white', marginBottom:3 }}>{cat.label}</p>
-                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} ads</p>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600 }}>{cat.count} {t.common.ads}</p>
                       </div>
                       <div style={{ width:36, height:36, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
                         {cat.emoji}
@@ -203,13 +206,13 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
             <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
-              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Auto Pro</span>
-              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>Premium Vehicles for<br/>the Elite Shopper.</h2>
+              <span style={{ backgroundColor:'#8d4f00', color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>{t.motors.autoProBadge}</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>{t.motors.autoProTitle}<br/>{t.motors.autoProTitle2}</h2>
               <div style={{ display:'flex', gap:12 }}>
                 <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
-                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Get Certified</button>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>{t.common.getCertified}</button>
                 </Link>
-                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>{t.common.contactExpert}</button>
               </div>
             </div>
           </div>
@@ -218,13 +221,13 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
         {/* FEATURED USED CARS */}
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Featured Used Cars</h2>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.motors.featuredUsedCars}</h2>
             <Link href={`/${locale}/motors/cars`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {usedCars.map(item => <ListingCard key={item.id} item={item} locale={locale} />)}
+            {usedCars.map(item => <ListingCard key={item.id} item={item} locale={locale} t={t} />)}
           </div>
         </section>
 
@@ -235,13 +238,13 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
             <div style={{ position:'absolute', inset:0, background:'linear-gradient(to right,rgba(22,29,27,0.92) 0%,rgba(22,29,27,0.5) 60%,transparent)' }} />
             <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' as const, justifyContent:'center', padding:'0 56px' }}>
-              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>SouKni Immo Pro</span>
-              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>List your luxury property<br/>where the elite browse.</h2>
+              <span style={{ backgroundColor:C.mint, color:'white', fontSize:9, ...UB, padding:'4px 14px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', display:'inline-block', marginBottom:14, width:'fit-content' }}>{t.motors.immoProBadge}</span>
+              <h2 style={{ ...UB, fontSize:'clamp(20px,3vw,32px)', color:'white', marginBottom:20, lineHeight:1.1 }}>{t.motors.immoProTitle}<br/>{t.motors.immoProTitle2}</h2>
               <div style={{ display:'flex', gap:12 }}>
                 <Link href={`/${locale}/property`} style={{ textDecoration:'none' }}>
-                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>Explore Properties</button>
+                  <button style={{ backgroundColor:'white', color:C.ink, border:'none', padding:'11px 28px', borderRadius:100, fontSize:12, ...UB, cursor:'pointer' }}>{t.motors.exploreProperties}</button>
                 </Link>
-                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>Contact Expert</button>
+                <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'11px 28px', borderRadius:100, fontSize:12, fontWeight:700, cursor:'pointer' }}>{t.common.contactExpert}</button>
               </div>
             </div>
           </div>
@@ -250,19 +253,19 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
         {/* RENTAL CARS */}
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Rental Cars</h2>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.motors.rentalCars}</h2>
             <Link href={`/${locale}/motors/rental`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {rentalCars.map(item => <ListingCard key={item.id} item={item} locale={locale} />)}
+            {rentalCars.map(item => <ListingCard key={item.id} item={item} locale={locale} t={t} />)}
           </div>
         </section>
 
         {/* TRENDING SEARCHES */}
         <section style={{ marginBottom:64 }}>
-          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>Trending in Motors</h2>
+          <h2 style={{ ...UB, fontSize:22, color:C.ink, marginBottom:20 }}>{t.motors.trendingTitle}</h2>
           <div style={{ display:'flex', gap:10, flexWrap:'wrap' as const }}>
             {['BMW M4','Land Rover Defender','Porsche Cayenne','Dacia Duster','Tesla Model S','Harley Davidson','Range Rover','Mercedes GLE','KTM Duke','Ford Transit','Ducati Panigale','Toyota Hilux'].map(tag=>(
               <Link key={tag} href={`/${locale}/motors/cars`} style={{ textDecoration:'none' }}>
@@ -279,26 +282,26 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
         {/* MOTORCYCLES & SCOOTERS */}
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Motorcycles &amp; Scooters</h2>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.motors.motorcycles}</h2>
             <Link href={`/${locale}/motors/motorcycles`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {motorcycles.map(item => <ListingCard key={item.id} item={item} locale={locale} />)}
+            {motorcycles.map(item => <ListingCard key={item.id} item={item} locale={locale} t={t} />)}
           </div>
         </section>
 
         {/* TRUCKS, VANS & HEAVY VEHICLES — extra section before final banners */}
         <section style={{ marginBottom:64 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>Trucks, Vans &amp; Heavy Vehicles</h2>
+            <h2 style={{ ...UB, fontSize:28, color:C.ink }}>{t.motors.trucksVans}</h2>
             <Link href={`/${locale}/motors/trucks-vans`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-              View all <ChevronRight size={14} />
+              {t.common.viewAll} <ChevronRight size={14} />
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {truckVans.map(item => <ListingCard key={item.id} item={item} locale={locale} />)}
+            {truckVans.map(item => <ListingCard key={item.id} item={item} locale={locale} t={t} />)}
           </div>
         </section>
 
@@ -308,14 +311,14 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
             style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.7))' }} />
           <div style={{ position:'relative', zIndex:1, padding:'56px 64px', maxWidth:640 }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>✦ SOUKNI CERTIFIED</span>
-            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>Become a SouKni Diamond Member.</h2>
-            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>Unlock priority listings, verified badge, and exclusive buyer access across Morocco's automotive marketplace.</p>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, color:'white', fontSize:9, ...UB, padding:'5px 16px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:20 }}>{t.common.diamondBadge}</span>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,48px)', color:'white', marginBottom:16, lineHeight:1.05 }}>{t.motors.diamondTitle}</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.72)', lineHeight:1.7, marginBottom:28 }}>{t.motors.diamondSubtitle}</p>
             <div style={{ display:'flex', gap:12 }}>
               <Link href={`/${locale}/diamond`} style={{ textDecoration:'none' }}>
-                <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>Get Verified Now</button>
+                <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'13px 28px', borderRadius:100, fontSize:13, ...UB, cursor:'pointer' }}>{t.common.getVerifiedNow}</button>
               </Link>
-              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>Learn More</button>
+              <button style={{ backgroundColor:'transparent', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'13px 28px', borderRadius:100, fontSize:13, fontWeight:700, cursor:'pointer' }}>{t.common.learnMore}</button>
             </div>
           </div>
         </section>
@@ -323,15 +326,15 @@ export default function MotorsPage({ params }: { params: Promise<{ locale: strin
         {/* JOIN THE SOUKNI FAMILY */}
         <section style={{ borderRadius:40, background:`linear-gradient(135deg,${C.mint},${C.mintDk})`, padding:'56px 64px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:40, flexWrap:'wrap' as const }}>
           <div>
-            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>SELL YOUR CAR TODAY</h2>
-            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>Join Morocco's largest community of buyers and sellers for free.</p>
+            <h2 style={{ ...UB, fontSize:'clamp(28px,4vw,44px)', color:'white', marginBottom:12, lineHeight:1.05 }}>{t.motors.sellCarTitle}</h2>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,0.85)', maxWidth:480, lineHeight:1.7 }}>{t.motors.sellCarSubtitle}</p>
             <div style={{ display:'flex', gap:12, marginTop:24 }}>
-              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 App Store</button>
-              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ Google Play</button>
+              <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>🍎 {t.common.appStore}</button>
+              <button style={{ backgroundColor:'rgba(255,255,255,0.15)', color:'white', border:'1px solid rgba(255,255,255,0.4)', padding:'12px 24px', borderRadius:100, fontWeight:800, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>▶ {t.common.googlePlay}</button>
             </div>
           </div>
           <Link href={`/${locale}/post-ad`} style={{ textDecoration:'none' }}>
-            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
+            <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>{t.common.postFreeAd}</span>
           </Link>
         </section>
 

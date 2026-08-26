@@ -11,6 +11,7 @@ export async function generateStaticParams() {
   return [
     { locale: 'en' }, { locale: 'fr' },
     { locale: 'ar' }, { locale: 'es' }, { locale: 'de' },
+    { locale: 'ber' },
   ]
 }
 

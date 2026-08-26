@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import React from 'react'
-import Link from 'next/link'
-
-import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
 
 const C = {
   mint:   '#22d4a8',
@@ -20,40 +21,30 @@ const CB: React.CSSProperties = { fontFamily:"'Hanken Grotesk',sans-serif", font
 
 const I = {
   hero:    'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=1600',
-  bag1:    'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
-  bag2:    'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
-  bag3:    'https://images.pexels.com/photos/1204469/pexels-photo-1204469.jpeg?auto=compress&w=600',
-  bag4:    'https://images.pexels.com/photos/2081199/pexels-photo-2081199.jpeg?auto=compress&w=600',
-  bag5:    'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
-  wallet:  'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
-  chanel:  'https://images.pexels.com/photos/2081199/pexels-photo-2081199.jpeg?auto=compress&w=600',
-  dior:    'https://images.pexels.com/photos/1204469/pexels-photo-1204469.jpeg?auto=compress&w=600',
-  lv:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
-  hermes:  'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
-  gucci:   'https://images.pexels.com/photos/2081199/pexels-photo-2081199.jpeg?auto=compress&w=600',
-  prada:   'https://images.pexels.com/photos/1204469/pexels-photo-1204469.jpeg?auto=compress&w=600',
-  ysl:     'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
+  v1:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
+  v2:      'https://images.pexels.com/photos/3731256/pexels-photo-3731256.jpeg?auto=compress&w=600',
+  v3:      'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
+  v4:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
   bento1:  'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=900',
-  bento2:  'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
-  bento3:  'https://images.pexels.com/photos/1204469/pexels-photo-1204469.jpeg?auto=compress&w=600',
-  bento4:  'https://images.pexels.com/photos/2081199/pexels-photo-2081199.jpeg?auto=compress&w=600',
+  bento2:  'https://images.pexels.com/photos/3731256/pexels-photo-3731256.jpeg?auto=compress&w=600',
+  bento3:  'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=600',
+  bento4:  'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600',
   immo:    'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=1200',
-  bagpro:  'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=1200',
+  autopro: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=1200',
   g1:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=400',
-  g2:      'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=400',
-  g3:      'https://images.pexels.com/photos/1204469/pexels-photo-1204469.jpeg?auto=compress&w=400',
-  g4:      'https://images.pexels.com/photos/2081199/pexels-photo-2081199.jpeg?auto=compress&w=400',
-  g5:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=400',
-  phone:   'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=400',
+  g2:      'https://images.pexels.com/photos/3731256/pexels-photo-3731256.jpeg?auto=compress&w=400',
+  g3:      'https://images.pexels.com/photos/904350/pexels-photo-904350.jpeg?auto=compress&w=400',
+  g4:      'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=400',
+  g5:      'https://images.pexels.com/photos/3731256/pexels-photo-3731256.jpeg?auto=compress&w=400',
 }
 
 type BadgeT = 'certified'|'diamond'|'featured'|'new'
 function Badge({ type }: { type: BadgeT }) {
   const map: Record<BadgeT,{bg:string;color:string;label:string}> = {
-    certified:{ bg:C.mint,    color:C.ink,  label:'SouKni Certified' },
-    diamond:  { bg:C.ink,     color:C.mint, label:'◆ DIAMOND'        },
-    featured: { bg:'#fbbf24', color:C.ink,  label:'Featured'         },
-    new:      { bg:'#006c53', color:'white', label:'New Arrival'      },
+    certified:{ bg:C.mint,   color:C.ink,  label:'SouKni Certified' },
+    diamond:  { bg:C.ink,    color:C.mint, label:'◆ DIAMOND'        },
+    featured: { bg:'#fbbf24',color:C.ink,  label:'Featured'         },
+    new:      { bg:C.mint,   color:'white',label:'New Arrival'       },
   }
   const s = map[type]
   return (
@@ -63,7 +54,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, style }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -77,6 +68,7 @@ function FeaturedCard({ brand, title, price, location, img, badges }: any) {
         <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
+        {style && <div style={{ position:'absolute', bottom:'10px', right:'10px', backgroundColor:'rgba(22,29,27,0.75)', color:'white', fontSize:'9px', ...CB, padding:'4px 10px', borderRadius:'6px' }}>{style}</div>}
       </div>
       <div style={{ padding:'18px 20px' }}>
         <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>{brand}</p>
@@ -88,14 +80,14 @@ function FeaturedCard({ brand, title, price, location, img, badges }: any) {
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}><a href={whatsappLink()} target='_blank' rel='noopener noreferrer' style={{color:'white',textDecoration:'none'}}>💬 WhatsApp</a></button>
+          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge }: any) {
+function GridCard({ brand, title, price, img, badge, style }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -107,6 +99,7 @@ function GridCard({ brand, title, price, img, badge }: any) {
         <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={12} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
+        {style && <div style={{ position:'absolute', bottom:'8px', right:'8px', backgroundColor:'rgba(22,29,27,0.75)', color:'white', fontSize:'8px', ...CB, padding:'3px 8px', borderRadius:'5px' }}>{style}</div>}
       </div>
       <div style={{ padding:'14px 16px' }}>
         <p style={{ fontSize:'9px', ...CB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.08em', marginBottom:'2px' }}>{brand}</p>
@@ -125,32 +118,107 @@ function GridCard({ brand, title, price, img, badge }: any) {
 }
 
 const featuredItems = [
-  { brand:'Hermès',        title:'Birkin 30 Gold Togo',       price:185000, location:'Souissi, Rabat',  img:I.hermes, badges:['featured','diamond']    },
-  { brand:'Chanel',        title:'Classic Double Flap Medium', price:72000,  location:'Agdal, Rabat',    img:I.chanel, badges:['featured','certified']  },
-  { brand:'Louis Vuitton', title:'Neverfull MM Monogram',      price:16500,  location:'Rabat Centre',    img:I.lv,     badges:['featured','certified']  },
-  { brand:'Dior',          title:'Lady Dior Medium Beige',     price:48000,  location:'Hay Riad, Rabat', img:I.dior,   badges:['featured','new']        },
+  { brand:'Louis Vuitton', title:'Neverfull MM Monogram Canvas',    price:12500, location:'Souissi, Rabat',  img:I.v1, badges:['featured','diamond'],   style:'Tote' },
+  { brand:'Chanel',        title:'Classic Flap Bag — Medium',       price:48000, location:'Agdal, Rabat',    img:I.v2, badges:['featured','certified'], style:'Shoulder' },
+  { brand:'Hermes',        title:'Birkin 30 Togo Leather',          price:185000,location:'Rabat Centre',    img:I.v3, badges:['featured','diamond'],   style:'Handbag' },
+  { brand:'Gucci',         title:'Dionysus GG Supreme Shoulder',    price:9800,  location:'Hay Riad, Rabat', img:I.v4, badges:['featured','certified'], style:'Crossbody' },
 ]
 
 function makeGrid(count: number) {
-  const brands  = ['Hermès','Chanel','Louis Vuitton','Gucci','Prada','YSL','Dior','Bottega','Loewe','Celine','Givenchy','Balenciaga']
-  const titles  = ['Kelly 25 Epsom','Classic Flap','Speedy 30','Dionysus GG','Galleria Saffiano','Sunset Shoulder','Lady Dior Small','Pouch Intrecciato','Puzzle Small','Belt Bag','Antigona','City Bag']
-  const imgs    = [I.g1,I.g2,I.g3,I.g4,I.g5]
+  const brands = ['Louis Vuitton','Chanel','Gucci','Hermes','Prada','Dior','Coach','Michael Kors','Celine','Bottega Veneta','Balenciaga','Saint Laurent']
+  const titles = ['Speedy 30 Monogram','2.55 Reissue','GG Marmont Mini','Kelly 28 Sellier','Galleria Saffiano','Lady Dior Medium','Tabby Shoulder Bag','Jet Set Travel Tote','Triomphe Canvas','Jodie Intrecciato','City Bag','Loulou Puffer']
+  const imgs   = [I.g1,I.g2,I.g3,I.g4,I.g5]
+  const styles = ['Handbag','Shoulder Bag','Crossbody','Tote','Clutch','Backpack','Mini Bag']
   const badges: BadgeT[] = ['certified','diamond','featured','new','certified']
+  const sellers = ['SouKni Members','SouKni Pro','SouKni Members','SouKni Pro']
+  const locs = ['Rabat','Casablanca','Marrakech','Fes','Tanger','Agadir','Meknes']
   return Array.from({length:count},(_,i)=>({
-    brand: brands[i%brands.length],
-    title: titles[i%titles.length],
-    price: 8000 + ((i*2731)%180000),
-    img:   imgs[i%imgs.length],
-    badge: badges[i%badges.length],
+    brand:  brands[i%brands.length],
+    title:  titles[i%titles.length],
+    price:  800 + ((i*1973)%45000),
+    img:    imgs[i%imgs.length],
+    style:  styles[i%styles.length],
+    badge:  badges[i%badges.length],
+    seller: sellers[i%sellers.length],
+    discount: i%3===0 ? 10+((i*7)%30) : null,
+    isNew: badges[i%badges.length]==='new' || i%5===0,
+    location: locs[i%locs.length],
   }))
 }
 const gridItems = makeGrid(16)
 
-const CATS = ['Handbags','Wallets','Briefcases','Crossbody Bags','Backpacks','Clutches']
+const CATS = [
+  { label:'All Bags',     slug:'all-bags',     emoji:'👜' },
+  { label:'Handbags',     slug:'handbags',      emoji:'👛' },
+  { label:'Shoulder Bags',slug:'shoulder-bags', emoji:'🎒' },
+  { label:'Crossbody',    slug:'crossbody',     emoji:'💼' },
+  { label:'Totes',        slug:'totes',         emoji:'🛍️' },
+  { label:'Clutches',     slug:'clutches',      emoji:'💅' },
+  { label:'Luxury',       slug:'luxury',        emoji:'💎' },
+]
+
+function DDrop({ label, value, options, open, setOpen, onChange, closeOthers, heroStyle }: any) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({top:0,left:0,width:0})
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    if (!open) return
+    const measure = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect()
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+      }
+    }
+    measure()
+    const closeOnScroll = () => setOpen(false)
+    window.addEventListener('scroll', closeOnScroll, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', closeOnScroll, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
+  const dropdown = open && mounted ? createPortal(
+    <>
+      <div onClick={()=>setOpen(false)} style={{ position:'fixed', inset:0, zIndex:99998 }} />
+      <div style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:Math.max(pos.width,200), maxHeight:'320px', overflowY:'auto' as const, backgroundColor:'white', borderRadius:'16px', boxShadow:'0 16px 48px rgba(0,0,0,0.2)', border:'1px solid rgba(107,122,118,0.1)', zIndex:99999, padding:'6px 0' }}>
+        {options.map((opt:string)=>(
+          <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
+            style={{ width:'100%', padding:'10px 18px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'13px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
+            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
+          >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
+        ))}
+      </div>
+    </>, document.body
+  ) : null
+  return (
+    <div style={{ position:'relative', flex:1 }}>
+      <button ref={btnRef} onClick={(e)=>{ e.stopPropagation(); if (closeOthers) closeOthers(); setOpen(!open) }}
+        style={heroStyle
+          ? { background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }
+          : { width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
+        {heroStyle ? (
+          <>{value} <ChevronDown size={14} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} /></>
+        ) : (
+          <>
+            <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
+              <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
+            </div>
+          </>
+        )}
+      </button>
+      {dropdown}
+    </div>
+  )
+}
 
 export default function BagsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
-  const [activeCat,    setActiveCat   ] = useState('Handbags')
+  const router = useRouter()
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
   const [gridView,     setGridView    ] = useState(true)
@@ -163,58 +231,66 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
   const [neighOpen,    setNeighOpen   ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
-  const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
-  const priceRanges   = ['Any Price','0 – 5,000 MAD','5,000 – 20,000 MAD','20,000 – 60,000 MAD','60,000 – 120,000 MAD','120,000+ MAD']
+  const cities        = ALL_CITIES
+  const neighborhoods = ['All Neighborhoods', ...getNeighborhoods(city)]
+  const priceRanges   = ['Any Price','0 – 500 MAD','500 – 2,000 MAD','2,000 – 8,000 MAD','8,000 – 30,000 MAD','30,000+ MAD']
+  const [sortBy, setSortBy]       = useState('Default')
+  const [sortOpen, setSortOpen]   = useState(false)
+  const [showNewOnly, setShowNewOnly]   = useState(false)
+  const [showDiscount, setShowDiscount] = useState(false)
+  const [heroCityOpen, setHeroCityOpen] = useState(false)
 
-  function DDrop({ label, value, options, open, setOpen, onChange }: any) {
-    return (
-      <div style={{ position:'relative', flex:1 }}>
-        <button onClick={()=>{ setOpen(!open); setCityOpen(false); setNeighOpen(false); setPriceOpen(false) }}
-          style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center', textAlign:'left' as const }}>
-          <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>{label}</span>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:'14px', ...UB, color:C.ink }}>{value}</span>
-            <ChevronDown size={14} color={C.mint} style={{ flexShrink:0, transition:'transform 0.2s', transform:open?'rotate(180deg)':'rotate(0)' }} />
-          </div>
-        </button>
-        {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:'220px', backgroundColor:'white', borderRadius:'20px', boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, overflow:'hidden', padding:'8px 0' }}>
-            {options.map((opt:string)=>(
-              <button key={opt} onClick={()=>{ onChange(opt); setOpen(false) }}
-                style={{ width:'100%', padding:'12px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:'14px', ...UB, color:opt===value?C.mint:C.ink, display:'flex', justifyContent:'space-between', alignItems:'center' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-              >{opt}{opt===value&&<span style={{color:C.mint}}>✓</span>}</button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+  function parsePriceRange(range: string): [number, number] {
+    if (range === 'Any Price') return [0, Infinity]
+    const nums = range.replace(/MAD/g,'').split('–').map(s=>parseInt(s.replace(/,/g,'').trim()))
+    if (range.includes('+')) return [nums[0], Infinity]
+    return [nums[0], nums[1]]
   }
+  const [minP, maxP] = parsePriceRange(price)
+
+  let filteredGrid = gridItems.filter(item => {
+    const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
+    const matchesPrice   = item.price >= minP && item.price <= maxP
+    const matchesSeller  = activeSeller==='All Sellers' || item.seller===activeSeller
+    const matchesNew     = !showNewOnly || item.isNew
+    const matchesDiscount= !showDiscount || item.discount
+    const matchesCity    = item.location === city
+    return matchesKeyword && matchesPrice && matchesSeller && matchesNew && matchesDiscount && matchesCity
+  })
+  if (diamond) {
+    filteredGrid = [...filteredGrid].sort((a,b)=>{
+      const rank = (b:string)=> b==='diamond'?2:b==='certified'?1:0
+      return rank(b.badge) - rank(a.badge)
+    })
+  }
+  if (sortBy === 'Price: Low to High')  filteredGrid = [...filteredGrid].sort((a,b)=>a.price-b.price)
+  if (sortBy === 'Price: High to Low')  filteredGrid = [...filteredGrid].sort((a,b)=>b.price-a.price)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
 
       {/* ══ 1. HERO ══════════════════════════════════════════ */}
       <section style={{ position:'relative', height:'520px', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src={I.hero} alt="Luxury Bags" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+        <img src={I.hero} alt="Bags" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
         <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.42)' }} />
         <div style={{ position:'relative', zIndex:10, textAlign:'center' as const, maxWidth:'960px', padding:'0 24px', width:'100%' }}>
           <h1 style={{ fontSize:'clamp(36px,6vw,64px)', ...UB, color:'white', marginBottom:'36px', lineHeight:1, textShadow:'0 4px 20px rgba(0,0,0,0.4)' }}>
-            BAGS & WALLETS.<br/><span style={{ color:C.mint }}>LUXURY RESALE IN RABAT.</span>
+            LUXURY BAGS &<br/><span style={{ color:C.mint }}>DESIGNER HANDBAGS IN RABAT.</span>
           </h1>
           <div style={{ maxWidth:'780px', margin:'0 auto', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:'100px', padding:'8px', display:'flex', alignItems:'center' }}>
             <div style={{ flex:1, padding:'0 28px', borderRight:'1px solid rgba(255,255,255,0.22)', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>CITY</span>
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', color:'white', fontSize:'14px', ...UB }}>Rabat <ChevronDown size={14} /></div>
+              <DDrop label="" value={city} options={cities} open={heroCityOpen} setOpen={setHeroCityOpen} onChange={(c:string)=>{setCity(c);setNeighborhood('All Neighborhoods')}} heroStyle />
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search for brands, styles, or specific models..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder="Search brands, styles, sizes..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={()=>router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`)}
+              style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -225,21 +301,23 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
       {/* ══ 2. ADVANCED FILTER BAR ═══════════════════════════ */}
       <div style={{ maxWidth:'1280px', margin:'-40px auto 0', padding:'0 24px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.97)', backdropFilter:'blur(16px)', border:'1px solid rgba(107,122,118,0.12)', borderRadius:'100px', boxShadow:'0 12px 40px rgba(0,0,0,0.08)', display:'flex', alignItems:'stretch', height:'72px' }}>
-          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={setCity} />
+          <DDrop label="CITY" value={city} options={cities} open={cityOpen} setOpen={setCityOpen} onChange={(c:string)=>{setCity(c);setNeighborhood('All Neighborhoods')}} closeOthers={()=>{setNeighOpen(false);setPriceOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <div style={{ flex:1.8, padding:'0 22px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
               <Search size={13} color={C.muted} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. Birkin, Classic Flap, Neverfull..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)}
+                onKeyDown={e=>{ if(e.key==='Enter') router.push(`/${locale}/search?q=${encodeURIComponent(keyword)}`) }}
+                placeholder="e.g. Louis Vuitton, Chanel, Birkin..."
                 style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'14px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
               {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
           </div>
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="NEIGHBOURHOOD" value={neighborhood} options={neighborhoods} open={neighOpen} setOpen={setNeighOpen} onChange={setNeighborhood} />
+          <DDrop label="NEIGHBOURHOOD" value={neighborhood} options={neighborhoods} open={neighOpen} setOpen={setNeighOpen} onChange={setNeighborhood} closeOthers={()=>{setCityOpen(false);setPriceOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
-          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} />
+          <DDrop label="PRICE (MAD)" value={price} options={priceRanges} open={priceOpen} setOpen={setPriceOpen} onChange={setPrice} closeOthers={()=>{setCityOpen(false);setNeighOpen(false)}} />
           <div style={{ width:'1px', backgroundColor:'rgba(107,122,118,0.12)', margin:'12px 0' }} />
           <button style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 28px', background:'none', border:'none', cursor:'pointer', borderRadius:'0 100px 100px 0', transition:'background 0.15s', flexShrink:0 }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=`${C.mint}14`}
@@ -253,42 +331,48 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
-        <FashionBreadcrumb pageLabel="Bags & Wallets" />
+        {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
+        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
+          {['Rabat','Fashion','Bags & Handbags'].map((c,i,arr)=>(
+            <React.Fragment key={c}>
+              {i<arr.length-1
+                ? <><Link href={i===0?`/${locale}`:i===1?`/${locale}/fashion`:'#'} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
+                : <span style={{ color:C.ink }}>{c}</span>}
+            </React.Fragment>
+          ))}
+        </nav>
+
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
-            <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Bags & Wallets in Rabat</h2>
-            <p style={{ fontSize:'14px', color:C.mint, ...CB }}>5,876 Ads in Rabat District</p>
+            <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Bags & Handbags in Rabat</h2>
+            <p style={{ fontSize:'14px', color:C.mint, ...CB }}>3,840 Ads in Rabat District</p>
           </div>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['↕ Sort: Default','🔖 Save Search'].map(b=>(
-              <button key={b} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink, transition:'background 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.backgroundColor='white'}
-              >{b}</button>
-            ))}
+            <div style={{ position:'relative' }}>
+              <button onClick={()=>setSortOpen(!sortOpen)} style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>↕ Sort: {sortBy}</button>
+              {sortOpen && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, backgroundColor:'white', borderRadius:'14px', boxShadow:'0 12px 30px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:100, overflow:'hidden', minWidth:'180px' }}>
+                  {['Default','Price: Low to High','Price: High to Low'].map(opt=>(
+                    <button key={opt} onClick={()=>{setSortBy(opt);setSortOpen(false)}} style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', textAlign:'left' as const, fontSize:'11px', ...UB, color:sortBy===opt?C.mint:C.ink, cursor:'pointer' }}>{opt}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button style={{ backgroundColor:'white', border:'1px solid rgba(107,122,118,0.18)', padding:'9px 16px', borderRadius:'12px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', color:C.ink }}>🔖 Save Search</button>
           </div>
         </div>
 
-        {/* ══ 4. CATEGORY PILLS + VIEW MORE ════════════════════ */}
+        {/* ══ 4. CATEGORY PILLS ════════════════════════════════ */}
         <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' as const, marginBottom:'20px', alignItems:'center' }}>
-          {[
-            { label:'All Bags',       slug:'all-bags'      },
-            { label:'Handbags',       slug:'handbags'      },
-            { label:'Wallets',        slug:'wallets'       },
-            { label:'Briefcases',     slug:'briefcases'    },
-            { label:'Crossbody Bags', slug:'crossbody-bags'},
-            { label:'Backpacks',      slug:'backpacks'     },
-            { label:'Clutches',       slug:'clutches'      },
-          ].map(cat=>(
+          {CATS.map(cat=>(
             <Link key={cat.slug} href={`/${locale}/fashion/bags/${cat.slug}`}
               style={{ padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:'1px solid', textDecoration:'none', display:'inline-block',
                 backgroundColor:'white', color:C.muted, borderColor:'rgba(186,202,197,0.4)',
               }}
               onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.borderColor=C.mint}}
               onMouseLeave={e=>{e.currentTarget.style.backgroundColor='white';e.currentTarget.style.color=C.muted;e.currentTarget.style.borderColor='rgba(186,202,197,0.4)'}}
-            >{cat.label}</Link>
+            >{cat.emoji} {cat.label}</Link>
           ))}
-          {/* VIEW MORE pill */}
           <button style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 22px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'all 0.2s', border:`1px solid ${C.mint}`, backgroundColor:'transparent', color:C.mint }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.mint}}
@@ -319,13 +403,12 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
         {/* ══ 6. NEW ARRIVALS + GRID TOGGLE ════════════════════ */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'40px' }}>
           <div style={{ display:'flex', gap:'10px' }}>
-            {['✨ New Arrivals','📉 Price Drop Alert'].map(btn=>(
-              <button key={btn}
-                style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:'1px solid rgba(107,122,118,0.2)', backgroundColor:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:C.muted, transition:'all 0.15s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.ink;e.currentTarget.style.backgroundColor=`${C.mint}0a`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted;e.currentTarget.style.backgroundColor='transparent'}}
-              >{btn}</button>
-            ))}
+            <button onClick={()=>setShowNewOnly(!showNewOnly)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showNewOnly?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showNewOnly?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showNewOnly?C.ink:C.muted }}
+            >✨ New Arrivals</button>
+            <button onClick={()=>setShowDiscount(!showDiscount)}
+              style={{ display:'flex', alignItems:'center', gap:'6px', padding:'9px 18px', borderRadius:'100px', border:`1px solid ${showDiscount?C.mint:'rgba(107,122,118,0.2)'}`, backgroundColor:showDiscount?`${C.mint}14`:'transparent', fontSize:'12px', ...UB, cursor:'pointer', color:showDiscount?C.ink:C.muted }}
+            >📉 Price Drop Alert</button>
           </div>
           <div style={{ display:'flex', gap:'4px', padding:'4px', backgroundColor:'white', borderRadius:'12px', border:'1px solid rgba(107,122,118,0.12)' }}>
             <button onClick={()=>setGridView(true)}  style={{ width:'36px', height:'36px', borderRadius:'8px', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px', backgroundColor:gridView?C.ink:'transparent', color:gridView?'white':C.muted, transition:'all 0.2s' }}>⊞</button>
@@ -333,12 +416,12 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
           </div>
         </div>
 
-        {/* ══ 7. FEATURED PREMIUM HANDBAGS ══════════════════════ */}
+        {/* ══ 7. FEATURED BAGS ═════════════════════════════════ */}
         <section style={{ marginBottom:'48px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
             <div>
-              <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'4px' }}>Featured Premium Handbags</h3>
-              <p style={{ fontSize:'14px', color:C.muted }}>Hand-picked luxury from the world's most iconic houses</p>
+              <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'4px' }}>Featured Luxury Bags</h3>
+              <p style={{ fontSize:'14px', color:C.muted }}>Authenticated designer bags from the world's most iconic houses</p>
             </div>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All Featured →</a>
           </div>
@@ -363,27 +446,27 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
           </div>
         </section>
 
-        {/* ══ 9. EXCLUSIVE BAGS COLLECTION BENTO ══════════════ */}
+        {/* ══ 9. EXCLUSIVE BAGS BENTO ══════════════════════════ */}
         <section style={{ marginBottom:'64px' }}>
           <h3 style={{ fontSize:'clamp(20px,3vw,32px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'32px' }}>Exclusive Bags Collection</h3>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gridTemplateRows:'380px 380px', gap:'20px' }}>
-            {/* Large left — col 1-2, row 1-2 */}
             <div style={{ gridColumn:'1/3', gridRow:'1/3', backgroundColor:'white', borderRadius:'40px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
               <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
-                <img src={I.bento1} alt="Hermès Birkin" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <img src={I.bento1} alt="Hermes Birkin" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'20px', left:'20px' }}>
                   <span style={{ backgroundColor:C.ink, color:C.mint, fontSize:'10px', ...CB, padding:'7px 16px', borderRadius:'100px', textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>◆ DIAMOND MEMBER</span>
                 </div>
+                <div style={{ position:'absolute', bottom:'20px', right:'20px', backgroundColor:'rgba(22,29,27,0.75)', color:'white', fontSize:'11px', ...CB, padding:'6px 14px', borderRadius:'8px' }}>Birkin 30</div>
               </div>
               <div style={{ padding:'24px 28px', flexShrink:0 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'6px', gap:'12px' }}>
                   <div>
-                    <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>HERMÈS</p>
-                    <h4 style={{ fontSize:'20px', ...CB, color:C.ink }}>Birkin 30 — Gold Togo Leather</h4>
+                    <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'3px' }}>HERMES</p>
+                    <h4 style={{ fontSize:'20px', ...CB, color:C.ink }}>Birkin 30 Togo Leather — Gold</h4>
                   </div>
                   <span style={{ fontSize:'22px', ...CB, color:C.mint, flexShrink:0 }}>185,000 MAD</span>
                 </div>
-                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>Pristine condition · Certificate of authenticity included · Rabat, Souissi</p>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>Stamp T (2015) · Pristine condition · Full set · Rabat, Souissi</p>
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
@@ -393,10 +476,9 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
                 </div>
               </div>
             </div>
-            {/* Top-right — col 3, row 1 */}
             <div style={{ gridColumn:'3', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
               <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
-                <img src={I.bento2} alt="Chanel" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <img src={I.bento2} alt="Chanel Flap" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'12px', left:'12px' }}>
                   <span style={{ backgroundColor:C.mint, color:C.ink, fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>SOUKNI CERTIFIED</span>
                 </div>
@@ -404,54 +486,46 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
               <div style={{ padding:'16px 18px', flexShrink:0 }}>
                 <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>CHANEL</p>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
-                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Classic Double Flap Medium</h4>
-                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>72,000 MAD</span>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Classic Flap Bag Medium</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>48,000 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
                 </div>
               </div>
             </div>
-            {/* Top-far-right — col 4, row 1 */}
             <div style={{ gridColumn:'4', gridRow:'1', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'column' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
               <div style={{ flex:1, overflow:'hidden', position:'relative', minHeight:0 }}>
-                <img src={I.bento3} alt="Dior" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <img src={I.bento3} alt="Gucci" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'12px', left:'12px' }}>
                   <span style={{ backgroundColor:'#fbbf24', color:C.ink, fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>Featured</span>
                 </div>
               </div>
               <div style={{ padding:'16px 18px', flexShrink:0 }}>
-                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>DIOR</p>
+                <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'2px' }}>GUCCI</p>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'10px' }}>
-                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Lady Dior Medium Beige</h4>
-                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>48,000 MAD</span>
+                  <h4 style={{ fontSize:'13px', ...CB, color:C.ink }}>Dionysus GG Supreme</h4>
+                  <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>9,800 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
                 </div>
               </div>
             </div>
-            {/* Bottom-right wide — col 3-4, row 2 */}
             <div style={{ gridColumn:'3/5', gridRow:'2', backgroundColor:'white', borderRadius:'32px', overflow:'hidden', display:'flex', flexDirection:'row' as const, border:'1px solid rgba(107,122,118,0.1)' }}>
               <div style={{ width:'50%', overflow:'hidden', position:'relative' }}>
-                <img src={I.bento4} alt="LV" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                <img src={I.bento4} alt="Louis Vuitton" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 <div style={{ position:'absolute', top:'12px', left:'12px' }}>
-                  <span style={{ backgroundColor:C.mint, color:C.ink, fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>SOUKNI CERTIFIED</span>
+                  <span style={{ backgroundColor:C.mint, color:'white', fontSize:'8px', ...CB, padding:'5px 12px', borderRadius:'100px', textTransform:'uppercase' as const }}>New Arrival</span>
                 </div>
               </div>
               <div style={{ flex:1, padding:'28px 32px', display:'flex', flexDirection:'column' as const, justifyContent:'center' }}>
                 <p style={{ fontSize:'11px', ...CB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'6px' }}>LOUIS VUITTON</p>
                 <h4 style={{ fontSize:'18px', ...CB, color:C.ink, marginBottom:'6px' }}>Neverfull MM Monogram Canvas</h4>
-                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>Excellent condition · Full set with dustbag & box</p>
-                <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>16,500 MAD</span>
+                <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>Excellent condition · Comes with original pouch · Dust bag included</p>
+                <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>12,500 MAD</span>
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
@@ -467,12 +541,12 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
         {/* ══ 10. AUTO PRO BANNER ══════════════════════════════ */}
         <section style={{ marginBottom:'64px' }}>
           <div style={{ position:'relative', borderRadius:'40px', overflow:'hidden', height:'320px', display:'flex', alignItems:'center', boxShadow:'0 16px 48px rgba(0,0,0,0.15)', cursor:'pointer' }}>
-            <img src={I.bagpro} alt="Bag Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
+            <img src={I.autopro} alt="Auto Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
             <div style={{ position:'absolute', inset:0, backgroundColor:'rgba(22,29,27,0.58)' }} />
             <div style={{ position:'relative', zIndex:1, padding:'0 64px', maxWidth:'560px' }}>
               <p style={{ fontSize:'11px', ...UB, color:C.mint, textTransform:'uppercase' as const, letterSpacing:'0.15em', marginBottom:'14px' }}>SOUKNI AUTO PRO</p>
-              <h2 style={{ fontSize:'clamp(26px,3.5vw,42px)', ...UB, color:'white', marginBottom:'18px', lineHeight:1.05 }}>Premium Vehicles for Elite Shoppers.</h2>
-              <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.55 }}>Arrive in style. Premium car rentals and sales for Morocco's discerning clientele.</p>
+              <h2 style={{ fontSize:'clamp(26px,3.5vw,42px)', ...UB, color:'white', marginBottom:'18px', lineHeight:1.05 }}>Arrive in Style.</h2>
+              <p style={{ fontSize:'17px', color:'rgba(255,255,255,0.9)', marginBottom:'28px', lineHeight:1.55 }}>Classic and luxury car rentals to match your designer bag energy.</p>
               <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 40px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
                 onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
                 onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
@@ -481,17 +555,34 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
           </div>
         </section>
 
-        {/* ══ 11. PRO BAGS & ACCESSORIES GRID ═════════════════ */}
+        {/* ══ 11. BAGS GRID ════════════════════════════════════ */}
         <section style={{ marginBottom:'48px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'28px' }}>
-            <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>Pro Bags & Accessories</h3>
+            <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>Bags & Handbags Marketplace</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
-            <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
-              {row.map((item,j)=><GridCard key={j} {...item} />)}
+          {filteredGrid.length === 0 ? (
+            <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No bags match your filters.</p>
+          ) : gridView ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
+              {filteredGrid.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
-          ))}
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
+              {filteredGrid.map((item,j)=>(
+                <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
+                  <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const }} />
+                  <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
+                    <div>
+                      <p style={{ fontSize:'9px', ...CB, color:C.mint, textTransform:'uppercase' as const }}>{item.brand} · {item.style}</p>
+                      <h4 style={{ fontSize:'15px', ...CB, color:C.ink }}>{item.title}</h4>
+                    </div>
+                    <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
@@ -500,14 +591,12 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
           {[1,2,3].map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mint : 'white',
-                color:           page===p ? C.ink  : C.muted,
-                borderColor:     page===p ? C.mint : 'rgba(107,122,118,0.12)',
+                backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
           <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>18</button>
+          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>10</button>
           <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
@@ -517,7 +606,7 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
             <div style={{ maxWidth:'520px' }}>
               <p style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:'rgba(22,29,27,0.6)', marginBottom:'14px' }}>EXCLUSIVE PRIVILEGE</p>
               <h2 style={{ fontSize:'clamp(26px,3.5vw,40px)', ...UB, color:C.ink, marginBottom:'16px', lineHeight:1.05 }}>Unlock the Power of Diamond.</h2>
-              <p style={{ fontSize:'17px', color:`${C.ink}b3`, lineHeight:1.6 }}>Priority placement, SouKni Certified status, and direct marketing tools. Sell your luxury bags 5x faster.</p>
+              <p style={{ fontSize:'17px', color:`${C.ink}b3`, lineHeight:1.6 }}>Priority placement, authentication services, and direct marketing tools. Sell your bags 5x faster.</p>
             </div>
             <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
               <button style={{ backgroundColor:C.ink, color:'white', border:'none', padding:'18px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'transform 0.2s' }}
@@ -537,7 +626,7 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
           <div style={{ backgroundColor:C.cream, borderRadius:'40px', height:'440px', position:'relative' as const, overflow:'hidden', display:'flex', alignItems:'center', padding:'0 64px', border:'1px solid rgba(107,122,118,0.1)' }}>
             <div style={{ position:'relative', zIndex:1, maxWidth:'480px' }}>
               <h2 style={{ fontSize:'clamp(36px,5vw,56px)', ...UB, color:C.ink, marginBottom:'20px', lineHeight:1, letterSpacing:'-0.05em' }}>JOIN THE<br/>SOUKNI FAMILY</h2>
-              <p style={{ fontSize:'17px', color:C.muted, marginBottom:'36px', maxWidth:'400px', lineHeight:1.6 }}>Get early access to rare drops, exclusive authentication services, and private high-fashion auctions.</p>
+              <p style={{ fontSize:'17px', color:C.muted, marginBottom:'36px', maxWidth:'400px', lineHeight:1.6 }}>Get early alerts on rare bag drops, authentication services, and exclusive designer auctions.</p>
               <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' as const }}>
                 {['📱 App Store','▶ Google Play'].map(app=>(
                   <button key={app} style={{ height:'52px', minWidth:'160px', backgroundColor:C.ink, color:'white', border:'none', borderRadius:'14px', fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', cursor:'pointer', transition:'transform 0.15s' }}
@@ -547,7 +636,6 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
                 ))}
               </div>
             </div>
-            {/* Phone mockup */}
             <div style={{ position:'absolute', right:'80px', bottom:'-40px', width:'320px', height:'500px', backgroundColor:'white', borderRadius:'56px', boxShadow:'0 32px 80px rgba(0,0,0,0.18)', border:'8px solid #f5ede0', padding:'20px', display:'flex', flexDirection:'column' as const, gap:'16px' }}>
               <div style={{ backgroundColor:C.surface, borderRadius:'100px', height:'32px' }} />
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', flex:1 }}>
@@ -560,7 +648,46 @@ export default function BagsPage({ params }: { params: Promise<{ locale: string 
         </section>
       </main>
 
-      <FashionFooter />
+      {/* ══ 15. FOOTER ═══════════════════════════════════════ */}
+      <footer style={{ backgroundColor:C.ink, color:'white', padding:'64px 24px 32px' }}>
+        <div style={{ maxWidth:'1280px', margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:'48px', marginBottom:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(255,255,255,0.12)' }}>
+            <div>
+              <Link href={`/${locale}`} style={{ textDecoration:'none' }}>
+                <div style={{ fontSize:'28px', ...UB, color:C.mint, marginBottom:'12px', cursor:'pointer' }}>SouKni</div>
+              </Link>
+              <p style={{ fontSize:'14px', ...CB, color:'rgba(255,255,255,0.82)', fontStyle:'italic', marginBottom:'20px' }}>The Market in your Pocket</p>
+              <div style={{ display:'flex', gap:'10px' }}>
+                {[{s:'FB',h:'https://facebook.com'},{s:'IG',h:'https://instagram.com'},{s:'X',h:'https://x.com'}].map(({s,h})=>(
+                  <a key={s} href={h} target="_blank" rel="noopener noreferrer"
+                    style={{ width:'38px', height:'38px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', ...UB, color:'rgba(255,255,255,0.6)', textDecoration:'none', transition:'all 0.15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.mint;e.currentTarget.style.color=C.ink}}
+                    onMouseLeave={e=>{e.currentTarget.style.backgroundColor='rgba(255,255,255,0.08)';e.currentTarget.style.color='rgba(255,255,255,0.6)'}}
+                  >{s}</a>
+                ))}
+              </div>
+            </div>
+            {[
+              { title:'Marketplace', links:[{l:'Motors',h:`/${locale}/motors`},{l:'Property',h:`/${locale}/property`},{l:'Fashion',h:`/${locale}/fashion`},{l:'The Vault',h:`/${locale}/vault`}] },
+              { title:'Company',     links:[{l:'About Us',h:`/${locale}/about`},{l:'Careers',h:`/${locale}/jobs`},{l:'Press Kit',h:`/${locale}/about`}] },
+              { title:'Support',     links:[{l:'Help Center',h:`/${locale}/community`},{l:'Safety Center',h:`/${locale}/community`},{l:'Contact',h:`/${locale}/community`}] },
+            ].map(col=>(
+              <div key={col.title}>
+                <h4 style={{ fontSize:'10px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.15em', color:C.mint, marginBottom:'20px' }}>{col.title}</h4>
+                {col.links.map(({l,h})=>(
+                  <Link key={l} href={h} style={{ display:'block', fontSize:'13px', ...CB, color:'rgba(255,255,255,0.65)', textDecoration:'none', marginBottom:'12px', transition:'color 0.15s' }}
+                    onMouseEnter={e=>e.currentTarget.style.color='white'}
+                    onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,0.65)'}
+                  >{l}</Link>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign:'center' as const, fontSize:'10px', ...UB, color:'rgba(255,255,255,0.35)', textTransform:'uppercase' as const, letterSpacing:'0.2em' }}>
+            © 2026 SOUKNI MOROCCO — ALL RIGHTS RESERVED
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

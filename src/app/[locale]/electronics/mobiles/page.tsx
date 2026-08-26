@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
+import { MOROCCO_LOCATIONS } from '@/lib/moroccoLocations'
 
 const I = {
   hero:  'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=1600',
@@ -106,7 +107,16 @@ export default function MobilesPage({ params }: { params: Promise<{ locale:strin
   const [activePill, setActivePill] = useState('All Mobiles')
   const [page, setPage] = useState(1)
   const [viewGrid, setViewGrid] = useState(true)
-  const [heroCity, setHeroCity]       = useState('')
+  const [heroCity, setHeroCity]         = useState('')
+  const [selectedCity, setSelectedCity]   = useState('')
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState('')
+  const [cityDropOpen, setCityDropOpen]   = useState(false)
+  const [neighDropOpen, setNeighDropOpen] = useState(false)
+
+  // Flatten all cities from Morocco locations
+  const allCities = MOROCCO_LOCATIONS.flatMap(r => r.provinces.flatMap(p => p.cities))
+  const currentCityData = allCities.find(c => c.name === selectedCity)
+  const neighborhoods = currentCityData ? currentCityData.neighborhoods : []
   const [heroKeyword, setHeroKeyword] = useState('')
   const [applied, setApplied]         = useState({ city:'', keyword:'' })
   const [priceRange, setPriceRange]   = useState('Any Price')
@@ -168,11 +178,25 @@ export default function MobilesPage({ params }: { params: Promise<{ locale:strin
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, overflow:'hidden', maxWidth:680, margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0 }} />
+              <div style={{ position:'relative', width:'100%' }}>
+                <input value={selectedCity||heroCity} onChange={e=>{setHeroCity(e.target.value);setSelectedCity('');setCityDropOpen(true)}} onFocus={()=>setCityDropOpen(true)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Rabat" autoComplete="off" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+                {cityDropOpen && (
+                  <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 12px)', left:-20, minWidth:240, backgroundColor:'white', borderRadius:16, boxShadow:'0 20px 60px rgba(0,0,0,0.15)', zIndex:300, maxHeight:280, overflowY:'auto' as const, padding:'8px 0' }}>
+                    {allCities.filter(city=>!heroCity||city.name.toLowerCase().includes(heroCity.toLowerCase())).map(city=>(
+                      <button key={city.name} onClick={()=>{setSelectedCity(city.name);setHeroCity(city.name);setCityDropOpen(false);setSelectedNeighborhood('')}}
+                        style={{ width:'100%', padding:'10px 16px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:selectedCity===city.name?'#22d4a8':'#161d1b', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                        onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                        {city.name}
+                        {selectedCity===city.name && <span style={{color:'#22d4a8'}}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input placeholder="iPhone 15, Galaxy S24, Pixel 9..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="iPhone 15, Galaxy S24, Pixel 9..." autoComplete="off" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
             <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
@@ -186,21 +210,101 @@ export default function MobilesPage({ params }: { params: Promise<{ locale:strin
       {/* ADVANCED FILTER BAR */}
       <div style={{ maxWidth:1440, margin:'-26px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.92)', backdropFilter:'blur(20px)', borderRadius:100, padding:'8px 8px 8px 0', boxShadow:'0 8px 40px rgba(0,0,0,0.10)', border:'1px solid rgba(255,255,255,0.7)', display:'flex', alignItems:'center' }}>
-          {[
-            { label:'City', val:'Casablanca', w:1 },
-            { label:'Keyword', val:'iPhone, Galaxy, Pixel...', w:2 },
-            { label:'Neighborhood', val:'All Neighborhoods', w:1 },
-            { label:'Price (MAD)', val:'Select Range', w:1 },
-          ].map((f,i)=>(
-            <div key={f.label} style={{ flex:f.w, padding:'8px 20px', borderRight:i<3?'1px solid rgba(186,202,197,0.25)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:1 }}>
-              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>{f.label}</span>
-              <span style={{ fontSize:13, fontWeight:600, color:C.ink }}>{f.val}</span>
+          {/* CITY */}
+          <div style={{ flex:1, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>CITY</span>
+              <div style={{ position:'relative', width:'100%' }}>
+                <input value={selectedCity||heroCity} onChange={e=>{setHeroCity(e.target.value);setSelectedCity('');setCityDropOpen(true);setNeighDropOpen(false)}} onFocus={()=>{setCityDropOpen(true);setNeighDropOpen(false)}} placeholder="Casablanca, Rabat..." autoComplete="off" style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', background:'none', width:'100%' }} />
+                {cityDropOpen && (
+                  <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:260, backgroundColor:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:300, maxHeight:300, overflowY:'auto' as const, padding:'8px 0' }}>
+                    {allCities.filter(city=>!heroCity||city.name.toLowerCase().includes(heroCity.toLowerCase())).map(city=>(
+                      <button key={city.name} onClick={()=>{setSelectedCity(city.name);setHeroCity(city.name);setCityDropOpen(false);setSelectedNeighborhood('')}}
+                        style={{ width:'100%', padding:'11px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:selectedCity===city.name?C.mint:C.ink, display:'flex', justifyContent:'space-between' }}
+                        onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                        {city.name}{selectedCity===city.name&&<span style={{color:C.mint}}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+          </div>
+          {/* NEIGHBORHOOD — only shows when city selected */}
+          {selectedCity && neighborhoods.length > 0 && (
+            <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.25)' }}>
+              <button onClick={()=>{setNeighDropOpen(!neighDropOpen);setCityDropOpen(false);setPriceOpen(false);setCondOpen(false)}} style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'8px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:1 }}>
+                <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>NEIGHBORHOOD</span>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:13, fontWeight:600, color:selectedNeighborhood?C.ink:C.muted }}>{selectedNeighborhood||'All Neighborhoods'}</span>
+                  <span style={{ color:C.mint, fontSize:10, display:'inline-block', transform:neighDropOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s' }}>▾</span>
+                </div>
+              </button>
+              {neighDropOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:220, backgroundColor:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:300, maxHeight:280, overflowY:'auto' as const, padding:'8px 0' }}>
+                  <button onClick={()=>{setSelectedNeighborhood('');setNeighDropOpen(false)}} style={{ width:'100%', padding:'11px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:!selectedNeighborhood?C.mint:C.ink, display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    All Neighborhoods{!selectedNeighborhood&&<span style={{color:C.mint}}>✓</span>}
+                  </button>
+                  {neighborhoods.map(n=>(
+                    <button key={n} onClick={()=>{setSelectedNeighborhood(n);setNeighDropOpen(false)}} style={{ width:'100%', padding:'11px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:selectedNeighborhood===n?C.mint:C.ink, display:'flex', justifyContent:'space-between' }}
+                      onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                      {n}{selectedNeighborhood===n&&<span style={{color:C.mint}}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
-          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.3)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', marginLeft:8, flexShrink:0 }}>
-            <SlidersHorizontal size={14} /> All Filters
-          </button>
-          <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6 }}>
+          )}
+          {/* KEYWORD */}
+          <div style={{ flex:2, padding:'8px 20px', borderRight:'1px solid rgba(186,202,197,0.25)', display:'flex', flexDirection:'column' as const, gap:1 }}>
+            <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>KEYWORD</span>
+            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <Search size={12} color={C.muted} />
+              <input value={heroKeyword} onChange={e=>setHeroKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="iPhone, Galaxy, Pixel..." autoComplete="off" style={{ fontSize:13, fontWeight:600, color:C.ink, border:'none', outline:'none', background:'none', flex:1 }} />
+              {heroKeyword && <button onClick={()=>{setHeroKeyword('');setApplied(p=>({...p,keyword:''}))}} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:14, lineHeight:1 }}>×</button>}
+            </div>
+          </div>
+          {/* PRICE DROPDOWN */}
+          <div style={{ position:'relative', flex:1, borderRight:'1px solid rgba(186,202,197,0.25)' }}>
+            <button onClick={()=>{setPriceOpen(!priceOpen);setCondOpen(false)}} style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'8px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>PRICE (MAD)</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:13, fontWeight:600, color:priceRange==='Any Price'?C.muted:C.ink }}>{priceRange}</span>
+                <span style={{ color:C.mint, fontSize:10, display:'inline-block', transform:priceOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s' }}>▾</span>
+              </div>
+            </button>
+            {priceOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:200, backgroundColor:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0' }}>
+                {PRICES.map(p=>(
+                  <button key={p} onClick={()=>{setPriceRange(p);setPriceOpen(false)}} style={{ width:'100%', padding:'11px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:priceRange===p?C.mint:C.ink, display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {p}{priceRange===p&&<span style={{color:C.mint}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* CONDITION DROPDOWN */}
+          <div style={{ position:'relative', flex:1 }}>
+            <button onClick={()=>{setCondOpen(!condOpen);setPriceOpen(false)}} style={{ width:'100%', height:'100%', background:'none', border:'none', cursor:'pointer', padding:'8px 20px', display:'flex', flexDirection:'column' as const, textAlign:'left' as const, gap:1 }}>
+              <span style={{ fontSize:9, textTransform:'uppercase' as const, fontWeight:700, color:C.muted, letterSpacing:'0.1em' }}>CONDITION</span>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <span style={{ fontSize:13, fontWeight:600, color:conditionVal==='Any Condition'?C.muted:C.ink }}>{conditionVal}</span>
+                <span style={{ color:C.mint, fontSize:10, display:'inline-block', transform:condOpen?'rotate(180deg)':'rotate(0)', transition:'transform 0.2s' }}>▾</span>
+              </div>
+            </button>
+            {condOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'calc(100% + 8px)', left:0, minWidth:200, backgroundColor:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.12)', border:'1px solid rgba(107,122,118,0.12)', zIndex:200, padding:'8px 0' }}>
+                {CONDITIONS.map(cond=>(
+                  <button key={cond} onClick={()=>{setConditionVal(cond);setCondOpen(false)}} style={{ width:'100%', padding:'11px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' as const, fontSize:13, fontWeight:600, color:conditionVal===cond?C.mint:C.ink, display:'flex', justifyContent:'space-between' }}
+                    onMouseEnter={e=>e.currentTarget.style.backgroundColor='#f4fbf8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>
+                    {cond}{conditionVal===cond&&<span style={{color:C.mint}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={applySearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'12px 24px', borderRadius:100, cursor:'pointer', fontWeight:700, fontSize:13, flexShrink:0, marginLeft:8, display:'flex', alignItems:'center', gap:6, transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk} onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
             <Search size={15} /> SEARCH
           </button>
         </div>
@@ -217,7 +321,27 @@ export default function MobilesPage({ params }: { params: Promise<{ locale:strin
 
         {/* TITLE + SORT/SAVE on same line */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-          <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Mobiles &amp; Smartphones in Rabat</h2>
+          <div>
+            <div>
+            <h2 style={{ ...UB, fontSize:22, color:C.ink }}>New and Pre-Owned Mobiles &amp; Smartphones in Rabat</h2>
+            {(applied.city||applied.keyword||priceRange!=='Any Price') && (
+              <p style={{ fontSize:13, color:C.mint, marginTop:4, display:'flex', alignItems:'center', gap:8 }}>
+                {filtered.length} result{filtered.length!==1?'s':''} found
+                {applied.keyword && <span style={{ backgroundColor:C.mint, color:'white', padding:'2px 10px', borderRadius:100, fontSize:11, fontWeight:700 }}>"{applied.keyword}"</span>}
+                {applied.city && <span style={{ backgroundColor:'#161d1b', color:'white', padding:'2px 10px', borderRadius:100, fontSize:11, fontWeight:700 }}>{applied.city}</span>}
+                <button onClick={clearAll} style={{ fontSize:11, fontWeight:700, color:'#ef4444', background:'none', border:'1px solid #ef4444', padding:'2px 10px', borderRadius:100, cursor:'pointer' }}>Clear</button>
+              </p>
+            )}
+          </div>
+            {(applied.city||applied.keyword||priceRange!=='Any Price') && (
+              <p style={{ fontSize:13, color:C.mint, marginTop:4, display:'flex', alignItems:'center', gap:8 }}>
+                {filtered.length} result{filtered.length!==1?'s':''} found
+                {applied.keyword && <span style={{ backgroundColor:C.mint, color:'white', padding:'2px 10px', borderRadius:100, fontSize:11, fontWeight:700 }}>"{applied.keyword}"</span>}
+                {applied.city && <span style={{ backgroundColor:'#161d1b', color:'white', padding:'2px 10px', borderRadius:100, fontSize:11, fontWeight:700 }}>{applied.city}</span>}
+                <button onClick={clearAll} style={{ fontSize:11, fontWeight:700, color:'#ef4444', background:'none', border:'1px solid #ef4444', padding:'2px 10px', borderRadius:100, cursor:'pointer' }}>Clear</button>
+              </p>
+            )}
+          </div>
           <div style={{ display:'flex', gap:8 }}>
             <button style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:12, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'#eef5f2', fontSize:12, fontWeight:700, cursor:'pointer', color:C.ink }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
