@@ -3,15 +3,16 @@ import { useState, useCallback } from 'react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 
 type ListingFilters = {
-  query?:     string
-  category?:  string
-  city?:      string
-  minPrice?:  number
-  maxPrice?:  number
-  condition?: string
-  sortBy?:    'newest' | 'price_asc' | 'price_desc' | 'relevance'
-  limit?:     number
-  offset?:    number
+  query?:        string
+  category?:     string
+  city?:         string
+  minPrice?:     number
+  maxPrice?:     number
+  condition?:    string
+  listing_type?: string
+  sortBy?:       'newest' | 'price_asc' | 'price_desc' | 'relevance'
+  limit?:        number
+  offset?:       number
 }
 
 // ─── Mock listing for dev/demo when DB has no matching row ───────────────────
@@ -82,6 +83,7 @@ export function useListings() {
       if (filters.minPrice) query = query.gte('price', filters.minPrice * 100)
       if (filters.maxPrice) query = query.lte('price', filters.maxPrice * 100)
       if (filters.condition)query = query.eq('condition', filters.condition)
+      if (filters.listing_type) query = query.eq('listing_type', filters.listing_type)
 
       if (filters.sortBy === 'newest')    query = query.order('created_at', { ascending: false })
       if (filters.sortBy === 'price_asc') query = query.order('price',      { ascending: true  })

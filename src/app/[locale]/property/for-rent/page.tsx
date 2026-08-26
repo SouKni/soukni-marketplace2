@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, MapPin, Bed, Bath, Maximize, Phone } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -17,7 +18,7 @@ const RENT_CATS = [
   { label:'Commercial',     slug:'commercial',     count:'1,640', image:'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&w=600' },
 ]
 
-const listings = [
+const MOCK_LISTINGS = [
   { id:'r1',  badge:'Verified',    badge2:'Available',  title:'Luxury 3BR Apartment — Sea View Terrace',      type:'Apartment', price:'18,500',  unit:'MAD/mo', location:'Casablanca, Corniche',        beds:3, baths:2, area:140, image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=700' },
   { id:'r2',  badge:'New Listing', badge2:undefined,    title:'Modern Studio — Fully Furnished Agdal',         type:'Studio',    price:'5,200',   unit:'MAD/mo', location:'Rabat, Agdal',               beds:1, baths:1, area:52,  image:'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&w=700' },
   { id:'r3',  badge:'Verified',    badge2:undefined,    title:'Elegant Villa with Private Pool & Garden',      type:'Villa',     price:'45,000',  unit:'MAD/mo', location:'Marrakech, Palmeraie',       beds:5, baths:4, area:420, image:'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=700' },
@@ -26,7 +27,7 @@ const listings = [
   { id:'r6',  badge:'Exclusive',   badge2:undefined,    title:'Beachfront Penthouse — Tanger Corniche',        type:'Apartment', price:'32,000',  unit:'MAD/mo', location:'Tanger, Malabata',           beds:4, baths:3, area:280, image:'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=700' },
 ]
 
-const moreListings = [
+const MOCK_MORE_LISTINGS = [
   { id:'r7',  badge:'Verified',    badge2:undefined,    title:'Bright Studio — Centre Casablanca',             type:'Studio',    price:'3,800',   unit:'MAD/mo', location:'Casablanca Centre',          beds:1, baths:1, area:38,  image:'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&w=700' },
   { id:'r8',  badge:'New Listing', badge2:undefined,    title:'Family Apartment 4BR — Agadir Bord de Mer',     type:'Apartment', price:'22,000',  unit:'MAD/mo', location:'Agadir, Front de Mer',       beds:4, baths:2, area:160, image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=700' },
   { id:'r9',  badge:'Verified',    badge2:'Furnished',  title:'Cozy Room in Shared Villa — Gueliz',            type:'Room',      price:'2,200',   unit:'MAD/mo', location:'Marrakech, Gueliz',          area:22,  image:'https://images.pexels.com/photos/1643384/pexels-photo-1643384.jpeg?auto=compress&w=700' },
@@ -42,7 +43,7 @@ function BadgeChip({ label }: { label: string }) {
   )
 }
 
-function RentalCard({ item, locale }: { item: typeof listings[0]; locale: string }) {
+function RentalCard({ item, locale }: { item: typeof MOCK_LISTINGS[0]; locale: string }) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -103,6 +104,44 @@ export default function ForRentPage({ params }: { params: Promise<{ locale: stri
   const cities  = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
   const types   = ['All Types','Apartment','Studio','Room','Villa','Vacation Home','Commercial']
   const bedOpts = ['Any','1+','2+','3+','4+','5+']
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'property',
+        listing_type: 'rent',
+        sortBy: 'newest',
+        limit: 24,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    const priceNum = Math.round((row.price || 0) / 100)
+    return {
+      id: row.id,
+      badge: row.badge || 'Verified',
+      badge2: undefined as string | undefined,
+      title: row.title,
+      type: row.subcategory || '',
+      price: priceNum.toLocaleString(),
+      unit: 'MAD/mo',
+      location: row.city || '',
+      beds: row.bedrooms || undefined,
+      baths: row.bathrooms || undefined,
+      area: row.area || undefined,
+      image: (row.images && row.images[0]) || MOCK_LISTINGS[0].image,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const realListings = hasRealData ? dbListings.map(mapDbRowToCard) : []
+  const listings = hasRealData ? realListings.slice(0, 6) : MOCK_LISTINGS
+  const moreListings = hasRealData ? realListings.slice(6) : MOCK_MORE_LISTINGS
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>

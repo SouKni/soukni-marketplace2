@@ -410,3 +410,27 @@ INSERT INTO public.categories (slug, label, emoji, sort_order) VALUES
   ('sports-equipment',       'Sports Equipment',       '⚽', 75),
   ('tickets-vouchers',       'Tickets & Vouchers',     '🎟️', 76)
 ON CONFLICT (slug) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════
+-- listings.listing_type — distinguishes for-sale vs for-rent
+-- property listings. Only meaningful for category_slug='property';
+-- NULL for every other vertical (goods are implicitly "for sale").
+-- Needed by src/app/[locale]/property/for-rent/page.tsx and
+-- .../for-sale/page.tsx, which previously showed the same
+-- undifferentiated pool of listings on both pages.
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE public.listings
+  ADD COLUMN IF NOT EXISTS listing_type TEXT CHECK (listing_type IN ('sale', 'rent'));
+
+CREATE INDEX IF NOT EXISTS listings_listing_type_idx ON public.listings(listing_type);
+
+-- ═══════════════════════════════════════════════════════════════
+-- listings.bedrooms / bathrooms / area — property-specific fields
+-- already read (defensively, as `row.field || undefined`) by
+-- property/for-rent/page.tsx and property/for-sale/page.tsx.
+-- NULL for every non-property vertical; area is in square metres.
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE public.listings
+  ADD COLUMN IF NOT EXISTS bedrooms  INTEGER,
+  ADD COLUMN IF NOT EXISTS bathrooms INTEGER,
+  ADD COLUMN IF NOT EXISTS area      DECIMAL(8,2);
