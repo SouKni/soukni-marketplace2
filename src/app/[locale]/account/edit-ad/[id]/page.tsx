@@ -26,6 +26,11 @@ const STEPS = [
   { id: 5, label: 'Review',    icon: <Eye size={15} /> },
 ]
 
+// category_slug values here MUST match what each browse page's fetchListings()
+// actually queries (src/app/[locale]/<slug>/page.tsx) — verified live, see
+// scripts/verify-category-slugs.mjs. Jobs/Services/Other were removed: no
+// browse page exists for them (job/service postings don't fit this table's
+// goods-oriented columns), so an ad edited into them could never be found.
 const CATEGORIES = [
   {
     slug: 'motors',
@@ -40,40 +45,70 @@ const CATEGORIES = [
     subs: ['For Sale', 'For Rent', 'Rooms', 'Daily Rentals', 'Commercial', 'New Projects', 'Land for Sale', 'Vacation Properties', 'Other Property'],
   },
   {
-    slug: 'mobiles-electronics',
+    slug: 'electronics',
     label: 'Mobiles & Electronics',
     emoji: '📱',
-    subs: ['Mobiles', 'Tablets', 'Laptops', 'Desktops', 'Audio', 'Wearables', 'Cameras', 'Projectors & TVs', 'Car Electronics', 'Gaming', 'Accessories', 'Other Electronics'],
+    subs: ['Mobiles', 'Tablets', 'Laptops', 'Desktops', 'Audio', 'Wearables', 'Cameras', 'Projectors & TVs', 'Car Electronics', 'Accessories', 'Other Electronics'],
   },
   {
     slug: 'fashion',
     label: 'Fashion',
     emoji: '👗',
-    subs: ["Women's Clothing", "Men's Clothing", 'Shoes', 'Bags', 'Jewelry & Watches', 'Traditional Wear', 'Sports & Activewear', 'Vintage & Thrift', 'Wedding & Eveningwear', 'Beauty & Grooming', 'Other Fashion'],
+    subs: ["Women's Clothing", "Men's Clothing", 'Shoes', 'Bags', 'Traditional Wear', 'Sports & Activewear', 'Vintage & Thrift', 'Wedding & Eveningwear', 'Beauty & Grooming', 'Other Fashion'],
   },
   {
-    slug: 'home-living',
-    label: 'Home & Living',
+    slug: 'home-garden',
+    label: 'Home & Garden',
     emoji: '🛋️',
-    subs: ['Furniture', 'Outdoors & Gardens', 'Curtains & Textiles', 'Lighting', 'Traditionnel', 'Rugs & Carpets', 'Kitchen', 'Home Appliances', 'Decor', 'Tools & DIY', 'Other Home'],
+    subs: ['Furniture', 'Outdoors & Gardens', 'Curtains & Textiles', 'Lighting', 'Rugs & Carpets', 'Kitchen', 'Decor', 'Tools & DIY', 'Other Home'],
   },
   {
-    slug: 'vault',
-    label: 'The Vault',
+    slug: 'home-appliances',
+    label: 'Home Appliances',
+    emoji: '🔌',
+    subs: ['Washing Machines', 'Refrigerators', 'Kitchen Appliances', 'Air Conditioners', 'Vacuum Cleaners', 'Coffee Machines', 'Other Appliances'],
+  },
+  {
+    slug: 'jewelry-watches',
+    label: 'Jewelry & Watches',
+    emoji: '💍',
+    subs: ['Luxury Watches', 'Rings', 'Necklaces', 'Bracelets', 'Earrings', 'Vintage & Antique'],
+  },
+  {
+    slug: 'musical-instruments',
+    label: 'Musical Instruments',
+    emoji: '🎸',
+    subs: ['Guitars', 'Pianos & Keys', 'Drums & Percussion', 'Wind & Brass', 'String & Bowed', 'Traditional Instruments', 'Studio & DJ'],
+  },
+  {
+    slug: 'gaming',
+    label: 'Gaming',
+    emoji: '🎮',
+    subs: ['Consoles', 'Gaming PCs', 'Monitors', 'Headsets', 'Controllers', 'VR & AR', 'Handheld'],
+  },
+  {
+    slug: 'toys',
+    label: 'Toys',
+    emoji: '🎲',
+    subs: ['Building & LEGO', 'Video Games', 'Action Figures', 'Dolls & Plush', 'Outdoor & Sport', 'Board Games', 'Educational Toys'],
+  },
+  {
+    slug: 'tickets-vouchers',
+    label: 'Tickets & Vouchers',
+    emoji: '🎟️',
+    subs: ['Events & Shows', 'Sports & Golf', 'Dining & Restaurants', 'Shopping Vouchers', 'Travel & Hotels', 'Wellness & Spa', 'Gift Cards'],
+  },
+  {
+    slug: 'collectibles-treasures',
+    label: 'Collectibles & Treasures',
+    emoji: '🏺',
+    subs: ['Vintage Watches', 'Amazigh & Berber Jewelry', 'Vintage Rugs', 'Pottery & Ceramics', 'Coins & Banknotes', 'Stamps & Postcards', 'Vintage Posters', 'Other Collectibles'],
+  },
+  {
+    slug: 'vault-other',
+    label: 'Vault — Other',
     emoji: '💎',
-    subs: ['Jewelry & Watches', 'Musical Instruments', 'Home & Garden Antiques', 'Gaming Collectibles', 'Baby & Kids Items', 'Pets & Accessories', 'Tickets & Vouchers', 'Toys', 'Sports Equipment', 'Rare Collectibles', 'Art & Antiques', 'Other Vault'],
-  },
-  {
-    slug: 'jobs',
-    label: 'Jobs',
-    emoji: '💼',
-    subs: ['Real Estate Jobs', 'Restaurant & Hospitality', 'Construction', 'Marketing & Advertising', 'Customer Service', 'Security & Guard', 'Medical & Healthcare', 'Home Cleaning', 'Handyman & Technician', 'IT & Tech', 'Finance & Accounting', 'Education & Teaching', 'Other Jobs'],
-  },
-  {
-    slug: 'community',
-    label: 'Services',
-    emoji: '🔧',
-    subs: ['Movers & Removals', 'Home Maintenance', 'Tutors & Classes', 'Consultancy', 'Wellness & Spa', 'Pro Services', 'Beauty & Grooming', 'Car Services', 'Cleaning Services', 'Event Services', 'Other Services'],
+    subs: ['Rare Collectibles', 'Art & Antiques', 'Vintage Items', 'Other Vault Items'],
   },
   {
     slug: 'baby-items',
@@ -91,13 +126,7 @@ const CATEGORIES = [
     slug: 'sports-equipment',
     label: 'Sports & Hobbies',
     emoji: '⚽',
-    subs: ['Football', 'Fitness & Gym', 'Cycling', 'Martial Arts', 'Swimming', 'Tennis & Racket', 'Outdoor & Hiking', 'Musical Instruments', 'Books & Magazines', 'Art & Craft', 'Other Sports & Hobbies'],
-  },
-  {
-    slug: 'other',
-    label: 'Other',
-    emoji: '📦',
-    subs: ['Miscellaneous', 'Giveaway / Free Items', 'Other'],
+    subs: ['Football', 'Fitness & Gym', 'Cycling', 'Martial Arts', 'Swimming', 'Tennis & Racket', 'Outdoor & Hiking', 'Books & Magazines', 'Art & Craft', 'Other Sports & Hobbies'],
   },
 ]
 

@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, use, useRef } from 'react'
+import { useState, use, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import AiPhotoEnhancer from '@/components/ui/AiPhotoEnhancer'
 import VideoUpload from '@/components/ui/VideoUpload'
-import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles, AlertTriangle } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useListings } from '@/hooks/useListings'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -22,31 +25,50 @@ const STEPS = [
   { id: 5, label: 'Review',    icon: <Eye size={16} /> },
 ]
 
+// category_slug values here MUST match what each browse page's fetchListings()
+// actually queries (src/app/[locale]/<slug>/page.tsx) — verified live, see
+// scripts/verify-category-slugs.mjs. Jobs/Services/Other were removed: no
+// browse page exists for them (job/service postings don't fit this table's
+// goods-oriented columns), so an ad posted there could never be found.
 const CATEGORIES = [
-  { slug: 'motors',            label: 'Motors',               emoji: '🚗', subs: ['Used Cars', 'New Cars', 'Rental Cars', 'Parts & Accessories', 'Moto & Scooters', 'Trucks & Vans', 'Agro & Heavy', 'Car Services & Garages', 'Other Motors'] },
-  { slug: 'property',          label: 'Property',             emoji: '🏠', subs: ['For Sale', 'For Rent', 'Rooms', 'Daily Rentals', 'Commercial', 'New Projects', 'Land for Sale', 'Vacation Properties', 'Other Property'] },
-  { slug: 'mobiles-electronics',label: 'Mobiles & Electronics',emoji: '📱', subs: ['Mobiles', 'Tablets', 'Laptops', 'Desktops', 'Audio', 'Wearables', 'Cameras', 'Projectors & TVs', 'Car Electronics', 'Gaming', 'Accessories', 'Other Electronics'] },
-  { slug: 'fashion',           label: 'Fashion',              emoji: '👗', subs: ["Women's Clothing", "Men's Clothing", 'Shoes', 'Bags', 'Jewelry & Watches', 'Traditional Wear', 'Sports & Activewear', 'Vintage & Thrift', 'Wedding & Eveningwear', 'Other Fashion'] },
-  { slug: 'home-living',       label: 'Home & Living',        emoji: '🛋️', subs: ['Furniture', 'Outdoors & Gardens', 'Curtains & Textiles', 'Lighting', 'Rugs & Carpets', 'Kitchen', 'Home Appliances', 'Decor', 'Tools & DIY', 'Other Home'] },
-  { slug: 'vault',             label: 'The Vault',            emoji: '💎', subs: ['Jewelry & Watches', 'Musical Instruments', 'Gaming Collectibles', 'Baby & Kids Items', 'Pets & Accessories', 'Tickets & Vouchers', 'Toys', 'Sports Equipment', 'Rare Collectibles', 'Art & Antiques', 'Other Vault'] },
-  { slug: 'jobs',              label: 'Jobs',                 emoji: '💼', subs: ['Real Estate Jobs', 'Restaurant & Hospitality', 'Construction', 'Marketing & Advertising', 'Customer Service', 'Medical & Healthcare', 'IT & Tech', 'Education & Teaching', 'Other Jobs'] },
-  { slug: 'community',         label: 'Services',             emoji: '🔧', subs: ['Movers & Removals', 'Home Maintenance', 'Tutors & Classes', 'Consultancy', 'Wellness & Spa', 'Pro Services', 'Beauty & Grooming', 'Car Services', 'Cleaning Services', 'Other Services'] },
-  { slug: 'baby-items',        label: 'Baby & Kids',          emoji: '🧸', subs: ['Baby Clothes', 'Toys', 'Strollers & Prams', 'Car Seats', 'Baby Gear', 'Kids Furniture', 'School Supplies', 'Other Baby & Kids'] },
-  { slug: 'pets-accessories',  label: 'Pets',                 emoji: '🐾', subs: ['Dogs', 'Cats', 'Birds', 'Fish & Aquarium', 'Pet Food', 'Pet Accessories', 'Vet Services', 'Other Pets'] },
-  { slug: 'sports-equipment',  label: 'Sports & Hobbies',     emoji: '⚽', subs: ['Football', 'Fitness & Gym', 'Cycling', 'Martial Arts', 'Swimming', 'Tennis & Racket', 'Outdoor & Hiking', 'Musical Instruments', 'Books & Magazines', 'Art & Craft', 'Other Sports'] },
-  { slug: 'other',             label: 'Other',                emoji: '📦', subs: ['Miscellaneous', 'Giveaway / Free Items', 'Other'] },
+  { slug: 'motors',                label: 'Motors',                  emoji: '🚗', subs: ['Used Cars', 'New Cars', 'Rental Cars', 'Parts & Accessories', 'Moto & Scooters', 'Trucks & Vans', 'Agro & Heavy', 'Car Services & Garages', 'Other Motors'] },
+  { slug: 'property',              label: 'Property',                emoji: '🏠', subs: ['For Sale', 'For Rent', 'Rooms', 'Daily Rentals', 'Commercial', 'New Projects', 'Land for Sale', 'Vacation Properties', 'Other Property'] },
+  { slug: 'electronics',           label: 'Mobiles & Electronics',   emoji: '📱', subs: ['Mobiles', 'Tablets', 'Laptops', 'Desktops', 'Audio', 'Wearables', 'Cameras', 'Projectors & TVs', 'Car Electronics', 'Accessories', 'Other Electronics'] },
+  { slug: 'fashion',               label: 'Fashion',                 emoji: '👗', subs: ["Women's Clothing", "Men's Clothing", 'Shoes', 'Bags', 'Traditional Wear', 'Sports & Activewear', 'Vintage & Thrift', 'Wedding & Eveningwear', 'Other Fashion'] },
+  { slug: 'home-garden',           label: 'Home & Garden',           emoji: '🛋️', subs: ['Furniture', 'Outdoors & Gardens', 'Curtains & Textiles', 'Lighting', 'Rugs & Carpets', 'Kitchen', 'Decor', 'Tools & DIY', 'Other Home'] },
+  { slug: 'home-appliances',       label: 'Home Appliances',         emoji: '🔌', subs: ['Washing Machines', 'Refrigerators', 'Kitchen Appliances', 'Air Conditioners', 'Vacuum Cleaners', 'Coffee Machines', 'Other Appliances'] },
+  { slug: 'jewelry-watches',       label: 'Jewelry & Watches',       emoji: '💍', subs: ['Luxury Watches', 'Rings', 'Necklaces', 'Bracelets', 'Earrings', 'Vintage & Antique'] },
+  { slug: 'musical-instruments',   label: 'Musical Instruments',     emoji: '🎸', subs: ['Guitars', 'Pianos & Keys', 'Drums & Percussion', 'Wind & Brass', 'String & Bowed', 'Traditional Instruments', 'Studio & DJ'] },
+  { slug: 'gaming',                label: 'Gaming',                  emoji: '🎮', subs: ['Consoles', 'Gaming PCs', 'Monitors', 'Headsets', 'Controllers', 'VR & AR', 'Handheld'] },
+  { slug: 'toys',                  label: 'Toys',                    emoji: '🎲', subs: ['Building & LEGO', 'Video Games', 'Action Figures', 'Dolls & Plush', 'Outdoor & Sport', 'Board Games', 'Educational Toys'] },
+  { slug: 'tickets-vouchers',      label: 'Tickets & Vouchers',      emoji: '🎟️', subs: ['Events & Shows', 'Sports & Golf', 'Dining & Restaurants', 'Shopping Vouchers', 'Travel & Hotels', 'Wellness & Spa', 'Gift Cards'] },
+  { slug: 'collectibles-treasures',label: 'Collectibles & Treasures',emoji: '🏺', subs: ['Vintage Watches', 'Amazigh & Berber Jewelry', 'Vintage Rugs', 'Pottery & Ceramics', 'Coins & Banknotes', 'Stamps & Postcards', 'Vintage Posters', 'Other Collectibles'] },
+  { slug: 'vault-other',           label: 'Vault — Other',           emoji: '💎', subs: ['Rare Collectibles', 'Art & Antiques', 'Vintage Items', 'Other Vault Items'] },
+  { slug: 'baby-items',            label: 'Baby & Kids',             emoji: '🧸', subs: ['Baby Clothes', 'Toys', 'Strollers & Prams', 'Car Seats', 'Baby Gear', 'Kids Furniture', 'School Supplies', 'Other Baby & Kids'] },
+  { slug: 'pets-accessories',      label: 'Pets',                    emoji: '🐾', subs: ['Dogs', 'Cats', 'Birds', 'Fish & Aquarium', 'Pet Food', 'Pet Accessories', 'Vet Services', 'Other Pets'] },
+  { slug: 'sports-equipment',      label: 'Sports & Hobbies',        emoji: '⚽', subs: ['Football', 'Fitness & Gym', 'Cycling', 'Martial Arts', 'Swimming', 'Tennis & Racket', 'Outdoor & Hiking', 'Books & Magazines', 'Art & Craft', 'Other Sports'] },
 ]
 
 const CONDITIONS  = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
 const CITIES      = ['Rabat', 'Casablanca', 'Marrakech', 'Fès', 'Tangier', 'Agadir', 'Meknès', 'Oujda', 'Kenitra', 'Tétouan', 'Settat', 'Laâyoune']
 const CURRENCIES  = ['MAD', 'EUR', 'USD', 'GBP']
 
+// `listings.condition` is a lowercase/underscore DB enum; the form shows human labels.
+const CONDITION_TO_DB: Record<string, string> = { 'New': 'new', 'Like New': 'like_new', 'Good': 'good', 'Fair': 'fair', 'For Parts': 'for_parts' }
+
 export default function PostAdPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
   const fileRef = useRef<HTMLInputElement>(null)
+  const supabase = getSupabaseClient()
+  const { user, loading: authLoading } = useAuth()
+  const { createListing } = useListings()
 
   const [step, setStep]       = useState(1)
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [createdListingId, setCreatedListingId] = useState<string | null>(null)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [showAllSubs, setShowAllSubs] = useState(false)
 
   // Step 1
@@ -72,6 +94,12 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
   const [phone, setPhone]             = useState('')
   const [whatsapp, setWhatsapp]       = useState(false)
 
+  // Prefill contact info from the signed-in seller's profile
+  useEffect(() => {
+    if (!user) return
+    if (user.phone) setPhone(user.phone.replace(/^\+?212/, '').trim())
+  }, [user?.id])
+
   // AI Writer
   const [aiWriterOpen, setAiWriterOpen]       = useState(false)
   const [aiWriterPrompt, setAiWriterPrompt]   = useState('')
@@ -93,13 +121,27 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
     return true
   }
 
-  const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    files.forEach(f => {
-      const reader = new FileReader()
-      reader.onload = ev => setPhotos(prev => prev.length < 12 ? [...prev, ev.target?.result as string] : prev)
-      reader.readAsDataURL(f)
-    })
+    if (!files.length) return
+    setUploadingPhotos(true)
+    setSubmitError(null)
+    for (const f of files) {
+      if (photos.length >= 12) break
+      const formData = new FormData()
+      formData.append('file', f)
+      formData.append('type', 'listing')
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        if (data.url) setPhotos(prev => prev.length < 12 ? [...prev, data.url] : prev)
+        else setSubmitError(data.error || 'Photo upload failed. You can still publish without it.')
+      } catch {
+        setSubmitError('Photo upload failed. You can still publish without it.')
+      }
+    }
+    setUploadingPhotos(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const runAiWriter = async () => {
@@ -149,6 +191,45 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
     setAiPriceLoading(false)
   }
 
+  const handlePublish = async () => {
+    if (!user) {
+      setSubmitError('You must be signed in to post an ad.')
+      return
+    }
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const listing = await createListing({
+        seller_id: user.id,
+        title,
+        description,
+        category_slug: category,
+        subcategory,
+        condition: CONDITION_TO_DB[condition] || null,
+        city,
+        neighborhood,
+        images: photos,
+        price: freeItem ? 0 : Number(price || 0),
+        currency,
+        negotiable,
+        hide_price: hidePrice,
+        free_item: freeItem,
+      })
+      // `listings` has no phone/whatsapp columns — contact info lives on the
+      // seller's profile (src/lib/supabase/schema.sql: public.profiles).
+      await supabase.from('profiles').update({
+        phone: phone ? `212${phone.replace(/\D/g, '')}` : null,
+        whatsapp,
+      }).eq('id', user.id)
+      setCreatedListingId(listing?.id ?? null)
+      setSubmitted(true)
+    } catch (e: any) {
+      setSubmitError(e?.message || 'Something went wrong publishing your ad. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const Label = ({ children }: { children: React.ReactNode }) => (
     <p style={{ fontSize: '13px', fontWeight: 700, color: INK, marginBottom: '8px', letterSpacing: '0.01em' }}>{children}</p>
   )
@@ -192,8 +273,12 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
           ))}
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Link href={`/${locale}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 700, fontSize: '14px', textAlign: 'center' }}>Home</Link>
-          <button onClick={() => { setSubmitted(false); setStep(1); setTitle(''); setCategory(''); setSubcategory(''); setPhotos([]); setPrice(''); setCity('') }}
+          {createdListingId ? (
+            <Link href={`/${locale}/listing/${createdListingId}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 700, fontSize: '14px', textAlign: 'center' }}>View My Ad</Link>
+          ) : (
+            <Link href={`/${locale}`} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: '1.5px solid #e2eae6', color: INK, textDecoration: 'none', fontWeight: 700, fontSize: '14px', textAlign: 'center' }}>Home</Link>
+          )}
+          <button onClick={() => { setSubmitted(false); setCreatedListingId(null); setStep(1); setTitle(''); setDescription(''); setCategory(''); setSubcategory(''); setPhotos([]); setPrice(''); setCity(''); setNeighborhood(''); setCondition(''); setSubmitError(null) }}
             style={{ flex: 1, padding: '13px', borderRadius: '12px', background: MINT, color: 'white', border: 'none', fontWeight: 700, fontSize: '14px', cursor: 'pointer', fontFamily: FONT }}>
             Post Another
           </button>
@@ -390,12 +475,12 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: INK, marginBottom: '6px', letterSpacing: '-0.05em' }}>Add Photos</h2>
               <p style={{ fontSize: '14px', color: MUTED, marginBottom: '28px', fontWeight: 700 }}>Ads with photos get <strong style={{ color: INK }}>3× more views</strong>. Add up to 12.</p>
               <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotos} />
-              <div onClick={() => photos.length < 12 && fileRef.current?.click()}
-                style={{ border: `2px dashed ${MINT}`, borderRadius: '20px', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer', background: '#f0fdf9', marginBottom: '20px', opacity: photos.length >= 12 ? 0.5 : 1 }}>
+              <div onClick={() => photos.length < 12 && !uploadingPhotos && fileRef.current?.click()}
+                style={{ border: `2px dashed ${MINT}`, borderRadius: '20px', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: uploadingPhotos ? 'not-allowed' : 'pointer', background: '#f0fdf9', marginBottom: '20px', opacity: photos.length >= 12 || uploadingPhotos ? 0.5 : 1 }}>
                 <div style={{ width: '56px', height: '56px', background: 'white', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Upload size={24} color={MINT} />
                 </div>
-                <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>{photos.length === 0 ? 'Click to upload photos' : `Add more (${photos.length}/12)`}</p>
+                <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>{uploadingPhotos ? 'Uploading…' : photos.length === 0 ? 'Click to upload photos' : `Add more (${photos.length}/12)`}</p>
                 <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>JPG, PNG, WEBP — Max 10MB each</p>
               </div>
               {/* AI Photo Enhancer */}
@@ -571,17 +656,28 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
             </div>
           )}
 
+          {/* SUBMIT ERROR */}
+          {submitError && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', borderRadius: '12px', background: '#fef2f2', border: '1.5px solid #fecaca', marginTop: '24px' }}>
+              <AlertTriangle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#b91c1c' }}>{submitError}</span>
+            </div>
+          )}
+
           {/* NAV */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '36px', paddingTop: '24px', borderTop: '1px solid #e2eae6' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: submitError ? '16px' : '36px', paddingTop: '24px', borderTop: '1px solid #e2eae6' }}>
             {step > 1 && (
-              <button onClick={() => setStep(s => s - 1)}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 24px', borderRadius: '12px', border: '1.5px solid #e2eae6', background: 'white', color: INK, fontSize: '14px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT }}>
+              <button onClick={() => setStep(s => s - 1)} disabled={submitting}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '13px 24px', borderRadius: '12px', border: '1.5px solid #e2eae6', background: 'white', color: INK, fontSize: '14px', fontWeight: 900, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: FONT, opacity: submitting ? 0.6 : 1 }}>
                 <ChevronLeft size={16} /> Back
               </button>
             )}
-            <button onClick={() => { if (!canNext()) return; if (step < 5) setStep(s => s + 1); else setSubmitted(true) }}
-              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', borderRadius: '12px', border: 'none', background: canNext() ? (step === 5 ? `linear-gradient(135deg, ${MINT}, #0f9b8e)` : MINT) : '#e2eae6', color: canNext() ? 'white' : MUTED, fontSize: '15px', fontWeight: 900, cursor: canNext() ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
-              {step === 5 ? <><Sparkles size={16} /> Publish Ad Now</> : <>Continue <ChevronRight size={16} /></>}
+            <button onClick={() => { if (!canNext() || submitting) return; if (step < 5) setStep(s => s + 1); else handlePublish() }}
+              disabled={!canNext() || submitting}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', borderRadius: '12px', border: 'none', background: !canNext() ? '#e2eae6' : submitting ? MUTED : (step === 5 ? `linear-gradient(135deg, ${MINT}, #0f9b8e)` : MINT), color: canNext() ? 'white' : MUTED, fontSize: '15px', fontWeight: 900, cursor: canNext() && !submitting ? 'pointer' : 'not-allowed', fontFamily: FONT }}>
+              {submitting
+                ? <><span style={{ width: '15px', height: '15px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.35)', borderTopColor: 'white', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} /> Publishing...</>
+                : step === 5 ? <><Sparkles size={16} /> Publish Ad Now</> : <>Continue <ChevronRight size={16} /></>}
             </button>
           </div>
         </div>
