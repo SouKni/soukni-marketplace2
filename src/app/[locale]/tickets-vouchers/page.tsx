@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Calendar, Tag } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -265,8 +266,40 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
   const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
   const priceRanges   = ['Any Price','0 – 100 MAD','100 – 300 MAD','300 – 800 MAD','800 – 2,000 MAD','2,000+ MAD']
 
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'tickets-vouchers', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  const realFeaturedItems = dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
+    vendor:        row.brand || '',
+    title:         row.title,
+    price:         (row.price || 0) / 100,
+    originalPrice: (row.price || 0) / 100,
+    location:      row.city || '',
+    img:           (row.images && row.images[0]) || I.g1,
+    badges:        row.badge ? [row.badge] : ['certified'],
+    date:          row.subcategory || '',
+    quantity:      '',
+  })) : featuredItems
+
+  const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
+    vendor:        row.brand || '',
+    title:         row.title,
+    price:         (row.price || 0) / 100,
+    originalPrice: (row.price || 0) / 100,
+    date:          row.subcategory || '',
+    img:           (row.images && row.images[0]) || I.g1,
+    badge:         row.badge || 'certified',
+  })) : gridItems
+
   const filteredItems = useMemo(() => {
-    let items = [...gridItems]
+    let items = [...realGridItems]
     if (applied.keyword.trim()) {
       items = items.filter((item:any) =>
         (item.title && item.title.toLowerCase().includes(applied.keyword.toLowerCase())) ||
@@ -280,7 +313,7 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
       items = [...items].sort((a:any,b:any)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
     }
     return items
-  }, [applied, activeSeller, diamond])
+  }, [applied, activeSeller, diamond, realGridItems])
 
 
 
@@ -446,7 +479,7 @@ export default function TicketsVouchersPage({ params }: { params: Promise<{ loca
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All Featured →</a>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
-            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+            {realFeaturedItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
           </div>
         </section>
 

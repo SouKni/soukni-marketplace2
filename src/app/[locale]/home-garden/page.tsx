@@ -1,9 +1,10 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, X } from 'lucide-react'
 import { ALL_CITIES } from '@/lib/moroccoLocations'
 import { useDictionary } from '@/lib/useDictionary'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -44,6 +45,27 @@ export default function HomeGardenPage({ params }: { params: Promise<{ locale:st
   const [cityOpen, setCityOpen]     = useState(false)
   const [hovCat, setHovCat]         = useState<string|null>(null)
   const [hovItem, setHovItem]       = useState<string|null>(null)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'home-garden', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      image: (row.images && row.images[0]) || featuredItems[0].image,
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const realFeaturedItems = hasRealData ? dbListings.map(mapDbRowToCard) : featuredItems
 
   const PRICES = [t.homeGarden.priceAny,'0–2,000 MAD','2,000–8,000 MAD','8,000–20,000 MAD','20,000+ MAD']
   const CAT_OPTIONS = [t.homeGarden.allCategories,...categories.map(c=>c.label)]
@@ -55,7 +77,7 @@ export default function HomeGardenPage({ params }: { params: Promise<{ locale:st
   }
 
   const filteredFeatured = useMemo(() => {
-    return featuredItems.filter(item => {
+    return realFeaturedItems.filter(item => {
       const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
       const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
       const mp = price === t.homeGarden.priceAny ? true
@@ -65,7 +87,7 @@ export default function HomeGardenPage({ params }: { params: Promise<{ locale:st
                : item.price > 20000
       return mc && mk && mp
     })
-  }, [applied, price])
+  }, [applied, price, realFeaturedItems])
 
   const filteredCategories = useMemo(() => {
     if (!applied.keyword && category === t.homeGarden.allCategories) return categories
@@ -283,7 +305,7 @@ export default function HomeGardenPage({ params }: { params: Promise<{ locale:st
             </Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {(applied.city||applied.keyword||price!=='Any Price'?filteredFeatured:featuredItems).map(item=>(
+            {(applied.city||applied.keyword||price!=='Any Price'?filteredFeatured:realFeaturedItems).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div onMouseEnter={()=>setHovItem(item.id)} onMouseLeave={()=>setHovItem(null)}
                   style={{ backgroundColor:'white', borderRadius:24, overflow:'hidden', border:`1px solid ${hovItem===item.id?C.mint:'rgba(186,202,197,0.2)'}`, boxShadow:hovItem===item.id?'0 20px 48px rgba(0,0,0,0.12)':'0 2px 8px rgba(0,0,0,0.04)', transition:'all 0.3s', cursor:'pointer' }}>

@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
 
@@ -128,6 +129,33 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
 
   const VISIBLE_COUNT = 8
   const visibleSubcats = showAll ? ALL_SUBCATS : ALL_SUBCATS.slice(0, VISIBLE_COUNT)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'jewelry-watches', sortBy: 'newest', limit: 16 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToItem(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      rating: 4.5,
+      reviews: 0,
+      desc: row.description || '',
+      image: (row.images && row.images[0]) || 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=800',
+    }
+  }
+
+  const realTopChoices    = dbListings.length >= 3  ? dbListings.slice(0, 3).map(mapDbRowToItem)  : topChoices
+  const realBentoListings = dbListings.length >= 8  ? dbListings.slice(3, 8).map(mapDbRowToItem)  : bentoListings
+  const realDiscoveryGrid = dbListings.length >= 16 ? dbListings.slice(8, 16).map(mapDbRowToItem) : discoveryGrid
 
   const pills = ['All Collectibles','Vintage Watches','Berber Jewelry','Vintage Rugs','Pottery','Metalwork','Art & Prints','Coins']
   const jobTabs = ['All','For Sale','Wanted','Trade']
@@ -258,7 +286,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
         {/* TOP CHOICES */}
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
-          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+          {realTopChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
         </section>
 
         {/* DARK BANNER */}
@@ -280,7 +308,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Collectibles Collection</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
-            {bentoListings.slice(0,3).map(item=>(
+            {realBentoListings.slice(0,3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
                   onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
@@ -297,7 +325,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
             ))}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {bentoListings.slice(3).map(item=>(
+            {realBentoListings.slice(3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
                   onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
@@ -337,7 +365,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            {realDiscoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 

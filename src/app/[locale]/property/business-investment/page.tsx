@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, ChevronLeft, MapPin, TrendingUp, Building, Heart, LayoutGrid, List, Phone, DollarSign, PieChart, Shield } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -149,7 +150,32 @@ export default function BusinessInvestmentPage({ params }: { params: Promise<{ l
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
 
-  const filtered = LISTINGS.filter(l => {
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      type: row.subcategory || 'Residential',
+      price: Math.round((row.price || 0) / 100).toLocaleString(),
+      yield_pct: 0,
+      occupancy: 0,
+      location: row.city,
+      tenanted: false,
+      badge: row.badge || 'Verified',
+      image: (row.images && row.images[0]) || LISTINGS[0].image,
+      income: '—',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const sourceListings = hasRealData ? dbListings.map(mapDbRowToCard) : LISTINGS
+  const filtered = sourceListings.filter(l => {
     if (assetType !== 'all' && !l.type.toLowerCase().includes(assetType.replace('-',' ').split('-')[0])) return false
     if (yieldRange === '4-6' && (l.yield_pct < 4 || l.yield_pct > 6)) return false
     if (yieldRange === '6-8' && (l.yield_pct < 6 || l.yield_pct > 8)) return false

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useListings } from '@/hooks/useListings'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -198,7 +199,28 @@ export default function MotorcyclesCategoryPage() {
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'motors', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      year: row.year || '',
+      condition: row.condition || undefined,
+      img: (row.images && row.images[0]) || BIKE_IMGS[0],
+      badge: row.badge || 'certified',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
   const cities   = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {

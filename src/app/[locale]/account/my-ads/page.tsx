@@ -1,24 +1,78 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, Eye, Heart, MessageCircle, MoreVertical, TrendingUp, Share2, Globe, Edit, Trash2, RefreshCw, Pause, Play, Sparkles, BarChart3 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
-const MY_ADS = [
-  { id: 1, title: 'iPhone 15 Pro Max 256GB — Titanium Black', price: '12,500 MAD', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=400', status: 'active', views: 847, favorites: 23, messages: 6, postedDate: '2 days ago', badge: 'Diamond' },
-  { id: 2, title: 'MacBook Pro 14" M3 Pro 18GB/512GB', price: '24,800 MAD', image: 'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=400', status: 'active', views: 412, favorites: 18, messages: 4, postedDate: '5 days ago', badge: 'Verified' },
-  { id: 3, title: 'AirPods Pro 2nd Gen — Sealed Box', price: '1,850 MAD', image: 'https://images.pexels.com/photos/8000631/pexels-photo-8000631.jpeg?auto=compress&w=400', status: 'paused', views: 156, favorites: 7, messages: 1, postedDate: '1 week ago', badge: null },
-  { id: 4, title: 'Samsung Galaxy Watch 6 Classic', price: '2,900 MAD', image: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&w=400', status: 'sold', views: 689, favorites: 31, messages: 12, postedDate: '3 weeks ago', badge: null },
-  { id: 5, title: 'Sony WH-1000XM5 Headphones', price: '3,400 MAD', image: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=400', status: 'expired', views: 234, favorites: 9, messages: 2, postedDate: '2 months ago', badge: null },
-]
+type DbListing = {
+  id: string
+  title: string
+  price: number
+  currency: string
+  images: string[]
+  status: string
+  views: number
+  favorites_count: number
+  messages_count: number
+  created_at: string
+  badge: string | null
+}
+
+function timeAgo(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
+  if (days < 1)  return 'today'
+  if (days === 1) return '1 day ago'
+  if (days < 7)  return `${days} days ago`
+  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) === 1 ? '' : 's'} ago`
+  return `${Math.floor(days / 30)} month${Math.floor(days / 30) === 1 ? '' : 's'} ago`
+}
 
 export default function MyAdsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
+  const supabase = getSupabaseClient()
+  const { user, loading: authLoading } = useAuth()
+
+  const [rawAds, setRawAds] = useState<DbListing[]>([])
+  const [loadingAds, setLoadingAds] = useState(true)
   const [tab, setTab] = useState<'all' | 'active' | 'paused' | 'sold' | 'expired'>('all')
-  const [menuOpen, setMenuOpen] = useState<number | null>(null)
+  const [menuOpen, setMenuOpen] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user) { setRawAds([]); setLoadingAds(false); return }
+    setLoadingAds(true)
+    supabase.from('listings').select('*').eq('seller_id', user.id).order('created_at', { ascending: false })
+      .then(({ data }) => { setRawAds(data || []); setLoadingAds(false) })
+  }, [user?.id])
+
+  const MY_ADS = useMemo(() => rawAds.map(a => ({
+    id: a.id,
+    title: a.title,
+    price: `${Math.round(a.price / 100).toLocaleString()} ${a.currency}`,
+    image: a.images?.[0] || '',
+    status: a.status,
+    views: a.views || 0,
+    favorites: a.favorites_count || 0,
+    messages: a.messages_count || 0,
+    postedDate: timeAgo(a.created_at),
+    badge: a.badge,
+  })), [rawAds])
+
+  const updateStatus = async (id: string, status: string) => {
+    await supabase.from('listings').update({ status, updated_at: new Date().toISOString() }).eq('id', id)
+    setRawAds(prev => prev.map(a => a.id === id ? { ...a, status } : a))
+    setMenuOpen(null)
+  }
+
+  const deleteAd = async (id: string) => {
+    await supabase.from('listings').delete().eq('id', id)
+    setRawAds(prev => prev.filter(a => a.id !== id))
+    setMenuOpen(null)
+  }
 
   const filtered = tab === 'all' ? MY_ADS : MY_ADS.filter(a => a.status === tab)
 
@@ -39,6 +93,23 @@ export default function MyAdsPage({ params }: { params: Promise<{ locale: Locale
     paused: { bg: '#fff4e0', color: '#b45309', label: 'Paused' },
     sold: { bg: '#161d1b', color: 'white', label: 'Sold' },
     expired: { bg: '#f1f1ef', color: '#6b7a76', label: 'Expired' },
+  }
+
+  if (authLoading || loadingAds) {
+    return (
+      <div style={{ background: '#f4fbf8', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: '#6b7a76' }}>Loading your ads…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div style={{ background: '#f4fbf8', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
+        <p style={{ fontSize: '16px', fontWeight: 800, color: '#161d1b' }}>Sign in to manage your ads</p>
+        <Link href={`/${locale}/auth`} style={{ fontSize: '13px', fontWeight: 700, color: '#22d4a8', textDecoration: 'none' }}>Sign in</Link>
+      </div>
+    )
   }
 
   return (
@@ -160,12 +231,12 @@ export default function MyAdsPage({ params }: { params: Promise<{ locale: Locale
                         { icon: <Globe size={14} />, label: 'Translate Listing', href: `/${locale}/translate/${ad.id}` },
                         { icon: <TrendingUp size={14} />, label: 'Promote / Boost', href: `/${locale}/boost/${ad.id}` },
                         ad.status === 'active'
-                          ? { icon: <Pause size={14} />, label: 'Pause Ad' }
-                          : { icon: <Play size={14} />, label: 'Reactivate' },
-                        { icon: <RefreshCw size={14} />, label: 'Mark as Sold' },
-                        { icon: <Trash2 size={14} />, label: 'Delete', danger: true },
+                          ? { icon: <Pause size={14} />, label: 'Pause Ad', action: () => updateStatus(ad.id, 'paused') }
+                          : { icon: <Play size={14} />, label: 'Reactivate', action: () => updateStatus(ad.id, 'active') },
+                        { icon: <RefreshCw size={14} />, label: 'Mark as Sold', action: () => updateStatus(ad.id, 'sold') },
+                        { icon: <Trash2 size={14} />, label: 'Delete', danger: true, action: () => deleteAd(ad.id) },
                       ].map((item: any) => (
-                        <button key={item.label} onClick={() => setMenuOpen(null)}
+                        <button key={item.label} onClick={item.action || (() => setMenuOpen(null))}
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 16px', border: 'none', background: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: item.danger ? '#ef4444' : '#161d1b', fontFamily: 'inherit', textAlign: 'left' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#f4fbf8'}
                           onMouseLeave={e => e.currentTarget.style.background = 'white'}

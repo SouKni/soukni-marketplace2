@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 
@@ -130,7 +131,41 @@ export default function AccessoriesCategoryPage() {
   const [priceOpen, setPriceOpen] = useState(false)
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir']
-  const listings = makeListings(catSlug, 16)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 16 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function timeAgo(iso: string) {
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
+  }
+
+  function mapDbRowToItem(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      time: timeAgo(row.created_at),
+      image: (row.images && row.images[0]) || cat.image,
+      badge: (row.badge as Badge) || null,
+      brand: row.brand || '',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToItem) : makeListings(catSlug, 16)
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (

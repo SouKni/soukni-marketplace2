@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, MapPin, Bed, Bath, Maximize, Phone, Wifi } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -105,8 +106,36 @@ export default function RoomsPage({ params }: { params: Promise<{ locale: string
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
 
-  const filteredListings     = listings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
-  const filteredMoreListings = moreListings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      badge: row.badge || 'Verified',
+      badge2: undefined as string | undefined,
+      title: row.title,
+      type: row.subcategory || '',
+      price: Math.round((row.price || 0) / 100).toLocaleString(),
+      unit: 'MAD/mo',
+      location: row.city,
+      area: 20,
+      image: (row.images && row.images[0]) || listings[0].image,
+      furnished: true,
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const realCards = dbListings.map(mapDbRowToCard)
+  const sourceListings     = hasRealData ? realCards.slice(0, 6) : listings
+  const sourceMoreListings = hasRealData ? realCards.slice(6)    : moreListings
+
+  const filteredListings     = sourceListings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
+  const filteredMoreListings = sourceMoreListings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>

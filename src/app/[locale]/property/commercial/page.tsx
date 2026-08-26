@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, Phone, Maximize, TrendingUp, Building, Layers } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -172,10 +173,38 @@ export default function CommercialPage({ params }: { params: Promise<{ locale: s
   const types      = ['All Types','Office','Retail & Shop','Warehouse','Factory','Restaurant','Hotel','Land']
   const priceRanges= ['Any Price','Under 1M MAD','1M – 5M MAD','5M – 20M MAD','20M+ MAD','Under 20K/mo','20K – 50K/mo','50K+/mo']
 
-  const filteredFeatured = featuredListings.filter(l =>
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any): Listing {
+    return {
+      id: row.id,
+      title: row.title,
+      price: Math.round((row.price || 0) / 100).toLocaleString(),
+      unit: 'MAD',
+      area: 0,
+      floor: null,
+      parking: null,
+      yield_pct: null,
+      location: row.city,
+      image: (row.images && row.images[0]) || featuredListings[0].image,
+      badge: row.badge || 'Verified',
+      badge2: undefined,
+      type: row.subcategory || '',
+    } as Listing
+  }
+  const hasRealData = dbListings.length > 0
+  const realCards = dbListings.map(mapDbRowToCard)
+
+  const filteredFeatured = (hasRealData ? realCards.slice(0, 6) : featuredListings).filter(l =>
     propFor === 'All' ? true : l.badge2 === propFor
   )
-  const filteredMore = moreListings.filter(l =>
+  const filteredMore = (hasRealData ? realCards.slice(6) : moreListings).filter(l =>
     propFor === 'All' ? true : l.badge2 === propFor
   )
 

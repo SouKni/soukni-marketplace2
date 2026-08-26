@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -181,7 +182,33 @@ export default function HomeAppliancesCategoryPage() {
   const [priceOpen, setPriceOpen] = useState(false)
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir']
-  const listings = makeListings(catSlug, 16)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'home-appliances', sortBy: 'newest', limit: 16 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToListing(row: any): Listing {
+    const badge: Badge = row.badge === 'diamond' || row.badge === 'certified' || row.badge === 'pro' ? row.badge : 'certified'
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      time: 'Recently',
+      image: (row.images && row.images[0]) || cat.image,
+      badge,
+      brand: row.brand || '',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToListing) : makeListings(catSlug, 16)
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (

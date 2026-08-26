@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, use, useRef } from 'react'
+import { useState, use, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles, Save, AlertTriangle, Trash2, Pause, Play, RefreshCw } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useListings } from '@/hooks/useListings'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -102,45 +105,9 @@ const CONDITIONS  = ['New', 'Like New', 'Good', 'Fair', 'For Parts']
 const CITIES      = ['Rabat', 'Casablanca', 'Marrakech', 'Fès', 'Tangier', 'Agadir', 'Meknès', 'Oujda', 'Kenitra', 'Tétouan', 'Settat', 'Laâyoune']
 const CURRENCIES  = ['MAD', 'EUR', 'USD', 'GBP']
 
-// Mock existing ads — in production fetched by [id]
-const MOCK_ADS: Record<string, {
-  title: string; description: string; category: string; subcategory: string
-  condition: string; city: string; neighborhood: string; price: string
-  currency: string; negotiable: boolean; freeItem: boolean; hidePrice: boolean
-  phone: string; whatsapp: boolean; status: string
-  images: string[]
-}> = {
-  '1': {
-    title: 'iPhone 15 Pro Max 256GB — Titanium Black, Mint Condition',
-    description: 'Selling my iPhone 15 Pro Max 256GB in Titanium Black. The phone is in absolutely mint condition — no scratches, no dents. Used for only 4 months with a case and screen protector since day one.\n\nComes with original box, charger and all accessories.\n\nBattery health: 98%',
-    category: 'electronics', subcategory: 'Mobiles',
-    condition: 'Like New', city: 'Rabat', neighborhood: 'Agdal',
-    price: '12500', currency: 'MAD', negotiable: true, freeItem: false, hidePrice: false,
-    phone: '6 12 34 56 78', whatsapp: true, status: 'active',
-    images: [
-      'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=800',
-      'https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&w=800',
-    ],
-  },
-  '2': {
-    title: 'MacBook Pro 14" M3 Pro 18GB/512GB',
-    description: 'MacBook Pro 14-inch with M3 Pro chip. Barely used, in perfect condition. Comes with original charger and box.',
-    category: 'electronics', subcategory: 'Laptops',
-    condition: 'Like New', city: 'Rabat', neighborhood: 'Souissi',
-    price: '24800', currency: 'MAD', negotiable: false, freeItem: false, hidePrice: false,
-    phone: '6 12 34 56 78', whatsapp: true, status: 'active',
-    images: ['https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=800'],
-  },
-  '3': {
-    title: 'AirPods Pro 2nd Gen — Sealed Box',
-    description: 'Brand new sealed AirPods Pro 2nd generation. Never opened.',
-    category: 'electronics', subcategory: 'Audio',
-    condition: 'New', city: 'Rabat', neighborhood: 'Hay Riad',
-    price: '1850', currency: 'MAD', negotiable: false, freeItem: false, hidePrice: false,
-    phone: '6 12 34 56 78', whatsapp: false, status: 'paused',
-    images: ['https://images.pexels.com/photos/8000631/pexels-photo-8000631.jpeg?auto=compress&w=800'],
-  },
-}
+// `listings.condition` is a lowercase/underscore DB enum; the form shows human labels.
+const CONDITION_TO_DB: Record<string, string> = { 'New': 'new', 'Like New': 'like_new', 'Good': 'good', 'Fair': 'fair', 'For Parts': 'for_parts' }
+const CONDITION_FROM_DB: Record<string, string> = { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', for_parts: 'For Parts' }
 
 export default function EditAdPage({
   params,
@@ -150,8 +117,13 @@ export default function EditAdPage({
   const { locale, id } = use(params)
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const supabase = getSupabaseClient()
+  const { user, loading: authLoading } = useAuth()
+  const { fetchListingById, updateListing, deleteListing } = useListings()
 
-  const existing = MOCK_ADS[id]
+  const [loadingAd, setLoadingAd] = useState(true)
+  const [notFound, setNotFound]   = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const [step, setStep]           = useState(1)
   const [saved, setSaved]         = useState(false)
@@ -159,34 +131,80 @@ export default function EditAdPage({
   const [showStatus, setShowStatus] = useState(false)
 
   // Step 1
-  const [category, setCategory]       = useState(existing?.category || '')
-  const [subcategory, setSubcategory] = useState(existing?.subcategory || '')
+  const [category, setCategory]       = useState('')
+  const [subcategory, setSubcategory] = useState('')
   const [showAllSubs, setShowAllSubs] = useState(false)
 
   // Step 2
-  const [title, setTitle]           = useState(existing?.title || '')
-  const [description, setDescription] = useState(existing?.description || '')
-  const [condition, setCondition]   = useState(existing?.condition || '')
-  const [city, setCity]             = useState(existing?.city || '')
-  const [neighborhood, setNeighborhood] = useState(existing?.neighborhood || '')
+  const [title, setTitle]           = useState('')
+  const [description, setDescription] = useState('')
+  const [condition, setCondition]   = useState('')
+  const [city, setCity]             = useState('')
+  const [neighborhood, setNeighborhood] = useState('')
 
   // Step 3
-  const [photos, setPhotos] = useState<string[]>(existing?.images || [])
+  const [photos, setPhotos] = useState<string[]>([])
 
   // Step 4
-  const [price, setPrice]           = useState(existing?.price || '')
-  const [currency, setCurrency]     = useState(existing?.currency || 'MAD')
-  const [negotiable, setNegotiable] = useState(existing?.negotiable || false)
-  const [freeItem, setFreeItem]     = useState(existing?.freeItem || false)
-  const [hidePrice, setHidePrice]   = useState(existing?.hidePrice || false)
-  const [phone, setPhone]           = useState(existing?.phone || '')
-  const [whatsapp, setWhatsapp]     = useState(existing?.whatsapp || false)
+  const [price, setPrice]           = useState('')
+  const [currency, setCurrency]     = useState('MAD')
+  const [negotiable, setNegotiable] = useState(false)
+  const [freeItem, setFreeItem]     = useState(false)
+  const [hidePrice, setHidePrice]   = useState(false)
+  const [phone, setPhone]           = useState('')
+  const [whatsapp, setWhatsapp]     = useState(false)
 
-  const [status, setStatus]         = useState(existing?.status || 'active')
+  const [status, setStatus]         = useState('active')
+
+  // Fetch the real listing and confirm the signed-in user owns it
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    setLoadingAd(true)
+    fetchListingById(id).then((row: any) => {
+      if (cancelled) return
+      if (!row || row.seller_id !== user.id) { setNotFound(true); setLoadingAd(false); return }
+      setTitle(row.title || '')
+      setDescription(row.description || '')
+      setCategory(row.category_slug || '')
+      setSubcategory(row.subcategory || '')
+      setCondition(CONDITION_FROM_DB[row.condition] || '')
+      setCity(row.city || '')
+      setNeighborhood(row.neighborhood || '')
+      setPhotos(row.images || [])
+      setPrice(row.price ? String(Math.round(row.price / 100)) : '')
+      setCurrency(row.currency || 'MAD')
+      setNegotiable(!!row.negotiable)
+      setFreeItem(!!row.free_item)
+      setHidePrice(!!row.hide_price)
+      setPhone(row.profiles?.phone || user.phone || '')
+      setWhatsapp(!!row.profiles?.whatsapp)
+      setStatus(row.status || 'active')
+      setLoadingAd(false)
+    })
+    return () => { cancelled = true }
+  }, [id, user?.id])
 
   const selectedCat = CATEGORIES.find(c => c.slug === category)
 
-  if (!existing) return (
+  if (authLoading || (user && loadingAd)) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Loading ad…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', fontFamily: FONT }}>
+        <p style={{ fontSize: '16px', fontWeight: 900, color: INK }}>Sign in to edit this ad</p>
+        <Link href={`/${locale}/auth`} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>Sign in</Link>
+      </div>
+    )
+  }
+
+  if (notFound) return (
     <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</p>
@@ -208,20 +226,51 @@ export default function EditAdPage({
     return true
   }
 
-  const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    files.forEach(f => {
-      const reader = new FileReader()
-      reader.onload = ev => setPhotos(prev => prev.length < 12 ? [...prev, ev.target?.result as string] : prev)
-      reader.readAsDataURL(f)
-    })
+    if (!files.length) return
+    setUploading(true)
+    for (const f of files) {
+      if (photos.length >= 12) break
+      const formData = new FormData()
+      formData.append('file', f)
+      formData.append('type', 'listing')
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.url) setPhotos(prev => prev.length < 12 ? [...prev, data.url] : prev)
+    }
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const removePhoto = (i: number) => setPhotos(prev => prev.filter((_, idx) => idx !== i))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaved(true)
+    await updateListing(id, {
+      title,
+      description,
+      category_slug: category,
+      subcategory,
+      condition: CONDITION_TO_DB[condition] || null,
+      city,
+      neighborhood,
+      images: photos,
+      price: freeItem ? 0 : Math.round(Number(price || 0) * 100),
+      currency,
+      negotiable,
+      free_item: freeItem,
+      hide_price: hidePrice,
+      status,
+    })
+    await supabase.from('profiles').update({ phone, whatsapp }).eq('id', user.id)
     setTimeout(() => { setSaved(false); router.push(`/${locale}/account/my-ads`) }, 1800)
+  }
+
+  const handleDelete = async () => {
+    setShowDelete(false)
+    await deleteListing(id)
+    router.push(`/${locale}/account/my-ads`)
   }
 
   // ── shared UI ──────────────────────────────────────────────────
@@ -291,7 +340,7 @@ export default function EditAdPage({
                 style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #e2eae6', background: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, color: INK }}>
                 Cancel
               </button>
-              <button onClick={() => { setShowDelete(false); router.push(`/${locale}/account/my-ads`) }}
+              <button onClick={handleDelete}
                 style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT }}>
                 Delete Ad
               </button>
@@ -497,13 +546,13 @@ export default function EditAdPage({
               <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotos} />
 
               {/* Upload zone */}
-              <div onClick={() => photos.length < 12 && fileRef.current?.click()}
-                style={{ border: `2px dashed ${photos.length < 12 ? MINT : '#e2eae6'}`, borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: photos.length < 12 ? 'pointer' : 'not-allowed', background: '#f0fdf9', marginBottom: '16px', transition: 'all 0.2s', opacity: photos.length >= 12 ? 0.5 : 1 }}>
+              <div onClick={() => photos.length < 12 && !uploading && fileRef.current?.click()}
+                style={{ border: `2px dashed ${photos.length < 12 ? MINT : '#e2eae6'}`, borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: photos.length < 12 && !uploading ? 'pointer' : 'not-allowed', background: '#f0fdf9', marginBottom: '16px', transition: 'all 0.2s', opacity: photos.length >= 12 || uploading ? 0.5 : 1 }}>
                 <div style={{ width: '48px', height: '48px', background: 'white', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px rgba(34,212,168,0.2)` }}>
                   <Upload size={22} color={MINT} />
                 </div>
                 <p style={{ fontSize: '14px', fontWeight: 900, color: INK, letterSpacing: '-0.03em' }}>
-                  {photos.length === 0 ? 'Add photos' : `Add more (${photos.length}/12)`}
+                  {uploading ? 'Uploading…' : photos.length === 0 ? 'Add photos' : `Add more (${photos.length}/12)`}
                 </p>
                 <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>JPG, PNG, WEBP — max 10MB each</p>
               </div>

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -141,7 +142,6 @@ function makeGrid(count: number) {
     location: ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès'][i%7],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = [
   { label:'All Brands', slug:'all-brands' },
@@ -253,6 +253,37 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
     return [nums[0], nums[1]]
   }
   const [minP, maxP] = parsePriceRange(price)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 24,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'certified',
+      seller: row.seller || '',
+      discount: null,
+      isNew: row.badge === 'new',
+      location: row.city,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
 
   let filteredGridItems = gridItems.filter(item => {
     const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())

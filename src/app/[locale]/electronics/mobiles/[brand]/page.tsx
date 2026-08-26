@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -176,7 +177,32 @@ export default function MobileBrandPage() {
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const listings = makeListings(brandSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    const VALID_BADGES = ['certified', 'diamond', 'featured', 'new']
+    return {
+      brand:     row.brand || brandData.label,
+      title:     row.title,
+      price:     (row.price || 0) / 100,
+      location:  row.city || '',
+      condition: row.condition || 'Used',
+      storage:   row.storage || '',
+      img:       (row.images && row.images[0]) || IMGS[0],
+      badge:     (row.badge && VALID_BADGES.includes(row.badge) ? row.badge : 'certified') as BadgeT,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(brandSlug, 24)
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {

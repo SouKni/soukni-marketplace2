@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -129,8 +130,6 @@ function makeGrid(count: number) {
     condition: conds[i%conds.length],
   }))
 }
-const gridItems = makeGrid(16)
-
 const CATS = [
   { label:'All Parts',            slug:'all-parts'         },
   { label:'Engine & Mechanical',  slug:'engine-mechanical' },
@@ -156,6 +155,30 @@ export default function AccessoriesPage({ params }: { params: Promise<{ locale: 
   const [priceOpen,    setPriceOpen   ] = useState(false)
   const [condOpen,     setCondOpen    ] = useState(false)
   const [catOpen,      setCatOpen     ] = useState(false)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'motors', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      img: (row.images && row.images[0]) || I.g1,
+      condition: row.condition === 'new' ? 'new' : 'used',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
 
   const cities  = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
   const prices  = ['Any Range','0 – 500 MAD','500 – 1,500 MAD','1,500 – 3,500 MAD','3,500+ MAD']

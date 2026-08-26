@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronLeft, ChevronRight, MapPin, Star, Users, Wifi, Waves, TreePine, Sun, Coffee, Car, LayoutGrid, List } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -216,7 +217,31 @@ export default function DailyRentalSubPage() {
   const cities = ['Anywhere','Marrakech','Agadir','Casablanca','Essaouira','Chefchaouen','Merzouga','Ifrane','Fès','Tanger']
   const guestOpts = ['1 guest','2 guests','3 guests','4 guests','5 guests','6 guests','8+ guests','10+ guests']
 
-  const allListings = makeListings(catSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      per: 'night',
+      guests: 2,
+      rating: row.profiles?.rating || 4.5,
+      reviews: row.profiles?.review_count || 0,
+      location: row.city,
+      amenities: [] as string[],
+      image: (row.images && row.images[0]) || (IMGS[catSlug] || IMGS['villas-daily'])[0],
+      badge: row.badge || 'Guest Favourite',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
   const listings = allListings.filter(l =>
     amenity ? l.amenities.includes(amenity) : true
   )

@@ -1,6 +1,7 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 
 const HERO = 'https://images.pexels.com/photos/690154/pexels-photo-690154.jpeg?auto=compress&w=1600'
@@ -119,6 +120,47 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
 
+  // Real Supabase data — falls back to the mock arrays above when this
+  // category has no listings yet (same hybrid pattern as motors/cars).
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'collectibles-treasures', sortBy: 'newest', limit: 24 })
+        .then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToTopChoice(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      rating: row.profiles?.rating || 4.8,
+      reviews: row.profiles?.review_count || 0,
+      image: (row.images && row.images[0]) || HERO,
+      desc: row.description || '',
+    }
+  }
+
+  function mapDbRowToBento(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      image: (row.images && row.images[0]) || HERO,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const realTopChoices    = hasRealData ? dbListings.slice(0, 3).map(mapDbRowToTopChoice) : topChoices
+  const realBentoListings = hasRealData ? dbListings.slice(3, 8).map(mapDbRowToBento) : bentoListings
+  const realDiscoveryGrid = hasRealData ? dbListings.slice(8, 24).map(mapDbRowToBento) : discoveryGrid
+
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
       <section style={{ position:'relative', height:'400px', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -213,7 +255,7 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
 
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
-          {topChoices.map(item=><TopCard key={item.id} item={item} locale={locale} />)}
+          {realTopChoices.map(item=><TopCard key={item.id} item={item} locale={locale} />)}
         </section>
 
         <div style={{ borderRadius:'40px', overflow:'hidden', marginBottom:'40px', background:'linear-gradient(135deg,#161d1b,#1a2e28)', padding:'40px 48px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'center' }}>
@@ -232,7 +274,7 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Zellige & Tiles Collection</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
-            {bentoListings.slice(0,3).map(item=>(
+            {realBentoListings.slice(0,3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
                   <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
@@ -247,7 +289,7 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
             ))}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {bentoListings.slice(3).map(item=>(
+            {realBentoListings.slice(3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'} onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
                   <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
@@ -269,7 +311,7 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
+            {realDiscoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 

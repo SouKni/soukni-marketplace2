@@ -1,32 +1,57 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Mail, Phone, MapPin, Lock, Bell, Shield, ChevronRight, Camera, Check, Eye, EyeOff, Package, Heart, MessageCircle, Sparkles, LogOut, Globe, CreditCard, Trash2, AlertTriangle, BarChart3, RefreshCw } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Tab = 'profile' | 'security' | 'notifications' | 'billing'
 
+const BADGE_LABEL: Record<string, string> = {
+  diamond:   '💎 Diamond Member',
+  certified: '✓ Certified Seller',
+  pro:       '⭐ Pro Seller',
+}
+
 export default function AccountPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
+  const router = useRouter()
+  const supabase = getSupabaseClient()
+  const { user, loading: authLoading, signOut } = useAuth()
+
   const [tab, setTab] = useState<Tab>('profile')
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [showNewPass, setShowNewPass] = useState(false)
 
-  // Profile fields
-  const [fullName, setFullName] = useState('Youssef Alami')
-  const [email, setEmail] = useState('youssef.alami@gmail.com')
-  const [phone, setPhone] = useState('6 12 34 56 78')
-  const [city, setCity] = useState('Rabat')
-  const [bio, setBio] = useState('Trusted seller of premium electronics in Rabat. All items tested and accurately described.')
-  const [username, setUsername] = useState('youssef-alami')
+  // Profile fields — seeded from the real profile once it loads
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail]       = useState('')
+  const [phone, setPhone]       = useState('')
+  const [city, setCity]         = useState('Rabat')
+  const [bio, setBio]           = useState('')
+  const [username, setUsername] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+    setFullName(user.full_name || '')
+    setEmail(user.email || '')
+    setPhone(user.phone || '')
+    setCity(user.city || 'Rabat')
+    setBio(user.bio || '')
+    setUsername(user.username || '')
+  }, [user?.id])
 
   // Security fields
   const [currentPass, setCurrentPass] = useState('')
   const [newPass, setNewPass] = useState('')
 
-  // Notification preferences
+  // Notification preferences — no backing column on `profiles` yet, kept
+  // local-only until the schema grows a notification_prefs field.
   const [notifs, setNotifs] = useState({
     messages: true,
     favorites: true,
@@ -40,10 +65,57 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
 
   const toggleNotif = (key: keyof typeof notifs) => setNotifs(p => ({ ...p, [key]: !p[key] }))
 
-  const handleSave = () => {
+  const handleSaveProfile = async () => {
+    if (!user) return
+    setSaving(true)
+    await supabase.from('profiles').update({
+      full_name: fullName,
+      username,
+      phone,
+      city,
+      bio,
+      updated_at: new Date().toISOString(),
+    }).eq('id', user.id)
+    setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
+
+  const handleUpdatePassword = async () => {
+    if (!newPass) return
+    setSaving(true)
+    const { error } = await supabase.auth.updateUser({ password: newPass })
+    setSaving(false)
+    if (!error) {
+      setCurrentPass('')
+      setNewPass('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    }
+  }
+
+  // Notification prefs have nowhere to persist yet (see notifs comment above)
+  const handleSaveNotifPrefsLocal = () => {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push(`/${locale}`)
+  }
+
+  // Lightweight counts for the quick-links sidebar
+  const [counts, setCounts] = useState({ myAds: null as number | null, favorites: null as number | null, unread: null as number | null })
+  useEffect(() => {
+    if (!user) return
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'active')
+      .then(({ count }) => setCounts(c => ({ ...c, myAds: count ?? 0 })))
+    supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+      .then(({ count }) => setCounts(c => ({ ...c, favorites: count ?? 0 })))
+    supabase.from('conversations').select('buyer_id, seller_id, buyer_unread, seller_unread').or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .then(({ data }) => setCounts(c => ({ ...c, unread: (data || []).reduce((s: number, row: any) => s + (row.buyer_id === user.id ? row.buyer_unread : row.seller_unread), 0) })))
+  }, [user?.id])
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'profile', label: 'Profile', icon: <User size={16} /> },
@@ -53,10 +125,10 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
   ]
 
   const QUICK_LINKS = [
-    { icon: <Package size={16} />, label: 'My Ads', count: '9 active', href: `/${locale}/account/my-ads` },
-    { icon: <Heart size={16} />, label: 'Favorites', count: '6 saved', href: `/${locale}/favorites` },
-    { icon: <MessageCircle size={16} />, label: 'Messages', count: '2 unread', href: `/${locale}/messages` },
-    { icon: <Shield size={16} />, label: 'Trust Score', count: 'Diamond', href: '#' },
+    { icon: <Package size={16} />, label: 'My Ads', count: counts.myAds === null ? '…' : `${counts.myAds} active`, href: `/${locale}/account/my-ads` },
+    { icon: <Heart size={16} />, label: 'Favorites', count: counts.favorites === null ? '…' : `${counts.favorites} saved`, href: `/${locale}/favorites` },
+    { icon: <MessageCircle size={16} />, label: 'Messages', count: counts.unread === null ? '…' : `${counts.unread} unread`, href: `/${locale}/messages` },
+    { icon: <Shield size={16} />, label: 'Trust Score', count: user?.badge ? BADGE_LABEL[user.badge]?.replace(/^\W+\s/, '') || user.badge : 'Unverified', href: '#' },
     { icon: <BarChart3 size={16} />, label: 'Analytics', count: 'View stats', href: `/${locale}/analytics` },
     { icon: <Package size={16} />, label: 'Bulk Import', count: 'For dealers', href: `/${locale}/bulk-import` },
   ]
@@ -86,6 +158,23 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
     </div>
   )
 
+  if (authLoading) {
+    return (
+      <div style={{ background: '#f4fbf8', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: '#6b7a76' }}>Loading account…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div style={{ background: '#f4fbf8', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
+        <p style={{ fontSize: '16px', fontWeight: 800, color: '#161d1b' }}>Sign in to manage your account</p>
+        <Link href={`/${locale}/auth`} style={{ fontSize: '13px', fontWeight: 700, color: '#22d4a8', textDecoration: 'none' }}>Sign in</Link>
+      </div>
+    )
+  }
+
   return (
     <div style={{ background: '#f4fbf8', minHeight: '100vh', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
 
@@ -110,17 +199,19 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
             <div style={{ background: 'white', borderRadius: '20px', padding: '24px', border: '1px solid #e2eae6', textAlign: 'center' }}>
               <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 12px' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: 'white', fontWeight: 800, fontSize: '28px' }}>YA</span>
+                  <span style={{ color: 'white', fontWeight: 800, fontSize: '28px' }}>{(fullName || 'U').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase()}</span>
                 </div>
                 <button style={{ position: 'absolute', bottom: 0, right: 0, width: '28px', height: '28px', borderRadius: '50%', background: '#161d1b', border: '2px solid white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Camera size={12} color="white" />
                 </button>
               </div>
-              <p style={{ fontSize: '15px', fontWeight: 800, color: '#161d1b', marginBottom: '2px' }}>{fullName}</p>
-              <p style={{ fontSize: '12px', color: '#6b7a76', marginBottom: '10px' }}>@{username}</p>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px' }}>
-                💎 Diamond Member
-              </span>
+              <p style={{ fontSize: '15px', fontWeight: 800, color: '#161d1b', marginBottom: '2px' }}>{fullName || 'Unnamed'}</p>
+              <p style={{ fontSize: '12px', color: '#6b7a76', marginBottom: '10px' }}>@{username || 'no-username'}</p>
+              {user.badge && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px' }}>
+                  {BADGE_LABEL[user.badge] || user.badge}
+                </span>
+              )}
             </div>
 
             {/* Quick links */}
@@ -153,7 +244,7 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
 
               <div style={{ height: '1px', background: '#f4fbf8', margin: '8px 0' }} />
 
-              <button style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: 'transparent', color: '#ef4444', fontSize: '13px', fontWeight: 700, textAlign: 'left' }}>
+              <button onClick={handleSignOut} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: 'transparent', color: '#ef4444', fontSize: '13px', fontWeight: 700, textAlign: 'left' }}>
                 <LogOut size={16} /> Sign Out
               </button>
             </div>
@@ -181,8 +272,8 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
                   </div>
 
                   <InputRow label="Email Address" icon={<Mail size={16} />}>
-                    <input value={email} onChange={e => setEmail(e.target.value)} type="email"
-                      style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', fontFamily: 'inherit', color: '#161d1b' }} />
+                    <input value={email} disabled type="email"
+                      style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', fontFamily: 'inherit', color: '#6b7a76' }} />
                     <span style={{ background: '#e6f9f3', color: '#0f9b8e', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '100px', flexShrink: 0 }}>Verified</span>
                   </InputRow>
 
@@ -212,9 +303,9 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
                   </div>
                 </div>
 
-                <button onClick={handleSave}
-                  style={{ background: '#22d4a8', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  Save Changes
+                <button onClick={handleSaveProfile} disabled={saving}
+                  style={{ background: '#22d4a8', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: saving ? 0.7 : 1 }}>
+                  {saving ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
             )}
@@ -260,7 +351,7 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
                     </div>
                   )}
 
-                  <button onClick={handleSave} style={{ marginTop: '16px', background: '#22d4a8', color: 'white', border: 'none', padding: '11px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button onClick={handleUpdatePassword} disabled={saving || !newPass} style={{ marginTop: '16px', background: '#22d4a8', color: 'white', border: 'none', padding: '11px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: saving || !newPass ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: saving || !newPass ? 0.7 : 1 }}>
                     Update Password
                   </button>
                 </div>
@@ -340,7 +431,7 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
                   <Toggle on={notifs.push} onToggle={() => toggleNotif('push')} label="Push Notifications" desc="Browser and mobile push alerts" />
                 </div>
 
-                <button onClick={handleSave}
+                <button onClick={handleSaveNotifPrefsLocal}
                   style={{ background: '#22d4a8', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                   Save Preferences
                 </button>

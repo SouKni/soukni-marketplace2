@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, use, useRef, useEffect, useCallback } from 'react'
+import { useState, use, useRef, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, Send, MoreVertical, Check, CheckCheck, Image as ImageIcon, Phone, MapPin, X, Smile, Paperclip, ArrowLeft, Bell, BellOff, Circle, Clock, Shield, Flag, Trash2, Archive, Star } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useMessages } from '@/hooks/useMessages'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -22,7 +25,7 @@ type Message = {
 }
 
 type Conversation = {
-  id: number
+  id: string
   name: string
   initials: string
   online: boolean
@@ -30,59 +33,46 @@ type Conversation = {
   listingTitle: string
   listingImage: string
   listingPrice: string
-  listingId: number
+  listingId: string
   lastMessage: string
   lastTime: string
   unread: number
   muted: boolean
   starred: boolean
-  messages: Message[]
 }
 
-const INITIAL_CONVERSATIONS: Conversation[] = [
-  {
-    id: 1, name: 'Sara Bennani', initials: 'SB', online: true, lastSeen: 'now',
-    listingTitle: 'iPhone 15 Pro Max 256GB', listingImage: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=200', listingPrice: '12,500 MAD', listingId: 1,
-    lastMessage: 'Is this still available? Can we meet tomorrow?', lastTime: '2m', unread: 2, muted: false, starred: true,
-    messages: [
-      { id: '1', from: 'them', text: 'Hi! Is this iPhone still available?', time: '10:24 AM', read: true },
-      { id: '2', from: 'me', text: "Yes still available! It's in mint condition.", time: '10:26 AM', read: true },
-      { id: '3', from: 'them', text: 'Great! Can you do 11,800 MAD?', time: '10:30 AM', read: true },
-      { id: '4', from: 'me', text: 'I can do 12,000 MAD final. Comes with original box and charger.', time: '10:32 AM', read: true },
-      { id: '5', from: 'them', text: 'Is this still available? Can we meet tomorrow?', time: '10:45 AM', read: false },
-    ]
-  },
-  {
-    id: 2, name: 'Karim Othmani', initials: 'KO', online: false, lastSeen: '2 hours ago',
-    listingTitle: 'MacBook Pro 14" M3', listingImage: 'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=200', listingPrice: '24,800 MAD', listingId: 2,
-    lastMessage: "Thanks for the quick reply 👍", lastTime: '1h', unread: 0, muted: false, starred: false,
-    messages: [
-      { id: '1', from: 'them', text: "What's the battery health on this?", time: '9:10 AM', read: true },
-      { id: '2', from: 'me', text: '96% battery health, barely used.', time: '9:15 AM', read: true },
-      { id: '3', from: 'them', text: "Thanks for the quick reply 👍", time: '9:18 AM', read: true },
-    ]
-  },
-  {
-    id: 3, name: 'Nadia El Fassi', initials: 'NF', online: true, lastSeen: 'now',
-    listingTitle: 'Samsung Galaxy Watch 6', listingImage: 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&w=200', listingPrice: '2,900 MAD', listingId: 3,
-    lastMessage: 'Perfect, see you at 3pm at Agdal mall', lastTime: '3h', unread: 0, muted: true, starred: false,
-    messages: [
-      { id: '1', from: 'them', text: 'Hi, where can we meet?', time: '8:00 AM', read: true },
-      { id: '2', from: 'me', text: 'Agdal mall works for me, near the main entrance', time: '8:05 AM', read: true },
-      { id: '3', from: 'them', text: 'Perfect, see you at 3pm at Agdal mall', time: '8:06 AM', read: true },
-    ]
-  },
-  {
-    id: 4, name: 'Yassine Marrakchi', initials: 'YM', online: false, lastSeen: 'yesterday',
-    listingTitle: 'Sony WH-1000XM5', listingImage: 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&w=200', listingPrice: '3,400 MAD', listingId: 4,
-    lastMessage: "Deal! I'll take it", lastTime: '1d', unread: 0, muted: false, starred: false,
-    messages: [
-      { id: '1', from: 'them', text: 'Last price?', time: 'Yesterday', read: true },
-      { id: '2', from: 'me', text: '3,200 MAD final, comes with the case', time: 'Yesterday', read: true },
-      { id: '3', from: 'them', text: "Deal! I'll take it", time: 'Yesterday', read: true },
-    ]
-  },
-]
+// ── Raw shape returned by GET /api/messages ────────────────────────────────
+type DbParty = { full_name: string; avatar_url: string | null; badge: string | null } | null
+type DbConversation = {
+  id: string
+  listing_id: string | null
+  buyer_id: string
+  seller_id: string
+  last_message: string | null
+  last_message_at: string
+  buyer_unread: number
+  seller_unread: number
+  listings: { title: string; images: string[]; price: number; currency: string } | null
+  buyer: DbParty
+  seller: DbParty
+}
+
+function initialsOf(name: string) {
+  return name.trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() || '?'
+}
+
+function timeAgoShort(iso: string) {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1)   return 'now'
+  if (mins < 60)  return `${mins}m`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)   return `${hrs}h`
+  return `${Math.floor(hrs / 24)}d`
+}
+
+function formatMAD(centimes: number, currency: string) {
+  return `${Math.round(centimes / 100).toLocaleString()} ${currency}`
+}
 
 const QUICK_REPLIES = [
   'Is this still available?',
@@ -97,130 +87,136 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
   const { locale } = use(params)
   const messagesEndRef  = useRef<HTMLDivElement>(null)
   const inputRef        = useRef<HTMLInputElement>(null)
+  const supabase        = getSupabaseClient()
 
-  const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS)
-  const [activeId, setActiveId]           = useState<number>(1)
+  const { user } = useAuth()
+  const [rawConversations, setRawConversations] = useState<DbConversation[]>([])
+  const [loadingConvos, setLoadingConvos]  = useState(true)
+  const [activeId, setActiveId]           = useState<string | null>(null)
   const [draft, setDraft]                 = useState('')
   const [search, setSearch]               = useState('')
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [theyTyping, setTheyTyping]       = useState(false)
   const [showMenu, setShowMenu]           = useState(false)
   const [showQuickReplies, setShowQuickReplies] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [emojiOpen, setEmojiOpen]         = useState(false)
+  // muted/starred have no backing column on `conversations` — kept as
+  // local-only UI state until the schema grows one (see audit notes).
+  const [mutedIds, setMutedIds]     = useState<Set<string>>(new Set())
+  const [starredIds, setStarredIds] = useState<Set<string>>(new Set())
 
   const EMOJIS = ['😊','👍','❤️','🙏','✅','😂','🔥','💯','👋','🤝','💰','📦']
 
-  const active = conversations.find(c => c.id === activeId)!
+  // Fetch the conversation list for the signed-in user
+  useEffect(() => {
+    if (!user) { setRawConversations([]); setLoadingConvos(false); return }
+    setLoadingConvos(true)
+    fetch('/api/messages')
+      .then(r => r.json())
+      .then(d => {
+        const convos: DbConversation[] = d.conversations || []
+        setRawConversations(convos)
+        setActiveId(prev => prev ?? convos[0]?.id ?? null)
+      })
+      .finally(() => setLoadingConvos(false))
+  }, [user])
+
+  const conversations: Conversation[] = useMemo(() => rawConversations.map(c => {
+    const isBuyer = user?.id === c.buyer_id
+    const other   = isBuyer ? c.seller : c.buyer
+    const name    = other?.full_name || 'SouKni User'
+    return {
+      id: c.id,
+      name,
+      initials: initialsOf(name),
+      online: false,
+      lastSeen: 'Recently active',
+      listingTitle: c.listings?.title || 'Listing',
+      listingImage: c.listings?.images?.[0] || '',
+      listingPrice: c.listings ? formatMAD(c.listings.price, c.listings.currency) : '',
+      listingId: c.listing_id || '',
+      lastMessage: c.last_message || '',
+      lastTime: timeAgoShort(c.last_message_at),
+      unread: isBuyer ? c.buyer_unread : c.seller_unread,
+      muted: mutedIds.has(c.id),
+      starred: starredIds.has(c.id),
+    }
+  }), [rawConversations, user, mutedIds, starredIds])
+
+  const active = conversations.find(c => c.id === activeId)
 
   const filtered = conversations.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.listingTitle.toLowerCase().includes(search.toLowerCase())
   )
 
+  const { messages: dbMessages, sendMessage: sendMessageDb, markRead: markMessagesRead } = useMessages(activeId || undefined)
+
+  const messages: Message[] = useMemo(() => dbMessages.map((m: any) => ({
+    id: m.id,
+    from: m.sender_id === user?.id ? 'me' : 'them',
+    text: m.text,
+    time: new Date(m.created_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
+    read: !!m.read,
+  })), [dbMessages, user])
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [active?.messages, theyTyping])
+  }, [messages.length])
 
-  // Mark messages as read when switching conversations
+  // Mark messages read + zero the unread badge when switching conversations
   useEffect(() => {
-    setConversations(prev => prev.map(c =>
-      c.id === activeId
-        ? { ...c, unread: 0, messages: c.messages.map(m => ({ ...m, read: true })) }
-        : c
-    ))
-  }, [activeId])
-
-  // Simulate "they are typing" when user types
-  const handleDraftChange = (val: string) => {
-    setDraft(val)
-    if (typingTimeout) clearTimeout(typingTimeout)
-    // Simulate reply typing after user sends
-  }
+    if (!activeId || !user) return
+    markMessagesRead()
+    const convo = rawConversations.find(c => c.id === activeId)
+    if (!convo) return
+    const isBuyer = user.id === convo.buyer_id
+    const field = isBuyer ? 'buyer_unread' : 'seller_unread'
+    if ((convo as any)[field] > 0) {
+      supabase.from('conversations').update({ [field]: 0 }).eq('id', activeId).then(() => {
+        setRawConversations(prev => prev.map(c => c.id === activeId ? { ...c, [field]: 0 } : c))
+      })
+    }
+  }, [activeId, user])
 
   const sendMessage = useCallback(() => {
-    if (!draft.trim()) return
-    const newMsg: Message = {
-      id: Date.now().toString(),
-      from: 'me',
-      text: draft.trim(),
-      time: new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-      read: false,
-      sending: true,
-    }
-
-    // Optimistic update
-    setConversations(prev => prev.map(c =>
-      c.id === activeId
-        ? { ...c, messages: [...c.messages, newMsg], lastMessage: draft.trim(), lastTime: 'now' }
-        : c
-    ))
+    if (!draft.trim() || !activeId) return
+    const text = draft.trim()
     setDraft('')
     setShowQuickReplies(false)
     setEmojiOpen(false)
-
-    // Simulate "sent" confirmation after 500ms
-    setTimeout(() => {
-      setConversations(prev => prev.map(c =>
-        c.id === activeId
-          ? { ...c, messages: c.messages.map(m => m.id === newMsg.id ? { ...m, sending: false } : m) }
-          : c
+    sendMessageDb(text).then(() => {
+      setRawConversations(prev => prev.map(c =>
+        c.id === activeId ? { ...c, last_message: text, last_message_at: new Date().toISOString() } : c
       ))
-    }, 500)
+    })
+  }, [draft, activeId, sendMessageDb])
 
-    // Simulate "they are typing" after 1.5s
-    setTimeout(() => setTheyTyping(true), 1500)
-
-    // Simulate reply after 3s
-    setTimeout(() => {
-      setTheyTyping(false)
-      const replies = [
-        'Got it, thanks!',
-        'Sounds good! When are you available?',
-        'Can we meet in Agdal?',
-        'OK perfect 👍',
-        'Let me check and get back to you',
-        'That works for me!',
-      ]
-      const reply: Message = {
-        id: (Date.now() + 1).toString(),
-        from: 'them',
-        text: replies[Math.floor(Math.random() * replies.length)],
-        time: new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-        read: false,
-      }
-      setConversations(prev => prev.map(c =>
-        c.id === activeId
-          ? { ...c, messages: [...c.messages, reply], lastMessage: reply.text, lastTime: 'now', unread: 0 }
-          : c
-      ))
-    }, 3000)
-  }, [draft, activeId])
-
-  const switchConvo = (id: number) => {
+  const switchConvo = (id: string) => {
     setActiveId(id)
     setShowMobileChat(true)
-    setTheyTyping(false)
     setDraft('')
     setShowQuickReplies(false)
     inputRef.current?.focus()
   }
 
-  const toggleMute = (id: number) => {
-    setConversations(prev => prev.map(c => c.id === id ? { ...c, muted: !c.muted } : c))
+  const toggleMute = (id: string) => {
+    setMutedIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
     setShowMenu(false)
   }
 
-  const toggleStar = (id: number) => {
-    setConversations(prev => prev.map(c => c.id === id ? { ...c, starred: !c.starred } : c))
+  const toggleStar = (id: string) => {
+    setStarredIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
   }
 
-  const deleteConvo = (id: number) => {
-    setConversations(prev => prev.filter(c => c.id !== id))
-    if (activeId === id && conversations.length > 1) {
-      setActiveId(conversations.find(c => c.id !== id)?.id || 0)
-    }
+  const deleteConvo = (id: string) => {
+    supabase.from('conversations').delete().eq('id', id).then(() => {
+      setRawConversations(prev => prev.filter(c => c.id !== id))
+      if (activeId === id) {
+        const remaining = rawConversations.filter(c => c.id !== id)
+        setActiveId(remaining[0]?.id ?? null)
+      }
+    })
     setShowMenu(false)
   }
 
@@ -338,7 +334,22 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
 
       {/* ── RIGHT: CHAT WINDOW ─────────────────────────── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-
+        {!user ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>Sign in to view your messages</p>
+            <Link href={`/${locale}/auth`} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>Sign in</Link>
+          </div>
+        ) : loadingConvos ? (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Loading conversations…</p>
+          </div>
+        ) : !active ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <p style={{ fontSize: '15px', fontWeight: 900, color: INK }}>No conversations yet</p>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Messages with buyers and sellers will show up here.</p>
+          </div>
+        ) : (
+        <>
         {/* Chat header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid #e2eae6', background: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -372,10 +383,10 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
               {showMenu && (
                 <div style={{ position: 'absolute', top: '42px', right: 0, background: 'white', borderRadius: '14px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid #e2eae6', overflow: 'hidden', minWidth: '180px', zIndex: 20 }}>
                   {[
-                    { icon: <Star size={14} />, label: active.starred ? 'Unstar' : 'Star Conversation', action: () => { toggleStar(activeId); setShowMenu(false) } },
-                    { icon: active.muted ? <Bell size={14} /> : <BellOff size={14} />, label: active.muted ? 'Unmute' : 'Mute Notifications', action: () => toggleMute(activeId) },
+                    { icon: <Star size={14} />, label: active.starred ? 'Unstar' : 'Star Conversation', action: () => { toggleStar(active.id); setShowMenu(false) } },
+                    { icon: active.muted ? <Bell size={14} /> : <BellOff size={14} />, label: active.muted ? 'Unmute' : 'Mute Notifications', action: () => toggleMute(active.id) },
                     { icon: <Shield size={14} />, label: 'Block & Report', action: () => setShowMenu(false), danger: false },
-                    { icon: <Trash2 size={14} />, label: 'Delete Conversation', action: () => deleteConvo(activeId), danger: true },
+                    { icon: <Trash2 size={14} />, label: 'Delete Conversation', action: () => deleteConvo(active.id), danger: true },
                   ].map(item => (
                     <button key={item.label} onClick={item.action}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 16px', border: 'none', background: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: item.danger ? '#ef4444' : INK, fontFamily: FONT, textAlign: 'left' }}
@@ -415,9 +426,9 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
             <div style={{ flex: 1, height: '1px', background: '#e2eae6' }} />
           </div>
 
-          {active.messages.map((msg, i) => {
+          {messages.map((msg, i) => {
             const isMe   = msg.from === 'me'
-            const showAvatar = !isMe && (i === 0 || active.messages[i-1].from !== 'them')
+            const showAvatar = !isMe && (i === 0 || messages[i-1].from !== 'them')
             return (
               <div key={msg.id} className="msg-bubble" style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: '8px' }}>
                 {!isMe && (
@@ -454,20 +465,6 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
               </div>
             )
           })}
-
-          {/* Typing indicator */}
-          {theyTyping && (
-            <div className="msg-bubble" style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: `linear-gradient(135deg, ${MINT}, #0f9b8e)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ color: 'white', fontWeight: 900, fontSize: '10px' }}>{active.initials}</span>
-              </div>
-              <div style={{ padding: '12px 18px', borderRadius: '18px 18px 18px 4px', background: 'white', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', gap: '4px', alignItems: 'center' }}>
-                {[0,1,2].map(i => (
-                  <span key={i} className="typing-dot" style={{ width: '7px', height: '7px', borderRadius: '50%', background: MUTED, display: 'inline-block', animationDelay: `${i * 0.2}s` }} />
-                ))}
-              </div>
-            </div>
-          )}
 
           <div ref={messagesEndRef} />
         </div>
@@ -507,7 +504,7 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
             style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #e2eae6', background: emojiOpen ? MINT : SURFACE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Paperclip size={16} color={emojiOpen ? 'white' : MUTED} />
           </button>
-          <input ref={inputRef} value={draft} onChange={e => handleDraftChange(e.target.value)}
+          <input ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
             placeholder="Type a message..."
             style={{ flex: 1, padding: '11px 16px', borderRadius: '100px', border: '1.5px solid #e2eae6', outline: 'none', fontSize: '14px', fontFamily: FONT, fontWeight: 600, color: INK, background: SURFACE, transition: 'border-color 0.2s' }}
@@ -519,6 +516,8 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
             <Send size={17} color={draft.trim() ? 'white' : MUTED} style={{ marginLeft: '2px' }} />
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>
   )

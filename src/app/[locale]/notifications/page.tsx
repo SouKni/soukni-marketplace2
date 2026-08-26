@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, use, useEffect } from 'react'
+import { useState, use, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Bell, BellOff, MessageCircle, Heart, TrendingDown, Tag, Shield, Sparkles, Check, Trash2, Settings, ChevronRight, X, Smartphone, Monitor, CheckCircle, Zap, Clock, AlertTriangle } from 'lucide-react'
+import { useNotifications } from '@/hooks/useNotifications'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -15,18 +16,26 @@ const FONT    = "'Inter', system-ui, sans-serif"
 
 type Filter = 'all' | 'unread' | 'messages' | 'activity' | 'system'
 
-const NOTIFICATIONS = [
-  { id: 1,  type: 'message',  read: false, time: '2 minutes ago',   title: 'New message from Sara Bennani',       body: 'Is this iPhone still available? Can we meet tomorrow in Agdal?',             href: '/messages', avatar: 'SB', avatarBg: MINT },
-  { id: 2,  type: 'favorite', read: false, time: '15 minutes ago',  title: 'Someone saved your listing',          body: '"iPhone 15 Pro Max 256GB" was saved by a buyer in Rabat.',                  href: '/account/my-ads', avatar: null, icon: '❤️', iconBg: '#fef2f2' },
-  { id: 3,  type: 'message',  read: false, time: '1 hour ago',      title: 'New message from Karim Othmani',      body: "What's the battery health on the MacBook? Also can you do 23,000?",          href: '/messages', avatar: 'KO', avatarBg: '#f59e0b' },
-  { id: 4,  type: 'price',    read: true,  time: '3 hours ago',     title: 'Price drop on a saved listing',       body: '"Samsung Galaxy S24 Ultra" dropped from 12,500 to 11,800 MAD.',             href: '/favorites', avatar: null, icon: '📉', iconBg: '#ede9fe' },
-  { id: 5,  type: 'system',   read: true,  time: '5 hours ago',     title: 'Your Diamond badge is active ✓',      body: 'Congratulations! Your identity has been verified. Diamond badge is now live.', href: '/diamond', avatar: null, icon: '💎', iconBg: '#f0fdf9' },
-  { id: 6,  type: 'activity', read: true,  time: '1 day ago',       title: 'Your ad is getting traction',         body: '"MacBook Pro 14" M3" has reached 400+ views. Consider boosting it.',          href: '/account/my-ads', avatar: null, icon: '📊', iconBg: INK },
-  { id: 7,  type: 'message',  read: true,  time: '1 day ago',       title: 'New message from Nadia El Fassi',     body: 'Perfect, see you at 3pm at Agdal mall entrance.',                           href: '/messages', avatar: 'NF', avatarBg: '#0f9b8e' },
-  { id: 8,  type: 'system',   read: true,  time: '2 days ago',      title: 'Security alert',                      body: 'A new login was detected from iPhone 15 in Rabat. If this was you, no action needed.', href: '/account', avatar: null, icon: '🔒', iconBg: '#fff4e0' },
-  { id: 9,  type: 'price',    read: true,  time: '3 days ago',      title: 'Price drop alert',                    body: '"Patek Philippe Nautilus 5711" dropped by 50,000 MAD in Casablanca.',        href: '/favorites', avatar: null, icon: '💰', iconBg: '#ede9fe' },
-  { id: 10, type: 'activity', read: true,  time: '5 days ago',      title: 'Your ad expires soon',                body: '"AirPods Pro 2nd Gen" listing expires in 3 days. Renew to keep getting views.', href: '/account/my-ads', avatar: null, icon: '⏰', iconBg: SURFACE },
-]
+function iconForType(type: string): { icon: string; iconBg: string } {
+  switch (type) {
+    case 'message':  return { icon: '💬', iconBg: '#f0fdf9' }
+    case 'favorite': return { icon: '❤️', iconBg: '#fef2f2' }
+    case 'price':    return { icon: '📉', iconBg: '#ede9fe' }
+    case 'system':   return { icon: '🔔', iconBg: '#fff4e0' }
+    case 'activity': return { icon: '📊', iconBg: SURFACE }
+    default:         return { icon: '🔔', iconBg: SURFACE }
+  }
+}
+
+function timeAgo(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1)  return 'just now'
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)  return `${hrs} hour${hrs === 1 ? '' : 's'} ago`
+  const days = Math.floor(hrs / 24)
+  return `${days} day${days === 1 ? '' : 's'} ago`
+}
 
 const FILTER_TABS: { key: Filter; label: string }[] = [
   { key: 'all',      label: 'All' },
@@ -40,8 +49,9 @@ type PushStatus = 'unknown' | 'granted' | 'denied' | 'unsupported'
 
 export default function NotificationsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
+  const { notifications: dbNotifications, markRead: markReadDb, markAllRead: markAllReadDb } = useNotifications()
   const [filter, setFilter]       = useState<Filter>('all')
-  const [items, setItems]         = useState(NOTIFICATIONS)
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
   const [pushStatus, setPushStatus] = useState<PushStatus>('unknown')
   const [showPushBanner, setShowPushBanner] = useState(true)
   const [pushRequesting, setPushRequesting] = useState(false)
@@ -87,10 +97,25 @@ export default function NotificationsPage({ params }: { params: Promise<{ locale
     })
   }
 
-  const markAllRead   = () => setItems(prev => prev.map(n => ({ ...n, read: true })))
-  const markRead      = (id: number) => setItems(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-  const removeItem    = (id: number) => setItems(prev => prev.filter(n => n.id !== id))
-  const clearAll      = () => setItems([])
+  const items = useMemo(() => dbNotifications
+    .filter(n => !dismissedIds.has(n.id))
+    .map(n => ({
+      id:    n.id as string,
+      type:  n.type as string,
+      read:  !!n.read,
+      time:  timeAgo(n.created_at),
+      title: n.title as string,
+      body:  n.body as string,
+      href:  (n.href as string) || '/',
+      avatar: null as string | null,
+      avatarBg: undefined as string | undefined,
+      ...iconForType(n.type),
+    })), [dbNotifications, dismissedIds])
+
+  const markAllRead   = () => markAllReadDb()
+  const markRead      = (id: string) => markReadDb(id)
+  const removeItem    = (id: string) => setDismissedIds(prev => new Set(prev).add(id))
+  const clearAll      = () => setDismissedIds(new Set(dbNotifications.map(n => n.id)))
 
   const filtered = items.filter(n => {
     if (filter === 'all')      return true

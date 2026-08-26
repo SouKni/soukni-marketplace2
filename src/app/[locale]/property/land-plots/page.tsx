@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, Maximize, Phone, LayoutGrid, List, FileCheck, TrendingUp } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -170,7 +171,34 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès','Tanger Med Zone']
 
-  const filtered = LISTINGS.filter(l => {
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      badge: row.badge || 'Verified',
+      badge2: null as string | null,
+      title: row.title,
+      zone: 'Residential',
+      price: Math.round((row.price || 0) / 100).toLocaleString(),
+      pricePerM2: Math.round((row.price || 0) / 100 / 500).toLocaleString(),
+      area: 500,
+      location: row.city,
+      permit: 'approved' as 'approved'|'pending'|'no-permit',
+      image: (row.images && row.images[0]) || LISTINGS[0].image,
+      serviced: true,
+      road: true,
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const sourceListings = hasRealData ? dbListings.map(mapDbRowToCard) : LISTINGS
+  const filtered = sourceListings.filter(l => {
     if (zone !== 'all' && l.zone.toLowerCase() !== zone) return false
     if (permit !== 'all' && l.permit !== permit) return false
     return true

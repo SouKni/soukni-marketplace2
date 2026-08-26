@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -222,8 +223,37 @@ export default function VintageCategoryPage() {
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 24,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      condition: row.condition || undefined,
+      era: row.subcategory || '',
+      img: (row.images && row.images[0]) || VINTAGE_IMGS[0],
+      badge: row.badge || 'certified',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+
   const listings = React.useMemo(() => {
-    const all = makeListings(catSlug, 24)
+    const all = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
     let items = all.filter(item => {
       const mk = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())
       const ma = activeEra==='All Eras' || item.era===activeEra
@@ -241,7 +271,7 @@ export default function VintageCategoryPage() {
     if (sortBy==='Price: Low to High') items = [...items].sort((a,b)=>a.price-b.price)
     if (sortBy==='Price: High to Low') items = [...items].sort((a,b)=>b.price-a.price)
     return items
-  }, [catSlug, keyword, activeEra, activeBrand, activeSeller, price, diamond, sortBy])
+  }, [catSlug, keyword, activeEra, activeBrand, activeSeller, price, diamond, sortBy, hasRealData, dbListings])
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   // DDrop defined outside component

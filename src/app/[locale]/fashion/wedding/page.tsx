@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
@@ -158,7 +159,6 @@ function makeGrid(count: number) {
     location: locs[i%locs.length],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = [
   { label:'All Wedding',      slug:'all-wedding'       },
@@ -259,6 +259,37 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
     return [nums[0], nums[1]]
   }
   const [minP, maxP] = parsePriceRange(price)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 24,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'certified',
+      seller: row.seller || '',
+      discount: null,
+      isNew: row.badge === 'new',
+      location: row.city,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
 
   let filteredGrid = gridItems.filter(item => {
     const matchesKeyword = keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())

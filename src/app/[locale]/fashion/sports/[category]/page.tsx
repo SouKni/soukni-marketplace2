@@ -7,6 +7,7 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { ALL_CITIES } from '@/data/moroccoLocations'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -311,7 +312,38 @@ export default function SportsCategoryPage() {
   const [showNewOnly,  setShowNewOnly ] = useState(false)
   const [showDiscount, setShowDiscount] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 24,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      size: row.size || '',
+      condition: row.condition || undefined,
+      img: (row.images && row.images[0]) || SPORT_IMGS[0],
+      badge: row.badge || 'certified',
+      seller: row.seller || '',
+      discount: null,
+      isNew: row.badge === 'new',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
   const cities   = ALL_CITIES
 
   function parsePriceRange(range: string): [number, number] {

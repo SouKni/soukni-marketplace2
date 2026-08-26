@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, ChevronLeft, MapPin, Maximize, Phone, LayoutGrid, List, FileCheck, Heart } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -199,7 +200,32 @@ export default function LandSubPage() {
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
 
-  const allListings = makeListings(catSlug, 18)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      area: 500,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      permit: undefined as 'approved'|'pending'|'no-permit'|undefined,
+      serviced: true,
+      road: true,
+      image: (row.images && row.images[0]) || (IMGS[catSlug] || IMGS['residential'])[0],
+      badge: row.badge || 'Verified',
+      waterRights: false,
+      seaView: false,
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 18)
   const listings    = allListings.filter(l => permit === 'all' ? true : l.permit === permit)
 
   return (

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -146,6 +147,38 @@ const CATS = [
 
 export default function LaptopsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  const VALID_BADGES = ['certified', 'diamond', 'featured', 'new']
+  const realFeatured = dbListings.slice(0, 4).map(row => ({
+    brand: row.brand || '',
+    title: row.title,
+    price: (row.price || 0) / 100,
+    location: row.city || '',
+    img: (row.images && row.images[0]) || I.g1,
+    badges: row.badge && VALID_BADGES.includes(row.badge) ? [row.badge] : [],
+    condition: row.condition || undefined,
+  }))
+  const realGrid = dbListings.slice(4, 20).map(row => ({
+    brand: row.brand || '',
+    title: row.title,
+    price: (row.price || 0) / 100,
+    img: (row.images && row.images[0]) || I.g1,
+    badge: (row.badge && VALID_BADGES.includes(row.badge) ? row.badge : 'certified') as BadgeT,
+    condition: row.condition || undefined,
+  }))
+  const hasRealData = dbListings.length >= 4
+  const displayFeatured = hasRealData ? realFeatured : featuredItems
+  const displayGrid = hasRealData ? realGrid : gridItems
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
   const [gridView,     setGridView    ] = useState(true)
@@ -338,7 +371,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All Featured →</a>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
-            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+            {displayFeatured.map((item,i)=><FeaturedCard key={i} {...item} />)}
           </div>
         </section>
 
@@ -456,7 +489,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
             <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>All Laptop Discoveries</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
+          {[displayGrid.slice(0,4),displayGrid.slice(4,8),displayGrid.slice(8,12),displayGrid.slice(12,16)].map((row,ri)=>(
             <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
               {row.map((item,j)=><GridCard key={j} {...item} />)}
             </div>

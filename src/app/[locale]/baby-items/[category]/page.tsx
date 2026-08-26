@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -188,7 +189,31 @@ export default function BabyItemsCategoryPage() {
   const [cityOpen,     setCityOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'baby-items', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand:     row.brand || '',
+      title:     row.title,
+      price:     (row.price || 0) / 100,
+      location:  row.city || '',
+      condition: row.condition || undefined,
+      age:       row.subcategory || '',
+      img:       (row.images && row.images[0]) || IMGS[0],
+      badge:     row.badge || 'certified',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {

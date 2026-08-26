@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
+import { useListings } from '@/hooks/useListings'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 
 const C = {
@@ -138,12 +139,37 @@ function makeGrid(count: number) {
     badge: badges[i%badges.length],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = ['All Shoes','Heels & Pumps','Sneakers','Boots','Loafers','Sandals']
 
 export default function ShoesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale }                      = React.use(params)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 16,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'certified',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
   const [activeCat,    setActiveCat   ] = useState('All Shoes')
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)

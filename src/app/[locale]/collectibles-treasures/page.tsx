@@ -1,7 +1,8 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, X, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
 
@@ -144,8 +145,49 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
     setPriceOpen(false); setCatOpen(false); setCityOpen(false)
   }
 
+  // Real Supabase data — falls back to the mock arrays above when this
+  // category has no listings yet (same hybrid pattern as motors/cars).
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'collectibles-treasures', sortBy: 'newest', limit: 24 })
+        .then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToTopChoice(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      rating: row.profiles?.rating || 4.8,
+      reviews: row.profiles?.review_count || 0,
+      image: (row.images && row.images[0]) || HERO,
+      desc: row.description || '',
+    }
+  }
+
+  function mapDbRowToBento(row: any) {
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      image: (row.images && row.images[0]) || HERO,
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const realTopChoices    = hasRealData ? dbListings.slice(0, 3).map(mapDbRowToTopChoice) : topChoices
+  const realBentoListings = hasRealData ? dbListings.slice(3, 8).map(mapDbRowToBento) : bentoListings
+  const realDiscoveryGrid = hasRealData ? dbListings.slice(8, 24).map(mapDbRowToBento) : discoveryGrid
+
   const filteredDiscovery = useMemo(() => {
-    return discoveryGrid.filter(item => {
+    return realDiscoveryGrid.filter(item => {
       const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
       const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
       const mp = price === 'Any Price' ? true
@@ -155,7 +197,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
                : item.price > 8000
       return mc && mk && mp
     })
-  }, [applied, price])
+  }, [applied, price, realDiscoveryGrid])
 
   const VISIBLE_COUNT = 8
   const visibleSubcats = showAll ? ALL_SUBCATS : ALL_SUBCATS.slice(0, VISIBLE_COUNT)
@@ -382,7 +424,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
         {/* TOP CHOICES */}
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontSize:'13px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.1em', marginBottom:'20px' }}>SOUKNI TOP CHOICES</h2>
-          {topChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
+          {realTopChoices.map(item=><TopChoiceCard key={item.id} item={item} locale={locale} />)}
         </section>
 
         {/* DARK BANNER */}
@@ -404,7 +446,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
         <section style={{ marginBottom:'40px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#22d4a8', marginBottom:'16px' }}>SouKni Collectibles Collection</h2>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'16px' }}>
-            {bentoListings.slice(0,3).map(item=>(
+            {realBentoListings.slice(0,3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'220px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
                   onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}
@@ -421,7 +463,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
             ))}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {bentoListings.slice(3).map(item=>(
+            {realBentoListings.slice(3).map(item=>(
               <Link key={item.id} href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
                 <div style={{ position:'relative', height:'200px', borderRadius:'28px', overflow:'hidden', cursor:'pointer', transition:'transform 0.2s' }}
                   onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.02)'}

@@ -2,6 +2,14 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+
+// Mounts the Supabase auth session listener so useStore().user is
+// populated app-wide, not just on pages that happen to call useAuth().
+function AuthHydrator({ children }: { children: React.ReactNode }) {
+  useAuth()
+  return <>{children}</>
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -17,7 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <AuthHydrator>{children}</AuthHydrator>
     </QueryClientProvider>
   )
 }

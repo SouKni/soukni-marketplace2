@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -164,7 +165,34 @@ export default function TraditionalSubPage() {
   const priceRanges = ['Any Price','0 – 500 MAD','500 – 2,000 MAD','2,000 – 8,000 MAD','8,000+ MAD']
 
   const featured = makeListings(catSlug, 4).map((l,i)=>({...l, badges:i===0?['featured','diamond']:i===1?['featured','certified']:['featured','new'] as any}))
-  const grid     = makeListings(catSlug, 16)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({
+        category: 'fashion',
+        sortBy: 'newest',
+        limit: 16,
+      }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      img: (row.images && row.images[0]) || IMGS[0],
+      badge: row.badge || 'certified',
+    }
+  }
+
+  const hasRealData = dbListings.length > 0
+  const grid = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 16)
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (

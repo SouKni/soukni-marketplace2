@@ -9,6 +9,8 @@ type User = {
   badge: string | null
   city: string | null
   phone: string | null
+  username: string | null
+  bio: string | null
 }
 
 type Currency = 'MAD' | 'EUR' | 'USD' | 'GBP'

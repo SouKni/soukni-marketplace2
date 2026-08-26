@@ -40,6 +40,8 @@ export function useAuth() {
       badge:      data.badge,
       city:       data.city,
       phone:      data.phone,
+      username:   data.username,
+      bio:        data.bio,
     } : null)
     setLoading(false)
   }

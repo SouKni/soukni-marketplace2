@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import React from 'react'
 import { createPortal } from 'react-dom'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -248,8 +249,37 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
     }, 50)
   }
 
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'musical-instruments', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  const realFeaturedItems = dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
+    brand:     row.brand || '',
+    title:     row.title,
+    price:     (row.price || 0) / 100,
+    location:  row.city || '',
+    img:       (row.images && row.images[0]) || I.g1,
+    badges:    row.badge ? [row.badge] : ['certified'],
+    condition: row.condition || undefined,
+  })) : featuredItems
+
+  const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
+    brand:     row.brand || '',
+    title:     row.title,
+    price:     (row.price || 0) / 100,
+    img:       (row.images && row.images[0]) || I.g1,
+    condition: row.condition || undefined,
+    badge:     row.badge || 'certified',
+  })) : gridItems
+
   const filteredItems = React.useMemo(() => {
-    let items = [...gridItems]
+    let items = [...realGridItems]
     if (applied.keyword.trim()) {
       items = items.filter(item =>
         item.title.toLowerCase().includes(applied.keyword.toLowerCase()) ||
@@ -266,7 +296,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
       items = [...items].sort((a,b)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
     }
     return items
-  }, [applied, activeSeller, diamond, city])
+  }, [applied, activeSeller, diamond, city, realGridItems])
 
   const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoodMap: Record<string,string[]> = {
@@ -435,7 +465,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All Featured →</a>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
-            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+            {realFeaturedItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
           </div>
         </section>
 

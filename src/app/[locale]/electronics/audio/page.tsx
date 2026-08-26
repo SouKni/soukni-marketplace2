@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
 
 const I = {
@@ -116,6 +117,40 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
     { label:'DJ Equipment', slug:'dj-equipment' },
   ]
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function timeAgo(iso: string) {
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
+  }
+
+  const realMapped: Listing[] = dbListings.map(row => ({
+    id: row.id,
+    title: row.title,
+    price: (row.price || 0) / 100,
+    location: row.city || '',
+    time: timeAgo(row.created_at),
+    image: (row.images && row.images[0]) || I.hero,
+    badge: (row.badge as Badge) || null,
+  }))
+  const hasRealData = realMapped.length >= 4
+  const displayFeatured  = hasRealData ? realMapped.slice(0, 4)  : featuredListings
+  const displayExclusive = hasRealData ? realMapped.slice(4, 8)  : exclusiveListings
+  const displayDiscovery = hasRealData ? realMapped.slice(8, 20) : discoveryListings
+  const exclusiveHero = displayExclusive[0] || exclusiveListings[0]
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -253,7 +288,7 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
             <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            {displayFeatured.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
@@ -286,12 +321,12 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
               <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
                 onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
                 onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
-                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <img src={exclusiveHero.image} alt={exclusiveHero.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
                 <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
                 <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
                 <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
-                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
-                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveHero.title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveHero.price.toLocaleString()} MAD</p>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
@@ -363,7 +398,7 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
             <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
-            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+            {[displayDiscovery.slice(0,4), displayDiscovery.slice(4,8), displayDiscovery.slice(8,12)].map((row,ri)=>(
               <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
                 {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
               </div>

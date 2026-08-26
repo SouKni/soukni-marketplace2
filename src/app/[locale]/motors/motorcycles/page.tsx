@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useListings } from '@/hooks/useListings'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -133,7 +134,6 @@ function makeGrid(count: number) {
     badge: badges[i%badges.length],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = [
   { label:'All Motorcycles', slug:'all-motorcycles' },
@@ -161,6 +161,26 @@ export default function MotorcyclesPage({ params }: { params: Promise<{ locale: 
   const [neighOpen,    setNeighOpen   ] = useState(false)
   const [ccOpen,       setCcOpen      ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'motors', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'certified',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
 
   const cities        = ['All Morocco','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoods = ['All','Maarif','Agdal','Souissi','Hay Riad','Gueliz','Médina','Océan']

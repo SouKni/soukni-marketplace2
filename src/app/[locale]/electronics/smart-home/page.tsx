@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
@@ -128,6 +129,40 @@ export default function SmartHomePage({ params }: { params: Promise<{ locale:str
   const [page, setPage] = useState(1)
   const [viewGrid, setViewGrid] = useState(true)
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function timeAgo(iso: string) {
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
+  }
+
+  const realMapped: Listing[] = dbListings.map(row => ({
+    id: row.id,
+    title: row.title,
+    price: (row.price || 0) / 100,
+    location: row.city || '',
+    time: timeAgo(row.created_at),
+    image: (row.images && row.images[0]) || IMGS.hero,
+    badge: (row.badge as Badge) || null,
+    brand: row.brand || '',
+  }))
+  const hasRealData = realMapped.length >= 4
+  const displayFeatured  = hasRealData ? realMapped.slice(0, 4)  : featuredListings
+  const displayExclusive = hasRealData ? realMapped.slice(4, 8)  : exclusiveListings
+  const displayDiscovery = hasRealData ? realMapped.slice(8, 20) : discoveryListings
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -263,7 +298,7 @@ export default function SmartHomePage({ params }: { params: Promise<{ locale:str
             <Link href={`/${locale}/electronics`} style={{ color:C.mint, fontWeight:700, fontSize:13, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>View all Featured <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            {displayFeatured.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
@@ -286,7 +321,7 @@ export default function SmartHomePage({ params }: { params: Promise<{ locale:str
             <h2 style={{ ...UB, fontSize:22, color:C.mint }}>Exclusive Smart Home Collection</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
-            {exclusiveListings.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+            {displayExclusive.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
           </div>
         </section>
 
@@ -295,7 +330,7 @@ export default function SmartHomePage({ params }: { params: Promise<{ locale:str
             <h2 style={{ ...UB, fontSize:20, color:C.ink }}>Pro Smart Home Discoveries</h2>
           </div>
           <div style={{ display:'flex', flexDirection:'column' as const, gap:16 }}>
-            {[discoveryListings.slice(0,4), discoveryListings.slice(4,8), discoveryListings.slice(8,12)].map((row,ri)=>(
+            {[displayDiscovery.slice(0,4), displayDiscovery.slice(4,8), displayDiscovery.slice(8,12)].map((row,ri)=>(
               <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
                 {row.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
               </div>

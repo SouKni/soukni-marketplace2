@@ -336,3 +336,77 @@ CREATE POLICY "Users see own notifications" ON public.notifications FOR ALL USIN
 
 -- Reports: reporter can create, no read
 CREATE POLICY "Anyone can report" ON public.reports FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- ═══════════════════════════════════════════════════════════════
+-- RPC: increment_listing_views
+-- Called by src/hooks/useListings.ts on every listing detail view.
+-- SECURITY DEFINER because any visitor (not just the seller) needs
+-- to bump the counter, which the "Sellers can manage own listings"
+-- RLS policy would otherwise block.
+-- ═══════════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION public.increment_listing_views(listing_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.listings SET views = views + 1 WHERE id = listing_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_listing_views(UUID) TO anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════
+-- Seed data: top-level categories
+-- One row per top-level "goods" route folder under src/app/[locale]/
+-- so `.eq('category_slug', ...)` queries return real rows once a
+-- page is wired to Supabase. Slugs match the route folder name,
+-- following the precedent already set by the two pages already
+-- wired to Supabase (electronics/page.tsx uses category_slug
+-- 'electronics', motors/cars/[category]/page.tsx uses 'motors').
+--
+-- Deliberately excludes jobs/services/community/wellness-spa —
+-- those are gig/service postings, not physical goods, and the
+-- `listings` table's condition/free_item/is_auction columns don't
+-- fit them; whether they belong in this table or a separate one is
+-- an open product decision, not a seed-data problem.
+--
+-- Several slugs below overlap in real-world meaning (electronics /
+-- mobiles-electronics / home-appliances, property / real-estate /
+-- commercial-properties / land-for-sale / vacation-properties,
+-- motors / car-rental / motorcycles-scooters / trucks-vans, vault /
+-- vault-other / collectibles / collectibles-treasures) because each
+-- is a distinct existing route today. Seeded as-is rather than
+-- silently merged — deduping the IA is a product call, not this
+-- migration's job.
+-- ═══════════════════════════════════════════════════════════════
+INSERT INTO public.categories (slug, label, emoji, sort_order) VALUES
+  ('electronics',            'Electronics',            '📱', 10),
+  ('mobiles-electronics',    'Mobiles & Electronics',  '📱', 11),
+  ('home-appliances',        'Home Appliances',        '🔌', 12),
+  ('fashion',                'Fashion',                 '👗', 20),
+  ('jewelry-watches',        'Jewelry & Watches',      '💍', 21),
+  ('motors',                 'Motors',                  '🚗', 30),
+  ('car-rental',             'Car Rental',              '🚗', 31),
+  ('motorcycles-scooters',   'Motorcycles & Scooters', '🏍️', 32),
+  ('trucks-vans',            'Trucks & Vans',           '🚚', 33),
+  ('property',               'Property',                '🏠', 40),
+  ('real-estate',            'Real Estate',             '🏠', 41),
+  ('commercial-properties',  'Commercial Properties',  '🏢', 42),
+  ('land-for-sale',          'Land for Sale',           '🗺️', 43),
+  ('vacation-properties',    'Vacation Properties',    '🏖️', 44),
+  ('home-garden',            'Home & Garden',           '🛋️', 50),
+  ('home-living',            'Home & Living',           '🛋️', 51),
+  ('vault',                  'The Vault',               '💎', 60),
+  ('vault-other',            'Vault — Other',           '💎', 61),
+  ('collectibles',           'Collectibles',            '🏺', 62),
+  ('collectibles-treasures', 'Collectibles & Treasures','🏺', 63),
+  ('gaming',                 'Gaming',                  '🎮', 70),
+  ('musical-instruments',    'Musical Instruments',    '🎸', 71),
+  ('toys',                   'Toys',                    '🧸', 72),
+  ('baby-items',             'Baby & Kids Items',      '🍼', 73),
+  ('pets-accessories',       'Pets & Accessories',     '🐾', 74),
+  ('sports-equipment',       'Sports Equipment',       '⚽', 75),
+  ('tickets-vouchers',       'Tickets & Vouchers',     '🎟️', 76)
+ON CONFLICT (slug) DO NOTHING;

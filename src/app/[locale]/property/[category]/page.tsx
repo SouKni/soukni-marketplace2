@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Search, ChevronRight, MapPin, Heart } from 'lucide-react'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -85,7 +86,26 @@ export default function PropertyCategoryPage() {
   const locale  = (params?.locale as string) || 'en'
   const catSlug = (params?.category as string) || 'apartments'
   const catData = CATEGORIES[catSlug] || CATEGORIES['apartments']
-  const listings = makeListings(catSlug, 24)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'property', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city,
+      condition: row.condition || undefined,
+      img: (row.images && row.images[0]) || IMGS[0],
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>

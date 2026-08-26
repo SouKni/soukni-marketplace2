@@ -1,9 +1,10 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle, ChevronDown, X } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
+import { useListings } from '@/hooks/useListings'
 
 const I = {
   hero:  'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&w=1600',
@@ -202,8 +203,35 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
     setPriceOpen(false); setNeighOpen(false); setCityOpen(false)
   }
 
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'pets-accessories', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function mapDbRowToListing(row: any, fallbackImg: string): Listing {
+    const badge: Badge = row.badge === 'diamond' || row.badge === 'certified' || row.badge === 'pro' ? row.badge : 'certified'
+    return {
+      id: row.id,
+      title: row.title,
+      price: (row.price || 0) / 100,
+      location: row.city || '',
+      time: 'Recently',
+      image: (row.images && row.images[0]) || fallbackImg,
+      badge,
+    }
+  }
+
+  const realFeaturedListings  = dbListings.length >= 4  ? dbListings.slice(0, 4).map(r => mapDbRowToListing(r, I.p1))  : featuredListings
+  const realExclusiveListings = dbListings.length >= 8  ? dbListings.slice(4, 8).map(r => mapDbRowToListing(r, I.p1))  : exclusiveListings
+  const realDiscoveryListings = dbListings.length >= 12 ? dbListings.slice(8, 20).map(r => mapDbRowToListing(r, I.p5)) : discoveryListings
+
   const filteredDiscovery = useMemo(() => {
-    return discoveryListings.filter(item => {
+    return realDiscoveryListings.filter(item => {
       const mc = !applied.city    || item.location.toLowerCase().includes(applied.city.toLowerCase())
       const mk = !applied.keyword || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
       const mp = price === 'Any Price' ? true
@@ -213,7 +241,7 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
                : item.price > 8000
       return mc && mk && mp
     })
-  }, [applied, price])
+  }, [applied, price, realDiscoveryListings])
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
@@ -365,11 +393,11 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
           </div>
           {viewGrid ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-              {featuredListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+              {realFeaturedListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:12 }}>
-              {featuredListings.map(item=>(
+              {realFeaturedListings.map(item=>(
                 <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:20, border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:120 }}>
                   <img src={item.image} alt={item.title} style={{ width:120, height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
                   <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -414,12 +442,12 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
               <div style={{ height:'100%', borderRadius:32, overflow:'hidden', position:'relative', cursor:'pointer' }}
                 onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
                 onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
-                <img src={exclusiveListings[0].image} alt={exclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+                <img src={realExclusiveListings[0].image} alt={realExclusiveListings[0].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
                 <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.05))' }} />
                 <div style={{ position:'absolute', top:16, left:16 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>✦ SOUKNI CERTIFIED</span></div>
                 <div style={{ position:'absolute', bottom:24, left:24, right:24 }}>
-                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{exclusiveListings[0].title}</p>
-                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveListings[0].price.toLocaleString()} MAD</p>
+                  <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{realExclusiveListings[0].title}</p>
+                  <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{realExclusiveListings[0].price.toLocaleString()} MAD</p>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
@@ -430,28 +458,28 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
             <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
               onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
               onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
-              <img src={exclusiveListings[1].image} alt={exclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <img src={realExclusiveListings[1].image} alt={realExclusiveListings[1].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
               <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
               <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
-                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[1].title}</p>
-                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[1].price.toLocaleString()} MAD</p>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{realExclusiveListings[1].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{realExclusiveListings[1].price.toLocaleString()} MAD</p>
               </div>
             </div>
             <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer' }}
               onMouseEnter={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1.06)'}}
               onMouseLeave={e=>{const img=e.currentTarget.querySelector('img') as HTMLImageElement;if(img)img.style.transform='scale(1)'}}>
-              <img src={exclusiveListings[2].image} alt={exclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
+              <img src={realExclusiveListings[2].image} alt={realExclusiveListings[2].title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s' }} />
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8),rgba(0,0,0,0.05))' }} />
               <div style={{ position:'absolute', top:12, left:12 }}><span style={{ background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:'8px', fontWeight:900, padding:'3px 8px', borderRadius:100, textTransform:'uppercase' as const }}>✦ CERTIFIED</span></div>
               <div style={{ position:'absolute', bottom:16, left:16, right:16 }}>
-                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{exclusiveListings[2].title}</p>
-                <p style={{ ...HK, fontSize:17, color:C.mint }}>{exclusiveListings[2].price.toLocaleString()} MAD</p>
+                <p style={{ ...HK, fontSize:14, color:'white', marginBottom:4 }}>{realExclusiveListings[2].title}</p>
+                <p style={{ ...HK, fontSize:17, color:C.mint }}>{realExclusiveListings[2].price.toLocaleString()} MAD</p>
               </div>
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-            <ListingCard item={exclusiveListings[3]} locale={locale} compact />
+            <ListingCard item={realExclusiveListings[3]} locale={locale} compact />
             <div style={{ borderRadius:24, overflow:'hidden', position:'relative', cursor:'pointer', minHeight:200 }}>
               <img src={I.p5} alt="Pets Pro" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
               <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(22,29,27,0.92),rgba(22,29,27,0.4))' }} />

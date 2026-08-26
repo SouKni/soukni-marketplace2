@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useListings } from '@/hooks/useListings'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -133,7 +134,6 @@ function makeGrid(count: number) {
     badge: badges[i%badges.length],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = [
   { label:'All Trucks & Vans', slug:'all-trucks-vans' },
@@ -162,6 +162,26 @@ export default function TrucksVansPage({ params }: { params: Promise<{ locale: s
   const [yearOpen,     setYearOpen    ] = useState(false)
   const [kmOpen,       setKmOpen      ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'motors', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      brand: row.brand || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'certified',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
 
   const cityNeighs = ['All Morocco','Casablanca, Maarif','Casablanca, Ain Diab','Rabat, Agdal','Rabat, Souissi','Marrakech, Gueliz','Tanger, Centre','Agadir, Centre']
   const years       = ['Any Year','2026','2025','2024','2023','2022','2021','2020','2019 & older']

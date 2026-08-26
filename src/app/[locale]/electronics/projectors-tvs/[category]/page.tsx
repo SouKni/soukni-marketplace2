@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle, ChevronLeft } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
+import { useListings } from '@/hooks/useListings'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -124,7 +125,36 @@ export default function ProjectorsTVsCategoryPage() {
   const [viewGrid, setViewGrid] = useState(true)
   const [keyword, setKeyword] = useState('')
 
-  const listings = makeListings(catSlug, 24)
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'electronics', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  function timeAgoLocal(iso: string) {
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
+  }
+
+  const realMapped: Listing[] = dbListings.map(row => ({
+    id: row.id,
+    title: row.title,
+    price: (row.price || 0) / 100,
+    location: row.city || '',
+    time: timeAgoLocal(row.created_at),
+    image: (row.images && row.images[0]) || IMGS.lg,
+    badge: (row.badge as Badge) || null,
+  }))
+  const hasRealData = realMapped.length > 0
+  const listings = hasRealData ? realMapped : makeListings(catSlug, 24)
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (

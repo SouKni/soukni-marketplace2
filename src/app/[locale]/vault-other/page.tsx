@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Tag } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -149,6 +150,33 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
 
   const cities      = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const priceRanges = ['Any Price','0 – 300 MAD','300 – 800 MAD','800 – 2,000 MAD','2,000 – 5,000 MAD','5,000+ MAD']
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'vault-other', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  const realFeaturedItems = dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
+    vendor:   row.profiles?.full_name || '',
+    title:    row.title,
+    price:    (row.price || 0) / 100,
+    location: row.city || '',
+    img:      (row.images && row.images[0]) || I.g1,
+    badges:   row.badge ? [row.badge] : ['certified'],
+  })) : featuredItems
+
+  const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
+    vendor: row.profiles?.full_name || '',
+    title:  row.title,
+    price:  (row.price || 0) / 100,
+    img:    (row.images && row.images[0]) || I.g1,
+    badge:  row.badge || 'certified',
+  })) : gridItems
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -322,15 +350,15 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
         <section style={{ marginBottom:'40px' }}>
           <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px', display:'flex', alignItems:'center', gap:'6px' }}><Tag size={14}/> Featured Rare Finds</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+            {realFeaturedItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
           </div>
         </section>
 
         {/* MAIN GRID */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {gridItems.length} of 642 results</p>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {realGridItems.length} of 642 results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {gridItems.map((item,i)=><GridCard key={i} {...item} />)}
+            {realGridItems.map((item,i)=><GridCard key={i} {...item} />)}
           </div>
         </section>
 

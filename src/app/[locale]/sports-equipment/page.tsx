@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useListings } from '@/hooks/useListings'
 
 const C = {
   mint:   '#22d4a8',
@@ -237,8 +238,37 @@ export default function SportsEquipmentPage({ params }: { params: Promise<{ loca
   const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
   const priceRanges   = ['Any Price','0 – 500 MAD','500 – 2,000 MAD','2,000 – 8,000 MAD','8,000 – 25,000 MAD','25,000+ MAD']
 
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'sports-equipment', sortBy: 'newest', limit: 20 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+
+  const realFeaturedItems = dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
+    brand:     row.brand || '',
+    title:     row.title,
+    price:     (row.price || 0) / 100,
+    location:  row.city || '',
+    img:       (row.images && row.images[0]) || I.g1,
+    badges:    row.badge ? [row.badge] : ['certified'],
+    condition: row.condition || undefined,
+  })) : featuredItems
+
+  const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
+    brand:     row.brand || '',
+    title:     row.title,
+    price:     (row.price || 0) / 100,
+    img:       (row.images && row.images[0]) || I.g1,
+    condition: row.condition || undefined,
+    badge:     row.badge || 'certified',
+  })) : gridItems
+
   const filteredItems = useMemo(() => {
-    let items = [...gridItems]
+    let items = [...realGridItems]
     if (applied.keyword.trim()) {
       items = items.filter((item:any) =>
         (item.title && item.title.toLowerCase().includes(applied.keyword.toLowerCase())) ||
@@ -252,7 +282,7 @@ export default function SportsEquipmentPage({ params }: { params: Promise<{ loca
       items = [...items].sort((a:any,b:any)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
     }
     return items
-  }, [applied, activeSeller, diamond])
+  }, [applied, activeSeller, diamond, realGridItems])
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -415,11 +445,11 @@ export default function SportsEquipmentPage({ params }: { params: Promise<{ loca
           </div>
           {gridView ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
-              {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+              {realFeaturedItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
-              {featuredItems.map((item:any,i:number)=>(
+              {realFeaturedItems.map((item:any,i:number)=>(
                 <div key={i} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
                   <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
                   <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>

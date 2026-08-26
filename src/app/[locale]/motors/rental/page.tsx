@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useListings } from '@/hooks/useListings'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Star } from 'lucide-react'
 import Link from 'next/link'
@@ -140,7 +141,6 @@ function makeGrid(count: number) {
     badge: badges[i%badges.length],
   }))
 }
-const gridItems = makeGrid(16)
 
 const CATS = [
   { label:'All Vehicles', slug:'all-vehicles' },
@@ -168,6 +168,27 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
   const [periodOpen,   setPeriodOpen  ] = useState(false)
   const [typeOpen,     setTypeOpen    ] = useState(false)
   const [priceOpen,    setPriceOpen   ] = useState(false)
+
+  const { fetchListings } = useListings()
+  const [dbListings, setDbListings] = useState<any[]>([])
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchListings({ category: 'motors', sortBy: 'newest', limit: 24 }).then(rows => setDbListings(rows || []))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [])
+  function mapDbRowToCard(row: any) {
+    return {
+      owner: row.profiles?.full_name || '',
+      title: row.title,
+      price: (row.price || 0) / 100,
+      rating: row.profiles?.rating || 4.5,
+      img: (row.images && row.images[0]) || I.g1,
+      badge: row.badge || 'verified',
+    }
+  }
+  const hasRealData = dbListings.length > 0
+  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
   const [specsOpen,    setSpecsOpen   ] = useState(false)
 
   const cities  = ['All','Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
