@@ -5,6 +5,7 @@ import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
 const UB: React.CSSProperties = { fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em' }
@@ -34,7 +35,7 @@ function Badge({ type }: { type: BadgeT }) {
   return <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block', boxShadow:'0 2px 6px rgba(0,0,0,0.15)', whiteSpace:'nowrap' as const }}>{s.label}</span>
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges, condition }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, condition, phone }: any) {
   const [hov, setHov] = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -58,14 +59,14 @@ function FeaturedCard({ brand, title, price, location, img, badges, condition }:
         <div style={{ display:'flex', gap:'8px' }}>
           <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge, condition }: any) {
+function GridCard({ brand, title, price, img, badge, condition, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov, setHov] = useState(false)
   return (
@@ -86,7 +87,7 @@ function GridCard({ brand, title, price, img, badge, condition }: any) {
         <div style={{ display:'flex', gap:'6px' }}>
           <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}} onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}>Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }} />
         </div>
       </div>
     </div>
@@ -140,6 +141,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
     img: (row.images && row.images[0]) || I.g1,
     badges: row.badge && VALID_BADGES.includes(row.badge) ? [row.badge] : [],
     condition: row.condition || undefined,
+    phone: row.profiles?.phone,
   }))
   const realGrid = dbListings.slice(4, 20).map(row => ({
     brand: row.brand || '',
@@ -148,6 +150,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
     img: (row.images && row.images[0]) || I.g1,
     badge: (row.badge && VALID_BADGES.includes(row.badge) ? row.badge : 'certified') as BadgeT,
     condition: row.condition || undefined,
+    phone: row.profiles?.phone,
   }))
   const hasRealData = dbListings.length >= 4
   const displayFeatured = hasRealData ? realFeatured : featuredItems
@@ -354,7 +357,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}} onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Mac Studio M2 Ultra — 128GB" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -373,7 +376,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
                   <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="RTX 4090 Gaming Rig" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }} />
                 </div>
               </div>
             </div>
@@ -392,7 +395,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
                   <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="OptiPlex 7010 SFF i7" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }} />
                 </div>
               </div>
             </div>
@@ -411,7 +414,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
                 <div style={{ display:'flex', gap:'10px' }}>
                   <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint} onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Omen 45L Gaming RTX 4080" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>

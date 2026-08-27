@@ -6,6 +6,7 @@ import { Heart, ChevronLeft, ChevronRight, BadgeCheck, User, Building2, Store, D
 import Link from 'next/link'
 import type { Listing, Locale } from '@/lib/types'
 import { useMarket } from '@/context/MarketContext'
+import WhatsAppButton from './WhatsAppButton'
 
 interface ListingCardProps {
   listing: Listing
@@ -144,15 +145,8 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
               style={{ flex: 1, backgroundColor: 'rgba(45,212,191,0.1)', color: '#2dd4bf', border: 'none', fontWeight: 700, padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
               <MessageCircle size={13} /> Chat
             </button>
-            <button
-              onClick={e => {
-                e.preventDefault(); e.stopPropagation()
-                const phone = (listing as any).seller?.phone
-                window.open(phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : '#', '_blank')
-              }}
-              style={{ flex: 1, backgroundColor: '#22c55e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px' }}>
-              WhatsApp
-            </button>
+            <WhatsAppButton phone={listing.seller?.phone} title={listing.title}
+              style={{ flex: 1, backgroundColor: '#22c55e', fontWeight: 700, padding: '10px 8px', borderRadius: '10px', fontSize: '12px' }} />
           </div>
         </div>
       </div>

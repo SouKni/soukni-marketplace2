@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin } from 'lucide-react'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
 const UB: React.CSSProperties = { fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em' }
@@ -98,8 +99,8 @@ function ListingCard({ model, price, location, condition, img, badge }: any) {
           <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}>Message</button>
-          <a href="https://wa.me/212600000000" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', textDecoration:'none' }}>WhatsApp</a>
+          <WhatsAppButton phone={undefined} title={model}
+            style={{ flex:1, padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const }} />
         </div>
       </div>
     </article>

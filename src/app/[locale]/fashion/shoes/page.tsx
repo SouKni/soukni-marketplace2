@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { FashionBreadcrumb, FashionFooter, FashionCrossNav, whatsappLink } from '@/components/ui/FashionPageWrapper'
+import { FashionBreadcrumb, FashionFooter, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { useListings } from '@/hooks/useListings'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 
@@ -58,7 +59,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, phone }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -83,14 +84,14 @@ function FeaturedCard({ brand, title, price, location, img, badges }: any) {
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}><a href={whatsappLink()} target='_blank' rel='noopener noreferrer' style={{color:'white',textDecoration:'none'}}>💬 WhatsApp</a></button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge }: any) {
+function GridCard({ brand, title, price, img, badge, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -112,7 +113,7 @@ function GridCard({ brand, title, price, img, badge }: any) {
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
@@ -165,6 +166,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
       price: (row.price || 0) / 100,
       img: (row.images && row.images[0]) || I.g1,
       badge: row.badge || 'certified',
+      phone: row.profiles?.phone,
     }
   }
 
@@ -408,7 +410,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="So Kate 120mm — Patent Red Sole" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -431,7 +433,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Hangisi 105 Crystal Buckle" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -454,7 +456,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Lug Chelsea Boot Black" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -476,7 +478,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Superstar Distressed Leather" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>

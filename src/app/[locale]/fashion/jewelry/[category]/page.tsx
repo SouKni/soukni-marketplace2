@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { ALL_CITIES } from '@/data/moroccoLocations'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -107,7 +108,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, metal }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, metal, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -137,17 +138,17 @@ function ListingCard({ brand, title, price, location, condition, img, badge, met
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20jewelry%20listing%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', textDecoration:'none' }}>
+          <WhatsAppButton phone={phone} title={title}
+            style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             💬 WhatsApp
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </article>
   )
 }
 
-function ListRowCard({ brand, title, price, location, condition, img, badge, metal }: any) {
+function ListRowCard({ brand, title, price, location, condition, img, badge, metal, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -179,10 +180,10 @@ function ListRowCard({ brand, title, price, location, condition, img, badge, met
               onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
               onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
             >Message</button>
-            <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20jewelry%20listing%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
-              style={{ backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', textDecoration:'none', display:'flex', alignItems:'center' }}>
+            <WhatsAppButton phone={phone} title={title}
+              style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>
               WhatsApp
-            </a>
+            </WhatsAppButton>
           </div>
         </div>
       </div>
@@ -337,6 +338,7 @@ export default function JewelryCategoryPage() {
       seller: row.seller || '',
       discount: null,
       isNew: row.badge === 'new',
+      phone: row.profiles?.phone,
     }
   }
 

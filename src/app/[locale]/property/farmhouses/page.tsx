@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, MapPin, Bed, Bath, Maximize, Phone } from 'lucide-react'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -72,9 +73,9 @@ function PropertyCard({ prop }: { prop: typeof listings[0] }) {
           <button style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, border:'1px solid #e2e8f0', backgroundColor:'transparent', color:C.ink, fontWeight:700, fontSize:13, padding:10, borderRadius:10, cursor:'pointer' }}>
             <Phone size={14} /> Call
           </button>
-          <button style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, backgroundColor:C.mint, color:'white', fontWeight:700, fontSize:13, padding:10, borderRadius:10, border:'none', cursor:'pointer' }}>
+          <WhatsAppButton phone={(prop as any).phone} title={prop.title} style={{ flex:1, gap:6, fontWeight:700, fontSize:13, padding:10, borderRadius:10 }}>
             💬 WhatsApp
-          </button>
+          </WhatsAppButton>
         </div>
       </div>
     </article>

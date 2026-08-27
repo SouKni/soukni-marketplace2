@@ -6,6 +6,7 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -114,7 +115,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, style }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, style, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -140,10 +141,10 @@ function ListingCard({ brand, title, price, location, condition, img, badge, sty
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <a href="https://wa.me/212600000000" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', textDecoration:'none' }}>
+          <WhatsAppButton phone={phone} title={title}
+            style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             💬 WhatsApp
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </article>
@@ -259,6 +260,7 @@ export default function BagsCategoryPage() {
       style: row.subcategory || '',
       img: (row.images && row.images[0]) || BAG_IMGS[0],
       badge: row.badge || 'certified',
+      phone: row.profiles?.phone,
     }
   }
 
@@ -496,7 +498,7 @@ export default function BagsCategoryPage() {
                       <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
                       <div style={{ display:'flex', gap:'8px' }}>
                         <button style={{ padding:'8px 16px', borderRadius:'10px', border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:'10px', ...CB, cursor:'pointer' }}>Message</button>
-                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                        <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB }} />
                       </div>
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { useMarket } from '@/context/MarketContext'
 
 const I = {
@@ -27,7 +28,7 @@ const I = {
 }
 
 type Badge = 'diamond' | 'certified' | 'pro' | null
-interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null }
 
 const featuredListings: Listing[] = [
   { id:'f1', badge:'diamond',   title:'LG OLED evo G4 77" 4K Smart TV 2024',        price:28500, location:'Casablanca', time:'Just now', image:I.lg },
@@ -109,7 +110,7 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
             <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
             </button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+            <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11 }} />
           </div>
         </div>
       </article>
@@ -163,6 +164,7 @@ export default function ProjectorsTVsPage({ params }: { params: Promise<{ locale
     time: timeAgo(row.created_at),
     image: (row.images && row.images[0]) || I.hero,
     badge: (row.badge as Badge) || null,
+    phone: row.profiles?.phone,
   }))
   const hasRealData = realMapped.length >= 4
   const displayFeatured  = hasRealData ? realMapped.slice(0, 4)  : featuredListings
@@ -349,7 +351,7 @@ export default function ProjectorsTVsPage({ params }: { params: Promise<{ locale
                   <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{exclusiveHero.price.toLocaleString()} MAD</p>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
-                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
+                    <WhatsAppButton phone={exclusiveHero.phone} title={exclusiveHero.title} style={{ flex:1, padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12 }} />
                   </div>
                 </div>
               </div>

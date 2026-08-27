@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 
@@ -82,7 +83,7 @@ function ListingCard({ item, locale }: { item:any; locale:string }) {
             <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
             </button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+            <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11 }} />
           </div>
         </div>
       </article>
@@ -163,6 +164,7 @@ export default function SmartHomeCategoryPage() {
       image: (row.images && row.images[0]) || cat.image,
       badge: (row.badge as Badge) || null,
       brand: row.brand || '',
+      phone: row.profiles?.phone,
     }
   }
 

@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Diamond, MessageCircle } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
 const HK = { fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, letterSpacing:'-0.03em' } as const
 
 type Badge = 'diamond' | 'certified' | 'pro' | null
-interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; brand:string }
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; brand:string; phone?:string|null }
 
 const IMGS = {
   hero:     'https://images.pexels.com/photos/1714207/pexels-photo-1714207.jpeg?auto=compress&w=1600',
@@ -118,7 +119,7 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
             <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
             </button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+            <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11 }} />
           </div>
         </div>
       </article>
@@ -145,6 +146,7 @@ function mapDbRowToListing(row: any): Listing {
     image: (row.images && row.images[0]) || IMGS.hero,
     badge: (row.badge as Badge) || null,
     brand: row.brand || '',
+    phone: row.profiles?.phone,
   }
 }
 

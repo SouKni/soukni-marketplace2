@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, X, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
 
@@ -83,7 +84,7 @@ function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: s
             <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span></div>
             <div style={{ display:'flex', gap:'8px' }}>
               <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Message</button>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'none', backgroundColor:'#25D366', color:'white', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>WhatsApp</button>
+              <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'10px 20px', borderRadius:'100px', fontSize:'12px' }}>WhatsApp</WhatsAppButton>
             </div>
           </div>
         </div>
@@ -108,7 +109,7 @@ function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale
           <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
           <div style={{ display:'flex', gap:'6px' }}>
             <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Message</button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>WhatsApp</button>
+            <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ flex:1, padding:'8px', borderRadius:'100px', fontSize:'11px' }}>WhatsApp</WhatsAppButton>
           </div>
         </div>
       </div>
@@ -161,6 +162,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
   function mapDbRowToTopChoice(row: any) {
     return {
       id: row.id,
+      phone: row.profiles?.phone,
       title: row.title,
       price: (row.price || 0) / 100,
       location: row.city || '',
@@ -174,6 +176,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
   function mapDbRowToBento(row: any) {
     return {
       id: row.id,
+      phone: row.profiles?.phone,
       title: row.title,
       price: (row.price || 0) / 100,
       location: row.city || '',

@@ -6,6 +6,7 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -161,7 +162,7 @@ function Badge({ type }: { type: BadgeT }) {
   return <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block', boxShadow:'0 2px 6px rgba(0,0,0,0.15)', whiteSpace:'nowrap' as const }}>{s.label}</span>
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, age }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, age, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -187,10 +188,10 @@ function ListingCard({ brand, title, price, location, condition, img, badge, age
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20item%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', textDecoration:'none' }}>
+          <WhatsAppButton phone={phone} title={title}
+            style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', textTransform:'uppercase' as const }}>
             💬 WhatsApp
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </article>
@@ -296,6 +297,7 @@ export default function HomeGardenCategoryPage() {
       age:       row.subcategory || '',
       img:       (row.images && row.images[0]) || IMGS[0],
       badge:     row.badge || 'certified',
+      phone:     row.profiles?.phone,
     }
   }
 
@@ -518,7 +520,7 @@ export default function HomeGardenCategoryPage() {
                       <p style={{ fontSize:'18px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
                       <div style={{ display:'flex', gap:'8px' }}>
                         <button style={{ padding:'8px 16px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', cursor:'pointer' }}>Message</button>
-                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', cursor:'pointer' }}>WhatsApp</button>
+                        <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px' }} />
                       </div>
                     </div>
                   </div>

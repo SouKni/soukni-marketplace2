@@ -16,6 +16,7 @@ export interface Listing {
     name: string
     type: 'owner' | 'agent' | 'dealer'
     rating?: number
+    phone?: string | null
   }
 }
 

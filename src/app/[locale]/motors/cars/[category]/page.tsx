@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { useMarket } from '@/context/MarketContext'
 
 const C = {
@@ -125,7 +126,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   const CardTag: any = id ? Link : 'div'
@@ -153,10 +154,10 @@ function ListingCard({ brand, title, price, location, condition, img, badge, yea
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <a href="https://wa.me/212600000000?text=Hi%2C%20I%20found%20your%20car%20listing%20on%20SouKni!" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', textDecoration:'none' }}>
+          <WhatsAppButton phone={phone} title={title}
+            style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             WhatsApp
-          </a>
+          </WhatsAppButton>
         </div>
       </div>
     </CardTag>
@@ -260,6 +261,7 @@ export default function CarsCategoryPage() {
       badge: row.badge || 'verified',
       year: row.year || '',
       id: row.id,
+      phone: row.profiles?.phone,
     }
   }
 

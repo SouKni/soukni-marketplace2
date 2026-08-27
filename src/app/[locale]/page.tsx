@@ -6,6 +6,7 @@ import { Search, MapPin, ChevronRight, Star } from 'lucide-react'
 import CityPicker from '@/components/ui/CityPicker'
 import { useRouter } from 'next/navigation'
 import { useDictionary } from '@/lib/useDictionary'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 // categories/bentoStack moved inside component to support translation
 
@@ -73,11 +74,10 @@ function ListingCard({ item, isVault, locale, t }: { item: any, isVault?: boolea
           {item.meta && <p style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '3px' }}><MapPin size={10} />{item.meta}</p>}
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button style={{ flex: 1, backgroundColor: '#25D366', color: 'white', border: 'none', padding: '10px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'opacity 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+          <WhatsAppButton phone={undefined} title={item.title}
+            style={{ flex: 1, backgroundColor: '#25D366', color: 'white', padding: '10px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', fontFamily: 'Inter, sans-serif' }}>
             {t.homepage.whatsapp}
-          </button>
+          </WhatsAppButton>
           <button style={{ flex: 1, border: isVault ? '1.5px solid #8d4f00' : '1.5px solid #2dd4bf', color: isVault ? '#8d4f00' : '#2dd4bf', backgroundColor: 'transparent', padding: '10px', borderRadius: '100px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = isVault ? 'rgba(141,79,0,0.06)' : 'rgba(0,107,95,0.06)'}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>

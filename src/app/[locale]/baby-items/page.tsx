@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Heart, Search, MapPin, ChevronDown, SlidersHorizontal, ChevronRight, Diamond, MessageCircle, X } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const I = {
   hero:   'https://images.pexels.com/photos/35537/child-children-girl-happy.jpeg?auto=compress&w=1600',
@@ -21,7 +22,7 @@ const I = {
 }
 
 type Badge = 'diamond' | 'certified' | 'pro' | null
-interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge }
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null }
 
 const featuredListings: Listing[] = [
   { id:'f1', badge:'diamond',   title:'Stokke Tripp Trapp High Chair + Newborn Set', price:3200, location:'Casablanca', time:'Just now', image:I.b1 },
@@ -103,7 +104,7 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
             <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
             </button>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer' }}>WhatsApp</button>
+            <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontSize:11 }} />
           </div>
         </div>
       </article>
@@ -225,6 +226,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
       time: 'Recently',
       image: (row.images && row.images[0]) || fallbackImg,
       badge,
+      phone: row.profiles?.phone,
     }
   }
 
@@ -451,7 +453,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
                   <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{realExclusiveListings[0].price.toLocaleString()} MAD</p>
                   <div style={{ display:'flex', gap:8 }}>
                     <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
-                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>WhatsApp</button>
+                    <WhatsAppButton phone={realExclusiveListings[0].phone} title={realExclusiveListings[0].title} style={{ flex:1, padding:'9px 0', borderRadius:100, fontSize:12 }} />
                   </div>
                 </div>
               </div>
@@ -543,7 +545,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
                         <p style={{ fontSize:17, fontWeight:900, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
                         <div style={{ display:'flex', gap:8 }}>
                           <button style={{ padding:'7px 14px', borderRadius:10, border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:10, fontWeight:700, cursor:'pointer' }}>Chat</button>
-                          <button style={{ padding:'7px 14px', borderRadius:10, border:'none', backgroundColor:'#25D366', color:'white', fontSize:10, fontWeight:700, cursor:'pointer' }}>WhatsApp</button>
+                          <WhatsAppButton phone={item.phone} title={item.title} style={{ padding:'7px 14px', borderRadius:10, fontSize:10 }} />
                         </div>
                       </div>
                     </div>

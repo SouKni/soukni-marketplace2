@@ -6,6 +6,7 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -113,7 +114,7 @@ function CondBadge({ type }: { type: CondT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, compatible }: any) {
+function ListingCard({ brand, title, price, location, condition, img, compatible, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -138,7 +139,7 @@ function ListingCard({ brand, title, price, location, condition, img, compatible
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </article>
@@ -206,6 +207,7 @@ export default function AccessoriesCategoryPage() {
       compatible: row.subcategory || '',
       img: (row.images && row.images[0]) || PART_IMGS[0],
       condition: row.condition === 'new' ? 'new' : 'used',
+      phone: row.profiles?.phone,
     }
   }
   const hasRealData = dbListings.length > 0

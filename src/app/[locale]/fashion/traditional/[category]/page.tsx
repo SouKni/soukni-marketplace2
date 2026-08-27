@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -61,7 +62,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, phone }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -86,14 +87,14 @@ function FeaturedCard({ brand, title, price, location, img, badges }: any) {
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge }: any) {
+function GridCard({ brand, title, price, img, badge, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -115,7 +116,7 @@ function GridCard({ brand, title, price, img, badge }: any) {
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
@@ -188,6 +189,7 @@ export default function TraditionalSubPage() {
       location: row.city,
       img: (row.images && row.images[0]) || IMGS[0],
       badge: row.badge || 'certified',
+      phone: row.profiles?.phone,
     }
   }
 

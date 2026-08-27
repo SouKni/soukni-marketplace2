@@ -6,6 +6,7 @@ import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -49,7 +50,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges, condition, age }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, condition, age, phone }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -76,14 +77,14 @@ function FeaturedCard({ brand, title, price, location, img, badges, condition, a
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:'#25D366', color:'white', padding:'10px', borderRadius:'12px', fontSize:'10px', textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge, condition }: any) {
+function GridCard({ brand, title, price, img, badge, condition, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -106,7 +107,7 @@ function GridCard({ brand, title, price, img, badge, condition }: any) {
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
@@ -274,6 +275,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
     badges:    row.badge ? [row.badge] : ['certified'],
     condition: row.condition || undefined,
     age:       row.subcategory || '',
+    phone:     row.profiles?.phone,
   })) : featuredItems
 
   const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
@@ -283,6 +285,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
     img:       (row.images && row.images[0]) || I.g1,
     condition: row.condition || undefined,
     badge:     row.badge || 'certified',
+    phone:     row.profiles?.phone,
   })) : gridItems
 
   const filteredItems = useMemo(() => {
@@ -508,7 +511,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Millennium Falcon 75192 Ultimate Collector" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -527,7 +530,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
                   <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Switch OLED + 5 Games Bundle" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px' }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -546,7 +549,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
                   <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="City Life Hospital Complete Set" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px' }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -567,7 +570,7 @@ export default function ToysPage({ params }: { params: Promise<{ locale: string 
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Ultimate Garage Playset 2024" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px' }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>

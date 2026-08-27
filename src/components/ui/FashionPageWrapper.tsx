@@ -132,8 +132,3 @@ export function FashionFooter() {
     </footer>
   )
 }
-
-/* WhatsApp CTA helper */
-export function whatsappLink(phone = '212600000000', message = 'Hi, I found your listing on SouKni!') {
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-}

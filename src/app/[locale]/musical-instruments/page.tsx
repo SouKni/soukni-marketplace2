@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -49,7 +50,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges, condition }: any) {
+function FeaturedCard({ brand, title, price, location, img, badges, condition, phone }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -75,14 +76,14 @@ function FeaturedCard({ brand, title, price, location, img, badges, condition }:
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ brand, title, price, img, badge, condition }: any) {
+function GridCard({ brand, title, price, img, badge, condition, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -105,7 +106,7 @@ function GridCard({ brand, title, price, img, badge, condition }: any) {
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
@@ -267,6 +268,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
     img:       (row.images && row.images[0]) || I.g1,
     badges:    row.badge ? [row.badge] : ['certified'],
     condition: row.condition || undefined,
+    phone:     row.profiles?.phone,
   })) : featuredItems
 
   const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
@@ -276,6 +278,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
     img:       (row.images && row.images[0]) || I.g1,
     condition: row.condition || undefined,
     badge:     row.badge || 'certified',
+    phone:     row.profiles?.phone,
   })) : gridItems
 
   const filteredItems = React.useMemo(() => {
@@ -510,7 +513,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Les Paul Standard 1959 Reissue" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -532,7 +535,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Model M Baby Grand Piano" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px' }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -554,7 +557,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="Custom Shop Stratocaster 1963" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px' }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -575,7 +578,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
                   >Message</button>
-                  <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>💬 WhatsApp</button>
+                  <WhatsAppButton phone={undefined} title="D-28 Authentic 1937 Acoustic" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px' }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
             </div>
@@ -630,7 +633,7 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
                       <p style={{ fontSize:'18px', ...CB, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
                       <div style={{ display:'flex', gap:'8px' }}>
                         <button style={{ padding:'8px 16px', borderRadius:'10px', border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:'10px', cursor:'pointer' }}>Message</button>
-                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', cursor:'pointer' }}>WhatsApp</button>
+                        <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px' }} />
                       </div>
                     </div>
                   </div>

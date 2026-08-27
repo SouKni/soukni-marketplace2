@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { MapPin, Heart, MessageCircle, Share2, Eye, Clock, Shield, Star, ChevronLeft, ChevronRight, Phone } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -190,10 +191,10 @@ export default function ListingPage() {
                 style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:C.mint, border:'none', color:'white', fontSize:14, ...UB, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'filter 0.15s' }}>
                 <Phone size={16} /> {showPhone ? (listing.profiles?.phone || 'Contact seller') : 'Show Phone Number'}
               </button>
-              <button
-                style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:'#25D366', border:'none', color:'white', fontSize:14, ...UB, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              <WhatsAppButton phone={listing.profiles?.phone} title={listing.title}
+                style={{ width:'100%', padding:'14px 0', borderRadius:100, fontSize:14, ...UB, gap:8 }}>
                 <MessageCircle size={16} /> WhatsApp
-              </button>
+              </WhatsAppButton>
               <button
                 style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:'#eef5f2', border:'none', color:C.ink, fontSize:14, ...UB, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <MessageCircle size={16} /> Send Message

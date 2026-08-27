@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin, ChevronRight } from 'lucide-react'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:'#22d4a8', ink:'#161d1b', surface:'#f4fbf8',
@@ -131,10 +132,8 @@ function ListingCard({ model, price, location, condition, img, badge }: any) {
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}>
             Message
           </button>
-          <a href="https://wa.me/212600000000" target="_blank" rel="noopener noreferrer"
-            style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', textDecoration:'none' }}>
-            WhatsApp
-          </a>
+          <WhatsAppButton phone={undefined} title={model}
+            style={{ flex:1, padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const }} />
         </div>
       </div>
     </article>

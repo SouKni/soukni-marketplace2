@@ -26,7 +26,7 @@ function mapRowToListing(row: any): Listing {
     images: row.images && row.images.length ? row.images : ['https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=600'],
     isVerified: row.badge === 'verified' || row.badge === 'certified',
     badge: row.badge,
-    seller: row.profiles ? { name: row.profiles.full_name, type: 'owner', rating: row.profiles.rating } : undefined,
+    seller: row.profiles ? { name: row.profiles.full_name, type: 'owner', rating: row.profiles.rating, phone: row.profiles.phone } : undefined,
   }
 }
 

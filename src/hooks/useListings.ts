@@ -72,7 +72,7 @@ export function useListings() {
     try {
       let query = supabase
         .from('listings')
-        .select(`*, profiles(full_name, avatar_url, badge, rating, review_count)`)
+        .select(`*, profiles(full_name, avatar_url, badge, rating, review_count, phone, whatsapp)`)
         .eq('status', 'active')
 
       if (filters.query) {
@@ -110,7 +110,7 @@ export function useListings() {
     setLoading(true)
     setError(null)
     try {
-      const SELECT = `*, profiles(full_name, avatar_url, badge, rating, review_count, response_rate, response_time, verified_at, city, phone, created_at)`
+      const SELECT = `*, profiles(full_name, avatar_url, badge, rating, review_count, response_rate, response_time, verified_at, city, phone, whatsapp, created_at)`
 
       // 1️⃣ Try exact UUID match
       if (isUUID(id)) {

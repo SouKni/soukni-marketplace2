@@ -5,6 +5,7 @@ import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -42,7 +43,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ vendor, title, price, location, img, badges }: any) {
+function FeaturedCard({ vendor, title, price, location, img, badges, phone }: any) {
   const [hov, setHov]     = useState(false)
   const [saved, setSaved] = useState(false)
   return (
@@ -67,14 +68,14 @@ function FeaturedCard({ vendor, title, price, location, img, badges }: any) {
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>💬 WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:'#25D366', color:'white', padding:'10px', borderRadius:'12px', fontSize:'10px', textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
   )
 }
 
-function GridCard({ vendor, title, price, img, badge }: any) {
+function GridCard({ vendor, title, price, img, badge, phone }: any) {
   const [saved, setSaved] = useState(false)
   const [hov,   setHov  ] = useState(false)
   return (
@@ -96,7 +97,7 @@ function GridCard({ vendor, title, price, img, badge }: any) {
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
           >Message</button>
-          <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>WhatsApp</button>
+          <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
     </div>
@@ -168,6 +169,7 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
     location: row.city || '',
     img:      (row.images && row.images[0]) || I.g1,
     badges:   row.badge ? [row.badge] : ['certified'],
+    phone:    row.profiles?.phone,
   })) : featuredItems
 
   const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
@@ -176,6 +178,7 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
     price:  (row.price || 0) / 100,
     img:    (row.images && row.images[0]) || I.g1,
     badge:  row.badge || 'certified',
+    phone:  row.profiles?.phone,
   })) : gridItems
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
