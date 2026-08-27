@@ -2,6 +2,8 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const HERO = 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=1600'
 
@@ -159,11 +161,24 @@ export default function HRAdminPage({ params }: { params: Promise<{ locale: stri
   const { locale } = React.use(params)
   const [city, setCity] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', city: '' })
   const [activePill, setActivePill] = useState('All HR & Admin')
   const [activeSeller, setActiveSeller] = useState('All')
   const [diamond, setDiamond] = useState(true)
   const [activePage, setActivePage] = useState(1)
   const [viewMode, setViewMode] = useState<'grid'|'list'>('grid')
+
+  const applySearch = () => { setApplied({ keyword, city }); setActivePage(1) }
+
+  const filteredDiscoveryGrid = discoveryGrid.filter(item =>
+    (applied.keyword.trim() === '' ||
+    item.title.toLowerCase().includes(applied.keyword.toLowerCase()) ||
+    item.location.toLowerCase().includes(applied.keyword.toLowerCase())) &&
+    (!applied.city || item.location.toLowerCase().includes(applied.city.toLowerCase()))
+  )
+  const PAGE_SIZE = Math.max(1, Math.ceil(discoveryGrid.length / 4))
+  const totalActivePages = Math.max(1, Math.ceil(filteredDiscoveryGrid.length / PAGE_SIZE))
+  const paginatedDiscoveryGrid = filteredDiscoveryGrid.slice((activePage-1)*PAGE_SIZE, activePage*PAGE_SIZE)
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
@@ -185,10 +200,10 @@ export default function HRAdminPage({ params }: { params: Promise<{ locale: stri
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="HR Manager, recruiter, payroll..."
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="HR Manager, recruiter, payroll..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
               <Search size={16} /> Search
@@ -212,7 +227,7 @@ export default function HRAdminPage({ params }: { params: Promise<{ locale: stri
               <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{f.val}</span>
             </div>
           ))}
-          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
+          <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
             <Search size={16} /> SEARCH
           </button>
         </div>
@@ -221,11 +236,13 @@ export default function HRAdminPage({ params }: { params: Promise<{ locale: stri
       <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>HR &amp; Admin</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Jobs', href:`/${locale}/jobs` },
+            { label:'HR & Admin' },
+          ]}
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>HR &amp; Admin Jobs in Morocco</h2>
@@ -387,22 +404,35 @@ export default function HRAdminPage({ params }: { params: Promise<{ locale: stri
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            {paginatedDiscoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(page=>(
+          {Array.from({length:totalActivePages},(_,i)=>i+1).map(page=>(
             <button key={page} onClick={()=>setActivePage(page)}
               style={{ width:'36px', height:'36px', borderRadius:'10px', border:activePage===page?'none':'1px solid #e2e8f0', backgroundColor:activePage===page?'#22d4a8':'white', color:activePage===page?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
               {page}
             </button>
           ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>
+          <button onClick={()=>setActivePage(p=>Math.min(totalActivePages,p+1))} disabled={activePage>=totalActivePages} style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:activePage>=totalActivePages?'not-allowed':'pointer', opacity:activePage>=totalActivePages?0.4:1, display:'flex', alignItems:'center', gap:'4px' }}>
             Next <ChevronRight size={14} />
           </button>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/jobs`}
+          backLabel="Back to All Jobs"
+          related={[
+            { label:'Admin & Office', href:`/${locale}/jobs/hr-admin/admin-office` },
+            { label:'Executive Support', href:`/${locale}/jobs/hr-admin/executive-support` },
+            { label:'HR Management', href:`/${locale}/jobs/hr-admin/hr-management` },
+            { label:'Payroll', href:`/${locale}/jobs/hr-admin/payroll` },
+            { label:'Recruitment', href:`/${locale}/jobs/hr-admin/recruitment` },
+            { label:'Training & Dev', href:`/${locale}/jobs/hr-admin/training-dev` },
+          ]}
+        />
 
         {/* JOIN THE SOUKNI FAMILY */}
         <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>

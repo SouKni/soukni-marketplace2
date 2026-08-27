@@ -9,6 +9,8 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
+import { FashionBreadcrumb, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -383,15 +385,7 @@ export default function VintagePage({ params }: { params: Promise<{ locale: stri
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Rabat','The Vault','Fashion','Vintage & Thrift'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:i===1?`/${locale}/vault`:i===2?`/${locale}/fashion`:'#'} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <FashionBreadcrumb pageLabel="Vintage & Thrift" />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Vintage & Thrift in Rabat</h2>
@@ -699,6 +693,9 @@ export default function VintagePage({ params }: { params: Promise<{ locale: stri
             </div>
           </div>
         </section>
+
+        <FashionCrossNav currentSlug="vintage" />
+        <CategoryFooterNav backHref={`/${locale}/fashion`} backLabel="Back to All Fashion" inkColor={C.ink} mintDkColor={C.mintDk} />
       </main>
 
       {/* ══ 15. FOOTER ═══════════════════════════════════════ */}

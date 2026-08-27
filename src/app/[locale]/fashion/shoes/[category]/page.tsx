@@ -228,7 +228,23 @@ export default function ShoesCategoryPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+  const listingsAll = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+  const listings = listingsAll.filter((item: any) => (keyword.trim()==='' ||
+    (item.title || '').toLowerCase().includes(keyword.toLowerCase()) ||
+    (item.brand || '').toLowerCase().includes(keyword.toLowerCase())) &&
+    priceInRange(item.price, price) &&
+    (!city.trim() || (item.location || '').toLowerCase().includes(city.toLowerCase())))
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedListings = listings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -317,7 +333,7 @@ export default function ShoesCategoryPage() {
         {/* ══ BREADCRUMB ════════════════════════════════════════ */}
         <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
           {[
-            { label:'Rabat',   href:`/${locale}` },
+            { label:'Home',    href:`/${locale}` },
             { label:'Fashion', href:`/${locale}/fashion` },
             { label:'Shoes',   href:`/${locale}/fashion/shoes` },
             { label:catData.label, href:null },
@@ -430,25 +446,25 @@ export default function ShoesCategoryPage() {
             <p style={{ fontSize:'13px', color:C.muted, ...CB }}>Showing {listings.length} of {catData.count} results</p>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.slice(0, 24).map((item,i)=><ListingCard key={i} {...item} />)}
+            {pagedListings.map((item,i)=><ListingCard key={i} {...item} />)}
           </div>
         </section>
 
         {/* ══ PAGINATION ════════════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mint : 'white',
-                color:           page===p ? C.ink  : C.muted,
-                borderColor:     page===p ? C.mint : 'rgba(107,122,118,0.12)',
+                backgroundColor: clampedPage===p ? C.mint : 'white',
+                color:           clampedPage===p ? C.ink  : C.muted,
+                borderColor:     clampedPage===p ? C.mint : 'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>24</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ EXPLORE OTHER SHOE CATEGORIES ════════════════════ */}

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, Maximize, Phone, LayoutGrid, List, FileCheck, TrendingUp } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -168,6 +170,7 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
   const [page,    setPage   ]  = useState(1)
   const [hovCat,  setHovCat ]  = useState<string|null>(null)
   const [keyword, setKeyword]  = useState('')
+  useEffect(() => { setPage(1) }, [zone, permit, city, minPrice, maxPrice, sort, keyword])
 
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès','Tanger Med Zone']
 
@@ -201,8 +204,24 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
   const filtered = sourceListings.filter(l => {
     if (zone !== 'all' && l.zone.toLowerCase() !== zone) return false
     if (permit !== 'all' && l.permit !== permit) return false
+    if (keyword.trim() && !l.title.toLowerCase().includes(keyword.toLowerCase()) && !l.location.toLowerCase().includes(keyword.toLowerCase())) return false
+    if (city !== 'All Morocco' && !l.location.toLowerCase().includes(city.toLowerCase())) return false
+    const priceNum = Number(String(l.price).replace(/,/g, ''))
+    if (minPrice.trim() && priceNum < Number(minPrice)) return false
+    if (maxPrice.trim() && priceNum > Number(maxPrice)) return false
     return true
+  }).sort((a, b) => {
+    const priceA = Number(String(a.price).replace(/,/g, ''))
+    const priceB = Number(String(b.price).replace(/,/g, ''))
+    if (sort === 'Price Low') return priceA - priceB
+    if (sort === 'Price High') return priceB - priceA
+    if (sort === 'Largest') return b.area - a.area
+    if (sort === 'Price/m²') return Number(String(a.pricePerM2).replace(/,/g,'')) - Number(String(b.pricePerM2).replace(/,/g,''))
+    return 0 // Newest (default — no date field to sort by, preserve source order)
   })
+  const PAGE_SIZE = 6
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const stats = [
     { icon:'🌍', value:'2,410',  label:'Land Plots Available' },
@@ -313,22 +332,16 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:32 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',        href:`/${locale}` },
             { label:'Property',    href:`/${locale}/property` },
             { label:'Lands & Plots', href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:32 }}
+        />
 
         {/* STATS */}
         <section style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:56 }}>
@@ -440,11 +453,11 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
           {filtered.length > 0 ? (
             view === 'grid' ? (
               <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24, marginBottom:48 }}>
-                {filtered.map(item => <LandCard key={item.id} item={item} locale={locale} view="grid" />)}
+                {paginated.map(item => <LandCard key={item.id} item={item} locale={locale} view="grid" />)}
               </div>
             ) : (
               <div style={{ marginBottom:48 }}>
-                {filtered.map(item => <LandCard key={item.id} item={item} locale={locale} view="list" />)}
+                {paginated.map(item => <LandCard key={item.id} item={item} locale={locale} view="list" />)}
               </div>
             )
           ) : (
@@ -459,11 +472,11 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(Math.max(1,page-1))} disabled={page===1} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page===1?'not-allowed':'pointer', opacity:page===1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <button onClick={()=>setPage(Math.min(10,page+1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,page+1))} disabled={page>=totalPages} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* TRENDING */}
@@ -518,6 +531,13 @@ export default function LandPlotsPage({ params }: { params: Promise<{ locale: st
             ))}
           </div>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

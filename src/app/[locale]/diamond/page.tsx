@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { Check, Shield, Star, Zap, ChevronRight, Upload, Phone, Mail, CreditCard, ArrowRight, X, Camera, Building2, FileCheck, Lock, Users, TrendingUp, Award } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Step = 'landing' | 'choose-plan' | 'verify-phone' | 'verify-id' | 'verify-business' | 'payment' | 'success'
@@ -204,6 +205,7 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
 
       {/* HOW VERIFICATION WORKS */}
       <div style={{ maxWidth: '1000px', margin: '64px auto', padding: '0 24px' }}>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Diamond Membership' }]} style={{ marginBottom: 24, textTransform: 'none', fontSize: 13, letterSpacing: 'normal', justifyContent: 'center' }} />
         <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#161d1b', textAlign: 'center', marginBottom: '8px', letterSpacing: '-0.02em' }}>How Verification Works</h2>
         <p style={{ fontSize: '14px', color: '#6b7a76', textAlign: 'center', marginBottom: '40px' }}>Three steps to becoming a trusted seller on SouKni</p>
 

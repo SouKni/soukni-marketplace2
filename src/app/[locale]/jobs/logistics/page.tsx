@@ -2,6 +2,8 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const HERO = 'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=1600'
 
@@ -159,11 +161,35 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
   const { locale } = React.use(params)
   const [city, setCity] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', city: '', price: 'Any Range' })
+  const [salary, setSalary] = useState('Any Range')
+  const salaryPrices = discoveryGrid.map(it => it.price)
+  const minSalary = Math.min(...salaryPrices)
+  const maxSalary = Math.max(...salaryPrices)
+  const midSalary = Math.round((minSalary + maxSalary) / 2)
+  const salaryRanges = ['Any Range', `${minSalary.toLocaleString()} – ${midSalary.toLocaleString()} MAD`, `${midSalary.toLocaleString()} – ${maxSalary.toLocaleString()} MAD`, `${maxSalary.toLocaleString()}+ MAD`]
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+  function applySearch() { setApplied({ keyword, city, price: salary }); setActivePage(1) }
   const [activePill, setActivePill] = useState('All Logistics')
   const [activeSeller, setActiveSeller] = useState('All')
   const [diamond, setDiamond] = useState(true)
   const [activePage, setActivePage] = useState(1)
   const [viewMode, setViewMode] = useState<'grid'|'list'>('grid')
+
+  const filteredDiscoveryGrid = discoveryGrid.filter(item =>
+    (!applied.keyword.trim() || item.title.toLowerCase().includes(applied.keyword.toLowerCase())) &&
+    (!applied.city.trim() || item.location.toLowerCase().includes(applied.city.toLowerCase())) &&
+    priceInRange(item.price, applied.price)
+  )
+  const DISCOVERY_PAGE_SIZE = Math.max(1, Math.ceil(discoveryGrid.length / 4))
+  const totalDiscoveryPages = Math.max(1, Math.ceil(filteredDiscoveryGrid.length / DISCOVERY_PAGE_SIZE))
+  const paginatedDiscoveryGrid = filteredDiscoveryGrid.slice((activePage-1)*DISCOVERY_PAGE_SIZE, activePage*DISCOVERY_PAGE_SIZE)
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
@@ -179,15 +205,15 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'680px', margin:'0 auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:'0 0 180px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Casablanca"
+              <input value={city} onChange={e=>setCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Casablanca"
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Supply chain, warehouse, fleet..."
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Supply chain, warehouse, fleet..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', fontFamily:'Inter, sans-serif', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0, transition:'background 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor='#0f9b8e'}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor='#22d4a8'}>
               <Search size={16} /> Search
@@ -198,19 +224,29 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
 
       <div style={{ maxWidth:'1440px', margin:'-28px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'10px 10px 10px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
-          {[
-            { label:'City', val:'Casablanca' },
-            { label:'Job Title', val:'Supply Chain, Fleet, Warehouse...' },
-            { label:'Experience', val:'All Levels' },
-            { label:'Salary (MAD)', val:'Any Range' },
-            { label:'Filters', val:'All Filters' },
-          ].map((f,i)=>(
-            <div key={f.label} style={{ flex:i===1?2:1, padding:'6px 20px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
-              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{f.label}</span>
-              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{f.val}</span>
-            </div>
-          ))}
-          <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
+          <div style={{ flex:1, padding:'6px 20px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>City</span>
+            <input value={city} onChange={e=>setCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Casablanca" style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', border:'none', outline:'none', background:'none', padding:0, width:'100%' }} />
+          </div>
+          <div style={{ flex:2, padding:'6px 20px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Job Title</span>
+            <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Supply Chain, Fleet, Warehouse..." style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', border:'none', outline:'none', background:'none', padding:0, width:'100%' }} />
+          </div>
+          <div style={{ flex:1, padding:'6px 20px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Experience</span>
+            <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>All Levels</span>
+          </div>
+          <div style={{ flex:1, padding:'6px 20px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Salary (MAD)</span>
+            <select value={salary} onChange={e=>setSalary(e.target.value)} style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', border:'none', outline:'none', background:'none', padding:0, width:'100%', cursor:'pointer' }}>
+              {salaryRanges.map(r=><option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div style={{ flex:1, padding:'6px 20px', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Filters</span>
+            <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>All Filters</span>
+          </div>
+          <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'14px 28px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontWeight:700, fontSize:'13px', flexShrink:0, marginLeft:'8px' }}>
             <Search size={16} /> SEARCH
           </button>
         </div>
@@ -218,11 +254,15 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
 
       <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px' }}>
 
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Logistics &amp; Distribution</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Jobs', href:`/${locale}/jobs` },
+            { label:'Logistics & Distribution' },
+          ]}
+          mutedColor="#6b7a76"
+          inkColor="#161d1b"
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Logistics &amp; Distribution Jobs in Morocco</h2>
@@ -376,18 +416,18 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            {paginatedDiscoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(page=>(
+          {Array.from({length: totalDiscoveryPages}, (_, i) => i+1).map(page=>(
             <button key={page} onClick={()=>setActivePage(page)}
               style={{ width:'36px', height:'36px', borderRadius:'10px', border:activePage===page?'none':'1px solid #e2e8f0', backgroundColor:activePage===page?'#22d4a8':'white', color:activePage===page?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>
               {page}
             </button>
           ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>
+          <button onClick={()=>setActivePage(p=>Math.min(totalDiscoveryPages,p+1))} disabled={activePage>=totalDiscoveryPages} style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', display:'flex', alignItems:'center', gap:'4px', opacity: activePage>=totalDiscoveryPages?0.4:1, cursor: activePage>=totalDiscoveryPages?'not-allowed':'pointer' }}>
             Next <ChevronRight size={14} />
           </button>
         </div>
@@ -405,6 +445,15 @@ export default function LogisticsPage({ params }: { params: Promise<{ locale: st
             <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
           </Link>
         </section>
+
+        <CategoryFooterNav
+          relatedTitle="Explore Other Logistics Jobs"
+          related={Object.entries(pillSlugs).map(([label, slug]) => ({ label, href:`/${locale}/jobs/logistics/${slug}` }))}
+          backHref={`/${locale}/jobs`}
+          backLabel="Back to All Jobs"
+          inkColor="#161d1b"
+          mintDkColor="#0f9b8e"
+        />
 
       </div>
     </div>

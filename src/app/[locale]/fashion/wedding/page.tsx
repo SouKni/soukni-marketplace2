@@ -9,6 +9,8 @@ import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
+import { FashionBreadcrumb, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -310,6 +312,10 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
   }
   if (sortBy === 'Price: Low to High') filteredGrid = [...filteredGrid].sort((a,b)=>a.price-b.price)
   if (sortBy === 'Price: High to Low') filteredGrid = [...filteredGrid].sort((a,b)=>b.price-a.price)
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(filteredGrid.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedGrid = filteredGrid.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -377,15 +383,7 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Rabat','The Vault','Fashion','Wedding & Eveningwear'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:i===1?`/${locale}/vault`:i===2?`/${locale}/fashion`:'#'} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <FashionBreadcrumb pageLabel="Wedding & Eveningwear" />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Wedding & Eveningwear in Rabat</h2>
@@ -608,11 +606,11 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
             <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters.</p>
           ) : gridView ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-              {filteredGrid.map((item,j)=><GridCard key={j} {...item} />)}
+              {pagedGrid.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
-              {filteredGrid.map((item,j)=>(
+              {pagedGrid.map((item,j)=>(
                 <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
                   <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const }} />
                   <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -630,17 +628,17 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
+                backgroundColor: clampedPage===p?C.mint:'white', color:clampedPage===p?C.ink:C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>8</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. DIAMOND TRUST BANNER ═════════════════════════ */}
@@ -689,6 +687,9 @@ export default function WeddingPage({ params }: { params: Promise<{ locale: stri
             </div>
           </div>
         </section>
+
+        <FashionCrossNav currentSlug="wedding" />
+        <CategoryFooterNav backHref={`/${locale}/fashion`} backLabel="Back to All Fashion" inkColor={C.ink} mintDkColor={C.mintDk} />
       </main>
 
       {/* ══ 15. FOOTER ═══════════════════════════════════════ */}

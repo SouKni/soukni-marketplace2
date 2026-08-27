@@ -1,7 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, TrendingUp, Building, Calendar, Users, CheckCircle, Clock, Hammer, LayoutGrid, List, FileCheck } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useParams } from 'next/navigation'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
@@ -220,11 +222,25 @@ export default function NewProjectsSubPage() {
   const cities = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
 
   const allProjects = makeProjects(catSlug, 18)
-  const projects    = allProjects.filter(p => {
+  const filteredProjects = allProjects.filter(p => {
     if (status !== 'all' && p.status !== status) return false
     if (devType !== 'all' && p.devType !== devType) return false
+    if (keyword.trim() && !p.title.toLowerCase().includes(keyword.toLowerCase()) && !p.location.toLowerCase().includes(keyword.toLowerCase())) return false
+    if (city !== 'All Morocco' && !p.location.toLowerCase().includes(city.toLowerCase())) return false
     return true
+  }).sort((a, b) => {
+    const aPrice = Number(String(a.priceFrom).replace(/,/g, ''))
+    const bPrice = Number(String(b.priceFrom).replace(/,/g, ''))
+    if (sort === 'Price Low') return aPrice - bPrice
+    if (sort === 'Price High') return bPrice - aPrice
+    return 0
   })
+  const PAGE_SIZE = 9
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const projects = filteredProjects.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword, city, status, devType, sort])
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -314,23 +330,17 @@ export default function NewProjectsSubPage() {
       <div style={{ maxWidth:1440, margin:'40px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:24 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',         href:`/${locale}` },
             { label:'Property',     href:`/${locale}/property` },
             { label:'New Projects', href:`/${locale}/property/new-projects` },
             { label:data.label,     href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:24 }}
+        />
 
         {/* TITLE + CONTROLS */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' }}>
@@ -372,7 +382,7 @@ export default function NewProjectsSubPage() {
         </div>
 
         <p style={{ fontSize:13, color:C.muted, fontWeight:600, marginBottom:20 }}>
-          {projects.length} {data.label.toLowerCase()} projects {status!=='all'?`· ${STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].label}`:''} {devType!=='all'?`· ${devType==='pro'?'Pro Developers':'Private Sellers'}`:''}
+          {filteredProjects.length} {data.label.toLowerCase()} projects {status!=='all'?`· ${STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].label}`:''} {devType!=='all'?`· ${devType==='pro'?'Pro Developers':'Private Sellers'}`:''}
         </p>
 
         {/* PROJECTS */}
@@ -397,11 +407,11 @@ export default function NewProjectsSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3].map(p=>(
-            <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
+          <button onClick={()=>setPage(Math.max(1,clampedPage-1))} disabled={clampedPage<=1} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:clampedPage===p?C.mint:'white', color:clampedPage===p?'white':C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <button onClick={()=>setPage(Math.min(5,page+1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,clampedPage+1))} disabled={clampedPage>=totalPages} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* EXPLORE OTHER TYPES */}
@@ -435,6 +445,14 @@ export default function NewProjectsSubPage() {
             ))}
           </div>
         </div>
+        <CategoryFooterNav
+          backHref={`/${locale}/property/new-projects`}
+          backLabel="Back to All New Projects"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/property/new-projects/${c.slug}` }))}
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
+
       </div>
     </div>
   )

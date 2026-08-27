@@ -2,6 +2,8 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const HERO = 'https://images.pexels.com/photos/7415083/pexels-photo-7415083.jpeg?auto=compress&w=1600'
 
@@ -110,10 +112,27 @@ export default function RealEstatePage({ params }: { params: Promise<{ locale: s
   const { locale } = React.use(params)
   const [city, setCity] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', city: '' })
+  const [page, setPage] = useState(1)
+
+  function applySearch() {
+    setApplied({ keyword, city })
+    setPage(1)
+  }
+
+  const filteredDiscoveryGridAll = React.useMemo(() => {
+    return discoveryGrid.filter(item => {
+      const mk = !applied.keyword.trim() || item.title.toLowerCase().includes(applied.keyword.toLowerCase())
+      const mc = !applied.city.trim() || item.location.toLowerCase().includes(applied.city.toLowerCase())
+      return mk && mc
+    })
+  }, [applied.keyword, applied.city])
+  const DISCOVERY_PAGE_SIZE = Math.max(1, Math.ceil(discoveryGrid.length / 4))
+  const discoveryTotalPages = Math.max(1, Math.ceil(filteredDiscoveryGridAll.length / DISCOVERY_PAGE_SIZE))
+  const filteredDiscoveryGrid = filteredDiscoveryGridAll.slice((page-1)*DISCOVERY_PAGE_SIZE, page*DISCOVERY_PAGE_SIZE)
   const [activePill, setActivePill] = useState('All Real Estate')
   const [tab, setTab] = useState('All')
   const [diamond, setDiamond] = useState(true)
-  const [page, setPage] = useState(1)
   const [grid, setGrid] = useState(true)
 
   return (
@@ -131,9 +150,9 @@ export default function RealEstatePage({ params }: { params: Promise<{ locale: s
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Agent, developer, property manager..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Agent, developer, property manager..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'14px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}><Search size={16} /> Search</button>
           </div>
         </div>
       </section>
@@ -151,11 +170,15 @@ export default function RealEstatePage({ params }: { params: Promise<{ locale: s
       </div>
 
       <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/jobs`} style={{ color:'#6b7a76', textDecoration:'none' }}>Jobs</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Real Estate</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Jobs', href:`/${locale}/jobs` },
+            { label:'Real Estate' },
+          ]}
+          mutedColor="#6b7a76"
+          inkColor="#161d1b"
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Real Estate Jobs in Morocco</h2>
@@ -292,15 +315,15 @@ export default function RealEstatePage({ params }: { params: Promise<{ locale: s
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+            {filteredDiscoveryGrid.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(p=>(
+          {Array.from({length: discoveryTotalPages}, (_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
           ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
+          <button onClick={()=>setPage(p=>Math.min(discoveryTotalPages,p+1))} disabled={page>=discoveryTotalPages} style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:page>=discoveryTotalPages?'not-allowed':'pointer', opacity:page>=discoveryTotalPages?0.4:1, display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
         </div>
 
         <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'64px' }}>
@@ -316,6 +339,22 @@ export default function RealEstatePage({ params }: { params: Promise<{ locale: s
             <span style={{ display:'inline-block', backgroundColor:'white', color:'#0f9b8e', padding:'16px 36px', borderRadius:'100px', fontWeight:900, fontSize:'14px', cursor:'pointer', whiteSpace:'nowrap' as const }}>Post Free Job →</span>
           </Link>
         </section>
+
+        <CategoryFooterNav
+          relatedTitle="Explore Other Real Estate Jobs"
+          related={[
+            { label:'Sales Agent', href:`/${locale}/jobs/real-estate/sales-agent` },
+            { label:'Property Mgmt', href:`/${locale}/jobs/real-estate/property-management` },
+            { label:'Development', href:`/${locale}/jobs/real-estate/development` },
+            { label:'Legal & Compliance', href:`/${locale}/jobs/real-estate/legal-compliance` },
+            { label:'Marketing', href:`/${locale}/jobs/real-estate/marketing-re` },
+            { label:'Investment', href:`/${locale}/jobs/real-estate/investment` },
+          ]}
+          backHref={`/${locale}/jobs`}
+          backLabel="Back to All Jobs"
+          inkColor="#161d1b"
+          mintDkColor="#0f9b8e"
+        />
       </div>
     </div>
   )

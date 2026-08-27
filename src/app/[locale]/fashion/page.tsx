@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Heart, Search, MapPin, ChevronRight, MessageCircle, Diamond, Check } from 'lucide-react'
 import { useDictionary } from '@/lib/useDictionary'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -80,8 +81,13 @@ function FashionCard({ item, t }: { item: Listing; t: any }) {
 export default function FashionPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
   const t = useDictionary(locale)
+  const router = useRouter()
   const [keyword, setKeyword] = useState('')
   const [hovCat, setHovCat] = useState<string|null>(null)
+
+  function goSearch() {
+    if (keyword.trim()) router.push(`/${locale}/search?q=${encodeURIComponent(keyword.trim())}`)
+  }
   const categories = [
     { slug:'shoes',       label:t.fashion.catShoes,       count:'4,820', emoji:'👞', image:'https://images.pexels.com/photos/1464625/pexels-photo-1464625.jpeg?auto=compress&w=600' },
     { slug:'bags',        label:t.fashion.catBags,        count:'3,290', emoji:'👜', image:'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&w=600' },
@@ -116,9 +122,9 @@ export default function FashionPage({ params }: { params: Promise<{ locale: stri
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.keyword}</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={t.fashion.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goSearch()} placeholder={t.fashion.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+            <button onClick={goSearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
               <Search size={16} /> {t.common.search}

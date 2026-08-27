@@ -2,6 +2,8 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, Star, Users, Wifi, Waves, TreePine, Sun, Coffee, Car } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -143,7 +145,13 @@ export default function DailyRentalsPage({ params }: { params: Promise<{ locale:
   const toggleAmenity = (key: string) =>
     setActiveAmenities(prev => prev.includes(key) ? prev.filter(a=>a!==key) : [...prev, key])
 
-  const stays = activeTab === 'weekend' ? weekendPicks : featuredStays
+  const baseStays = activeTab === 'weekend' ? weekendPicks : featuredStays
+  const stays = baseStays.filter(s => {
+    const mc = city === 'Anywhere in Morocco' || s.location.toLowerCase().includes(city.toLowerCase())
+    const priceCap = /^\d/.test(priceMax) ? Number(priceMax.replace(/[^\d]/g, '')) : null
+    const mp = priceCap === null || s.price <= priceCap
+    return mc && mp
+  })
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:'#fff', minHeight:'100vh' }}>
@@ -254,22 +262,16 @@ export default function DailyRentalsPage({ params }: { params: Promise<{ locale:
       <div style={{ maxWidth:1440, margin:'0 auto', padding:'48px 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:40 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',     href:`/${locale}` },
             { label:'Property', href:`/${locale}/property` },
             { label:'Daily Rentals & Vacation', href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:40 }}
+        />
 
         {/* STAY TYPE GRID */}
         <section style={{ marginBottom:72 }}>
@@ -464,6 +466,13 @@ export default function DailyRentalsPage({ params }: { params: Promise<{ locale:
             ))}
           </div>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

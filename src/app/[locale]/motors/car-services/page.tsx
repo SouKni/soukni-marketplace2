@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Star, BadgeCheck, Clock } from 'lucide-react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -139,7 +141,7 @@ function makeGrid(count: number) {
     badge: badges[i%badges.length],
   }))
 }
-const gridItems = makeGrid(16)
+const gridItems = makeGrid(48)
 
 const CATS = [
   { label:'All Services',              slug:'all-services'          },
@@ -158,6 +160,20 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
   const [gridView,     setGridView    ] = useState(true)
   const [page,         setPage        ] = useState(1)
   const [keyword,      setKeyword     ] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', city: '' })
+  const applySearch = () => { setApplied({ keyword, city }); setPage(1) }
+  const matchesKeyword = (item: any) => !applied.keyword.trim() ||
+    (item.name || '').toLowerCase().includes(applied.keyword.toLowerCase()) ||
+    (item.specialty || '').toLowerCase().includes(applied.keyword.toLowerCase())
+  const matchesCity = (item: any) => applied.city === 'All Morocco' || !applied.city ||
+    (item.location || '').toLowerCase().includes(applied.city.toLowerCase())
+  const filteredFeatured = featuredItems.filter(item => matchesKeyword(item) && matchesCity(item))
+  const filteredGridAll = gridItems.filter(matchesKeyword)
+  const PAGE_SIZE = 16
+  const totalPages = Math.max(1, Math.ceil(filteredGridAll.length / PAGE_SIZE))
+  const filteredGrid = filteredGridAll.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [applied])
   const [city,         setCity        ] = useState('All Morocco')
   const [service,      setService     ] = useState('Any Service')
   const [rating,       setRating      ] = useState('Any Rating')
@@ -216,10 +232,10 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>SEARCH</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search mechanics, body shops, towing..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search mechanics, body shops, towing..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -251,15 +267,16 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Home','Motors','Car Services'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:`/${locale}/motors`} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Motors', href:`/${locale}/motors` },
+            { label:'Car Services' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:'10px', ...UB, letterSpacing:'0.12em', marginBottom:'12px' }}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>Trusted Car Services in Morocco</h2>
@@ -340,7 +357,7 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All</a>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'24px' }}>
-            {featuredItems.map((item,i)=><FeaturedCard key={i} {...item} />)}
+            {filteredFeatured.map((item,i)=><FeaturedCard key={i} {...item} />)}
           </div>
         </section>
 
@@ -474,7 +491,7 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
             <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const }}>More Services Near You</h3>
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All</a>
           </div>
-          {[gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
+          {[filteredGrid.slice(0,4),filteredGrid.slice(4,8),filteredGrid.slice(8,12),filteredGrid.slice(12,16)].map((row,ri)=>(
             <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
               {row.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
@@ -483,17 +500,15 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
                 backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
-          ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>6</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          ))}          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>6</button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. BECOME VERIFIED PARTNER BANNER ═══════════════ */}
@@ -542,6 +557,12 @@ export default function CarServicesPage({ params }: { params: Promise<{ locale: 
             </div>
           </div>
         </section>
+        <CategoryFooterNav
+          backHref={`/${locale}/motors`}
+          backLabel="Back to All Motors"
+          inkColor={C.ink}
+          mintDkColor={C.mint}
+        />
       </main>
 
       {/* ══ 15. FOOTER ═══════════════════════════════════════ */}

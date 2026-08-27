@@ -2,6 +2,7 @@
 
 import { useState, use, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import {
   Bot, Zap, Check, Clock, DollarSign, MapPin, Tag,
   ChevronRight, Play, Pause, X, ArrowRight, Sparkles,
@@ -120,11 +121,7 @@ export default function BuyerAgentPage({ params }: { params: Promise<{ locale: L
 
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '32px 24px 80px' }}>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-          <ChevronRight size={13} color={MUTED} />
-          <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>AI Buyer Agent</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'AI Buyer Agent' }]} style={{ marginBottom: 20, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: `linear-gradient(135deg, #7c3aed, #6d28d9)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

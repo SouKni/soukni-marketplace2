@@ -3,6 +3,7 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { Shield, AlertTriangle, CheckCircle, XCircle, MapPin, CreditCard, MessageCircle, Eye, Phone, Lock, Users, ChevronRight, ExternalLink } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -155,13 +156,7 @@ export default function SafetyPage({ params }: { params: Promise<{ locale: Local
 
       {/* BREADCRUMB */}
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px 24px 0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: '#6b7a76', textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-          <ChevronRight size={13} color="#6b7a76" />
-          <Link href={`/${locale}/help`} style={{ fontSize: '13px', color: '#6b7a76', textDecoration: 'none', fontWeight: 700 }}>Help</Link>
-          <ChevronRight size={13} color="#6b7a76" />
-          <span style={{ fontSize: '13px', fontWeight: 900, color: '#161d1b' }}>Safety Tips</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Help', href: `/${locale}/help` }, { label: 'Safety Tips' }]} style={{ textTransform: 'none', fontSize: 13, letterSpacing: 'normal', marginBottom: 0 }} />
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px 80px' }}>

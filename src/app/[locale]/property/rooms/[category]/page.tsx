@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Heart, Search, ChevronLeft, ChevronRight, MapPin, Maximize, Phone, Wifi, SlidersHorizontal, LayoutGrid, List, Bath, Home } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -220,15 +222,33 @@ export default function RoomSubPage() {
       diamond: false,
     }
   }
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (rangeLabel.startsWith('Under')) return itemPrice <= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
   const hasRealData = dbListings.length > 0
   const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
-  const listings    = allListings.filter(l => {
+  const filteredListings = allListings.filter(l => {
     if (furnish === 'Furnished'   && !l.furnished) return false
     if (furnish === 'Unfurnished' &&  l.furnished) return false
     if (seller  === 'SouKni Agencies'    && !l.diamond)   return false
     if (seller  === 'Verified Owners'    && l.badge !== 'Verified') return false
+    if (keyword.trim() && !l.title.toLowerCase().includes(keyword.toLowerCase()) && !l.location.toLowerCase().includes(keyword.toLowerCase())) return false
+    if (city !== 'Cities & Neighbourhoods' && !l.location.toLowerCase().includes(city.toLowerCase())) return false
+    if (!priceInRange(l.price, priceRange)) return false
     return true
-  })
+  }).sort((a, b) => sort === 'Price: Low to High' ? a.price - b.price : sort === 'Price: High to Low' ? b.price - a.price : 0)
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const listings = filteredListings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword, city, priceRange, furnish, seller, sort])
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -291,24 +311,18 @@ export default function RoomSubPage() {
       <div style={{ maxWidth:1440, margin:'0 auto', padding:'32px 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:20 }}>
-          {[
-            { label:'Home',         href:`/${locale}` },
-            { label:'Property',     href:`/${locale}/property` },
-            { label:'For Rent',     href:`/${locale}/property/for-rent` },
-            { label:'Rooms',        href:`/${locale}/property/rooms` },
-            { label:data.label,     href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted} />}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'For Rent', href:`/${locale}/property/for-rent` },
+            { label:'Rooms', href:`/${locale}/property/rooms` },
+            { label:data.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:20 }}
+        />
 
         {/* TITLE + SORT */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:20, flexWrap:'wrap' }}>
@@ -317,9 +331,12 @@ export default function RoomSubPage() {
             <p style={{ fontSize:15, color:C.mint, fontWeight:700 }}>{data.count} Ads</p>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'white', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>
-              ↕ Sort: {sort}
-            </button>
+            <select value={sort} onChange={e=>setSort(e.target.value)}
+              style={{ padding:'9px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'white', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>
+              <option>Popular</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+            </select>
             <button style={{ padding:'9px 18px', borderRadius:100, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'white', fontSize:12, fontWeight:700, color:C.ink, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>
               🔖 Save Search
             </button>
@@ -380,7 +397,7 @@ export default function RoomSubPage() {
 
         {/* RESULTS COUNT */}
         <p style={{ fontSize:13, color:C.muted, fontWeight:600, marginBottom:20 }}>
-          Showing {listings.length} of {data.count} {data.label.toLowerCase()}s
+          Showing {filteredListings.length} of {data.count} {data.label.toLowerCase()}s
           {furnish !== 'All' ? ` · ${furnish}` : ''}
           {seller !== 'All Sellers' ? ` · ${seller}` : ''}
         </p>
@@ -408,13 +425,11 @@ export default function RoomSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3,4,5].map(p=>(
-            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
+          <button onClick={()=>setPage(Math.max(1,clampedPage-1))} disabled={clampedPage<=1} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:clampedPage===p?C.mint:'white', color:clampedPage===p?'white':C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <span style={{ color:C.muted, fontWeight:700 }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'14px', fontWeight:700, color:C.muted }}>10</button>
-          <button onClick={()=>setPage(Math.min(10,page+1))} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,clampedPage+1))} disabled={clampedPage>=totalPages} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* NAVIGATION FOOTER — always visible, easy page-to-page travel */}

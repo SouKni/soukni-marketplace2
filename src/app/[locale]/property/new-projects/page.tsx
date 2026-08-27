@@ -2,6 +2,8 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, TrendingUp, Building, Calendar, Users, Star, CheckCircle, Clock, Hammer, LayoutGrid, List } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -197,7 +199,16 @@ export default function NewProjectsPage({ params }: { params: Promise<{ locale: 
     if (status !== 'all' && p.status !== status) return false
     if (devType !== 'all' && p.devType !== devType) return false
     if (type !== 'All Types' && p.type !== type) return false
+    if (keyword.trim() && !p.title.toLowerCase().includes(keyword.toLowerCase()) && !p.location.toLowerCase().includes(keyword.toLowerCase())) return false
+    if (city !== 'All Morocco' && !p.location.toLowerCase().includes(city.toLowerCase())) return false
     return true
+  }).sort((a, b) => {
+    const aPrice = Number(a.priceFrom.replace(/,/g, ''))
+    const bPrice = Number(b.priceFrom.replace(/,/g, ''))
+    if (sort === 'Price Low') return aPrice - bPrice
+    if (sort === 'Price High') return bPrice - aPrice
+    if (sort === 'Most Advanced') return b.progress - a.progress
+    return 0
   })
 
   const stats = [
@@ -313,22 +324,16 @@ export default function NewProjectsPage({ params }: { params: Promise<{ locale: 
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:32 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',        href:`/${locale}` },
             { label:'Property',    href:`/${locale}/property` },
             { label:'New Projects',href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:32 }}
+        />
 
         {/* MARKET STATS */}
         <section style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:56 }}>
@@ -551,6 +556,13 @@ export default function NewProjectsPage({ params }: { params: Promise<{ locale: 
             ))}
           </div>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

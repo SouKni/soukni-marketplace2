@@ -1,8 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, MapPin, Bed, Bath, Maximize, Phone } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -18,7 +20,7 @@ const ALL_CATS = [
   { label:'Land / Plots',      slug:'land-plots' },
 ]
 
-const listings = [
+const APARTMENT_LISTINGS = [
   { id:'ap1', badge:'Verified', badge2:'Ready', title:'High ROI Modern Investment — Lagoon View', price:'2,450,000', location:'Anfa Place, Casablanca', beds:3, baths:2, area:125, image:'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=700' },
   { id:'ap2', badge:'New', title:'Ultra-Modern Apartment with Ocean View', price:'4,200,000', location:'Casablanca Finance City', beds:2, baths:2, area:145, image:'https://images.pexels.com/photos/1029599/pexels-photo-1029599.jpeg?auto=compress&w=700' },
   { id:'ap3', badge:'Verified', title:'Ultra-Modern Minimalist Apartment', price:'5,200,000', location:'Casablanca, Anfa District', beds:2, baths:2, area:120, image:'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=700' },
@@ -39,7 +41,7 @@ function BadgeChip({ label }: { label: string }) {
   return <span style={{ backgroundColor:isNavy?'rgba(15,23,42,0.8)':C.mint, color:'white', fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:4, letterSpacing:'0.08em', textTransform:'uppercase' as const }}>{label}</span>
 }
 
-function PropertyCard({ prop }: { prop: typeof listings[0] }) {
+function PropertyCard({ prop }: { prop: typeof APARTMENT_LISTINGS[0] }) {
   const [saved, setSaved]     = useState(false)
   const [hovered, setHovered] = useState(false)
   return (
@@ -105,6 +107,25 @@ export default function ApartmentsPage({ params }: { params: Promise<{ locale: s
   const cities      = ['Casablanca','Rabat','Marrakech','Fès','Tanger','Agadir','Meknès']
   const propertyTypes = ['All Apartments','Studio Apartment','1-Bedroom','2-Bedroom','3-Bedroom','Duplex','Penthouse']
   const priceRanges = ['Any Price','0 – 800,000 MAD','800,000 – 2M MAD','2M – 4M MAD','4M – 8M MAD','8M+ MAD']
+
+  function priceInRange(itemPrice, rangeLabel) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const normalized = rangeLabel.replace(/,/g, '').replace(/(\d+(?:\.\d+)?)M/gi, (_, n) => String(Number(n) * 1000000))
+    const nums = normalized.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const listings = useMemo(() => APARTMENT_LISTINGS.filter(item => {
+    const itemPriceNum = Number(String(item.price).replace(/,/g, ''))
+    const mk = keyword.trim() === '' ||
+      item.title.toLowerCase().includes(keyword.toLowerCase()) ||
+      item.location.toLowerCase().includes(keyword.toLowerCase())
+    const mc = !city || item.location.toLowerCase().includes(city.toLowerCase())
+    const mp = priceInRange(itemPriceNum, price)
+    return mk && mc && mp
+  }), [keyword, city, price])
   const bedOptions  = ['Any','Studio','1+','2+','3+','4+']
 
     const [propertyFor, setPropertyFor]   = useState('Buy or Sell')
@@ -190,15 +211,16 @@ export default function ApartmentsPage({ params }: { params: Promise<{ locale: s
       <main style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:10, ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:12 }}>
-          {['Rabat','Property','Apartments'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:`/${locale}/property`} style={{ color:C.muted, textDecoration:'none' }}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Rabat', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'Apartments' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:10, marginBottom:12 }}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:4 }}>Apartments for Sale in Morocco</h2>
@@ -344,6 +366,21 @@ export default function ApartmentsPage({ params }: { params: Promise<{ locale: s
           </div>
           <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'14px 32px', borderRadius:12, fontWeight:800, fontSize:15, cursor:'pointer', flexShrink:0, whiteSpace:'nowrap' as const }}>Get Verified Now</button>
         </section>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          related={[
+            { label:'Villas', href:`/${locale}/property/villas` },
+            { label:'Riads', href:`/${locale}/property/riads` },
+            { label:'Studios', href:`/${locale}/property/studios` },
+            { label:'Offices & Commercial', href:`/${locale}/property/offices` },
+            { label:'Farmhouses', href:`/${locale}/property/farmhouses` }
+          ]}
+          relatedTitle="Explore Other Property Types"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
     </div>
   )

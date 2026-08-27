@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Search, ChevronRight } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import ListingCard from '@/components/ui/ListingCard'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import FilterBar from '@/components/ui/FilterBar'
 import type { Listing } from '@/lib/types'
 import { useDictionary } from '@/lib/useDictionary'
@@ -168,10 +169,12 @@ export default function ElectronicsPage({ params }: { params: Promise<{ locale: 
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>{t.common.home}</Link><span>›</span>
-          <span style={{ color:C.ink }}>{t.electronics.badge}</span>
-        </nav>
+        <Breadcrumb
+          items={[{ label:t.common.home, href:`/${locale}` }, { label:t.electronics.badge }]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:32 }}
+        />
 
         {/* CATEGORY GRID — 11 categories + View More = 12 tiles */}
         <section style={{ marginBottom:64 }}>

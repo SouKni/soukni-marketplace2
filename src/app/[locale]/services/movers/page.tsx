@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ALL_CITIES } from '@/data/moroccoLocations'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, X, SlidersHorizontal } from 'lucide-react'
 
@@ -253,6 +255,11 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
 
   const hasFilters = applied.city || applied.keyword || budget !== 'Any Budget' || availability !== 'Anytime'
 
+  const PAGE_SIZE = 4
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [applied, budget])
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
 
@@ -358,11 +365,13 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
       <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Home</Link><span>›</span>
-          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.color='#6b7a76'}>Services</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Movers & Storage</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Services', href:`/${locale}/services` },
+            { label:'Movers & Storage' },
+          ]}
+        />
 
         {/* TITLE + ACTIVE FILTERS */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap' as const, gap:'12px' }}>
@@ -486,7 +495,7 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
             </div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:grid?'repeat(4,1fr)':'1fr', gap:'16px' }}>
-              {filtered.map(item=> grid
+              {paginated.map(item=> grid
                 ? <GridListingCard key={item.id} item={item} locale={locale} />
                 : <ListingCard key={item.id} item={item} locale={locale} />
               )}
@@ -496,7 +505,7 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', transition:'all 0.2s' }}>{p}</button>)}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', transition:'all 0.2s' }}>{p}</button>)}
         </div>
 
         {/* JOIN */}
@@ -519,13 +528,12 @@ export default function MoversPage({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* BACK */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/services`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 40px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
-            ← Back to All Services
-          </Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Moving Services"
+          related={SUBCATS.map(s=>({ label:s.label, href:`/${locale}/services/movers/${s.slug}` }))}
+          backHref={`/${locale}/services`}
+          backLabel="Back to All Services"
+        />
 
       </div>
     </div>

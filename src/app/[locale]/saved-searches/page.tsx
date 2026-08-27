@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { Bell, Search, ChevronRight, Plus, Trash2, Check, X, MapPin, Tag, SlidersHorizontal, TrendingDown, Zap, Clock } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -143,11 +144,7 @@ export default function SavedSearchesPage({ params }: { params: Promise<{ locale
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '32px 24px 80px' }}>
 
         {/* Breadcrumb */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-          <ChevronRight size={13} color={MUTED} />
-          <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>Saved Searches</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Saved Searches' }]} style={{ marginBottom: 20, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>

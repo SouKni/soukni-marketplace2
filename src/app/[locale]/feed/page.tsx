@@ -2,6 +2,7 @@
 
 import { useState, use } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import {
   Heart, MessageCircle, Share2, Bookmark, TrendingUp,
   MapPin, Star, Zap, Search, Bell, Plus, MoreHorizontal,
@@ -245,6 +246,7 @@ export default function FeedPage({ params }: { params: Promise<{ locale: Locale 
 
         {/* MAIN FEED */}
         <div>
+          <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Community Feed' }]} style={{ marginBottom: 16, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
           {/* Stories */}
           <div style={{ background: 'white', borderRadius: '20px', padding: '16px', border: '1px solid #e2eae6', marginBottom: '16px', overflowX: 'auto' }}>
             <div style={{ display: 'flex', gap: '14px', minWidth: 'max-content' }}>

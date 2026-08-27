@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Search, ChevronRight, MapPin, Heart } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -120,11 +122,16 @@ export default function PropertyCategoryPage() {
       </section>
 
       <main style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:10, ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:12 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span style={{opacity:0.4}}>›</span>
-          <Link href={`/${locale}/property`} style={{ color:C.muted, textDecoration:'none' }}>Property</Link><span style={{opacity:0.4}}>›</span>
-          <span style={{ color:C.ink }}>{catData.label}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:catData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:12 }}
+        />
 
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' }}>
           <div>
@@ -154,12 +161,14 @@ export default function PropertyCategoryPage() {
           </div>
         </section>
 
-        <div style={{ textAlign:'center' }}>
-          <Link href={`/${locale}/property`}
-            style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'16px 40px', borderRadius:100, backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:12, ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}>
-            ← Back to All Property
-          </Link>
-        </div>
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/property/${c.slug}` }))}
+          relatedTitle="Explore Other Property Types"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
     </div>
   )

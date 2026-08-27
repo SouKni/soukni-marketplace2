@@ -1,6 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
@@ -120,6 +122,8 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
   const [grid, setGrid] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', city: '' })
+  function applySearch() { setApplied({ keyword, city }) }
 
   // Real Supabase data — falls back to the mock arrays above when this
   // category has no listings yet (same hybrid pattern as motors/cars).
@@ -162,7 +166,14 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
   const hasRealData = dbListings.length > 0
   const realTopChoices    = hasRealData ? dbListings.slice(0, 3).map(mapDbRowToTopChoice) : topChoices
   const realBentoListings = hasRealData ? dbListings.slice(3, 8).map(mapDbRowToBento) : bentoListings
-  const realDiscoveryGrid = hasRealData ? dbListings.slice(8, 24).map(mapDbRowToBento) : discoveryGrid
+  const realDiscoveryGrid = (hasRealData ? dbListings.slice(8, 24).map(mapDbRowToBento) : discoveryGrid)
+    .filter(item => applied.keyword.trim()==='' || item.title.toLowerCase().includes(applied.keyword.toLowerCase()))
+    .filter(item => !applied.city || item.location.toLowerCase().includes(applied.city.toLowerCase()))
+
+  const PAGE_SIZE = 6
+  const totalPages = Math.max(1, Math.ceil(realDiscoveryGrid.length / PAGE_SIZE))
+  const paginatedDiscoveryGrid = realDiscoveryGrid.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => { setPage(1) }, [realDiscoveryGrid.length, applied])
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
@@ -176,13 +187,13 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
           <div style={{ display:'flex', alignItems:'stretch', backgroundColor:'rgba(255,255,255,0.12)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:'100px', overflow:'hidden', maxWidth:'620px', margin:'0 auto' }}>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:'0 0 160px', borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>City</span>
-              <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+              <input value={city} onChange={e=>setCity(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Rabat" style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'12px 20px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:'2px' }}>
               <span style={{ fontSize:'9px', fontWeight:800, color:'rgba(255,255,255,0.6)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>Keyword</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search..." style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:'13px', fontWeight:600, color:'white', padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 28px', fontWeight:800, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}><Search size={15} /> Search</button>
+            <button onClick={applySearch} style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'0 28px', fontWeight:800, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}><Search size={15} /> Search</button>
           </div>
         </div>
       </section>
@@ -200,12 +211,16 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
       </div>
 
       <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/vault`} style={{ color:'#6b7a76', textDecoration:'none' }}>The Vault</Link><span>›</span>
-          <Link href={`/${locale}/collectibles-treasures`} style={{ color:'#6b7a76', textDecoration:'none' }}>Collectibles & Treasures</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Books & Prints</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Collectibles & Treasures', href:`/${locale}/collectibles-treasures` },
+            { label:'Books & Prints' },
+          ]}
+          mutedColor="#6b7a76"
+          inkColor="#161d1b"
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>📚 Books & Prints</h2>
@@ -314,38 +329,22 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {realDiscoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
+            {paginatedDiscoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'40px' }}>
-          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
         </div>
 
-        {/* EXPLORE OTHER CATEGORIES */}
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'16px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.08em', marginBottom:'16px' }}>Explore Other Collectibles</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px' }}>
-            {ALL_SUBCATS.filter(c=>c.slug!=='books-prints').slice(0,8).map(cat=>(
-              <Link key={cat.slug} href={`/${locale}/collectibles-treasures/${cat.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'16px', padding:'16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#22d4a8'}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='rgba(107,122,118,0.1)'}}>
-                <p style={{ fontSize:'20px', marginBottom:'6px' }}>{cat.emoji}</p>
-                <p style={{ fontSize:'11px', fontWeight:700, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{cat.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/collectibles-treasures`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 36px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
-            ← Back to All Collectibles & Treasures
-          </Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Collectibles"
+          related={ALL_SUBCATS.filter(c=>c.slug!=='books-prints').slice(0,8).map(c=>({ label:c.label, href:`/${locale}/collectibles-treasures/${c.slug}`, emoji:c.emoji }))}
+          backHref={`/${locale}/collectibles-treasures`}
+          backLabel="Back to All Collectibles & Treasures"
+          inkColor="#161d1b"
+          mintDkColor="#22d4a8"
+        />
       </div>
     </div>
   )

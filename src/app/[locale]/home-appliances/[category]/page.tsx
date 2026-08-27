@@ -6,6 +6,8 @@ import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronLeft, Di
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -210,7 +212,20 @@ export default function HomeAppliancesCategoryPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToListing) : makeListings(catSlug, 16)
+  const listings = (hasRealData ? dbListings.map(mapDbRowToListing) : makeListings(catSlug, 16))
+    .filter(item => keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()))
+    .filter(item => city==='All Morocco' || !item.location || item.location.toLowerCase().includes(city.toLowerCase()))
+    .filter(item => {
+      if (price === 'Any Price') return true
+      const nums = price.replace(/,/g,'').match(/\d+/g)?.map(Number) || []
+      return price.includes('+') ? item.price >= nums[0] : item.price >= nums[0] && item.price <= nums[1]
+    })
+    .filter((item:any) => activeBrand==='All Brands' || item.brand===activeBrand)
+
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE))
+  const paginatedListings = listings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => { setPage(1) }, [keyword, city, price, activeBrand, catSlug])
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -273,12 +288,16 @@ export default function HomeAppliancesCategoryPage() {
 
       <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:16 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/vault`} style={{ color:C.muted, textDecoration:'none' }}>The Vault</Link><span>›</span>
-          <Link href={`/${locale}/home-appliances`} style={{ color:C.muted, textDecoration:'none' }}>Home Appliances</Link><span>›</span>
-          <span style={{ color:C.ink }}>{cat.label}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Home Appliances', href:`/${locale}/home-appliances` },
+            { label:cat.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' as const, marginBottom:4 }}>
           <div>
@@ -345,41 +364,29 @@ export default function HomeAppliancesCategoryPage() {
         <section style={{ marginBottom:40 }}>
           <p style={{ fontSize:13, color:C.muted, marginBottom:16 }}>Showing {listings.length} of {cat.count} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
-            {listings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
+            {paginatedListings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:48 }}>
-          <button style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronLeft size={16} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1} style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronLeft size={16} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
               {p}
             </button>
           ))}
-          <button style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronRight size={16} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages} style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronRight size={16} /></button>
         </div>
 
-        <section style={{ marginBottom:40 }}>
-          <h3 style={{ ...UB, fontSize:16, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:16 }}>Explore Other Appliance Types</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:12 }}>
-            {ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>(
-              <Link key={c.slug} href={`/${locale}/home-appliances/${c.slug}`}
-                style={{ backgroundColor:'white', borderRadius:16, padding:'18px 12px', textAlign:'center' as const, border:'1px solid rgba(186,202,197,0.25)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(186,202,197,0.25)'}}
-              >
-                <p style={{ fontSize:12, ...UB, color:C.ink }}>{c.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/home-appliances`}
-            style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'14px 36px', borderRadius:100, backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:12, ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em' }}
-          >Back to All Home Appliances</Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Appliance Types"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/home-appliances/${c.slug}` }))}
+          backHref={`/${locale}/home-appliances`}
+          backLabel="Back to All Home Appliances"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </div>
     </div>
   )

@@ -22,8 +22,7 @@ export function FashionBreadcrumb({ pageLabel }: { pageLabel: string }) {
   const locale = (params?.locale as string) || 'en'
 
   const crumbs = [
-    { label:'Rabat',       href:`/${locale}` },
-    { label:'The Vault',   href:`/${locale}/vault` },
+    { label:'Home',        href:`/${locale}` },
     { label:'Fashion',     href:`/${locale}/fashion` },
     { label:pageLabel,     href:null },
   ]

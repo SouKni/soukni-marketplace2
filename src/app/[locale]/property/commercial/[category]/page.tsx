@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Heart, Search, ChevronLeft, ChevronRight, MapPin, Maximize, Phone, Layers, TrendingUp, LayoutGrid, List } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -188,6 +190,7 @@ export default function CommercialSubPage() {
   const [view,       setView      ] = useState<'grid'|'list'>('grid')
   const [page,       setPage      ] = useState(1)
   const [keyword,    setKeyword   ] = useState('')
+  useEffect(() => { setPage(1) }, [city, priceRange, keyword, propFor])
 
   const cities  = ['All Morocco','Casablanca','Rabat','Marrakech','Tangier','Agadir','Fès','Meknès']
 
@@ -217,8 +220,27 @@ export default function CommercialSubPage() {
     }
   }
   const hasRealDataAll = dbListings.length > 0
-  const filteredReal = dbListings.map(mapDbRowToCard).filter(l => propFor === 'All' ? true : l.badge2 === propFor)
-  const listings = hasRealDataAll ? filteredReal : makeListings(catSlug, propFor)
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    if (rangeLabel.startsWith('Under')) return itemPrice <= nums[0]
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+  const matchesKeyword = (l: any) => {
+    const mk = keyword.trim() === '' ||
+      l.title.toLowerCase().includes(keyword.toLowerCase()) ||
+      l.location.toLowerCase().includes(keyword.toLowerCase())
+    const mc = city === 'All Morocco' || l.location.toLowerCase().includes(city.toLowerCase())
+    const mp = priceInRange(Number(String(l.price).replace(/,/g, '')), priceRange)
+    return mk && mc && mp
+  }
+  const filteredReal = dbListings.map(mapDbRowToCard).filter(l => (propFor === 'All' ? true : l.badge2 === propFor) && matchesKeyword(l))
+  const allListings = (hasRealDataAll ? filteredReal : makeListings(catSlug, propFor)).filter(matchesKeyword)
+  const PAGE_SIZE = 5
+  const totalPages = Math.max(1, Math.ceil(allListings.length / PAGE_SIZE))
+  const listings = allListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -279,23 +301,17 @@ export default function CommercialSubPage() {
       <div style={{ maxWidth:1440, margin:'0 auto', padding:'32px 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:24 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',       href:`/${locale}` },
             { label:'Property',   href:`/${locale}/property` },
             { label:'Commercial', href:`/${locale}/property/commercial` },
             { label:data.label,   href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:24 }}
+        />
 
         {/* TITLE ROW */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:20, flexWrap:'wrap' }}>
@@ -385,13 +401,11 @@ export default function CommercialSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(Math.max(1,page-1))} disabled={page===1} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page===1?'not-allowed':'pointer', opacity:page===1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <span style={{ color:C.muted, fontWeight:700 }}>…</span>
-          <button style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:14, fontWeight:700, color:C.muted }}>10</button>
-          <button onClick={()=>setPage(Math.min(10,page+1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,page+1))} disabled={page>=totalPages} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* EXPLORE OTHER TYPES */}
@@ -429,6 +443,14 @@ export default function CommercialSubPage() {
             ))}
           </div>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property/commercial`}
+          backLabel="Back to All Commercial"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/property/commercial/${c.slug}` }))}
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

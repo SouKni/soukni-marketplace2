@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { Package, ChevronRight, Clock, Check, X, MessageCircle, MapPin, Star, AlertTriangle, Handshake, ArrowRight, Phone, Shield, RefreshCw, ChevronDown, Filter, TrendingUp, DollarSign, CheckCircle, XCircle, Eye } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type OrderTab = 'all' | 'active' | 'completed' | 'cancelled'
@@ -225,11 +226,7 @@ export default function OrdersPage({ params }: { params: Promise<{ locale: Local
 
         {/* HEADER */}
         <div style={{ marginBottom: '28px' }}>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-            <Link href={`/${locale}`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-            <ChevronRight size={13} color={MUTED} />
-            <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>My Orders</span>
-          </nav>
+          <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'My Orders' }]} style={{ marginBottom: 12, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <div>
               <h1 style={{ fontSize: '28px', fontWeight: 900, color: INK, letterSpacing: '-0.05em', marginBottom: '4px' }}>My Orders</h1>

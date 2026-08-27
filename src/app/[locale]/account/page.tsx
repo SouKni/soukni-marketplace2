@@ -4,6 +4,7 @@ import { useState, use, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Mail, Phone, MapPin, Lock, Bell, Shield, ChevronRight, Camera, Check, Eye, EyeOff, Package, Heart, MessageCircle, Sparkles, LogOut, Globe, CreditCard, Trash2, AlertTriangle, BarChart3, RefreshCw } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabaseClient } from '@/lib/supabase/client'
 
@@ -186,6 +187,8 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
       )}
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px 80px' }}>
+
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Account Settings' }]} style={{ marginBottom: 16, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* Page title */}
         <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#161d1b', letterSpacing: '-0.02em', marginBottom: '24px' }}>Account Settings</h1>

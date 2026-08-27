@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -224,7 +226,33 @@ export default function ToysCategoryPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const listings = useMemo(() => {
+    const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+    let items = allListings.filter(item =>
+      (keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())) &&
+      (!item.location || city.trim()==='' || item.location.toLowerCase().includes(city.toLowerCase())) &&
+      (activeBrand==='All Brands' || item.brand===activeBrand) &&
+      priceInRange(item.price, price)
+    )
+    if (sortBy==='Price: Low to High') items = [...items].sort((a,b)=>a.price-b.price)
+    if (sortBy==='Price: High to Low') items = [...items].sort((a,b)=>b.price-a.price)
+    return items
+  }, [catSlug, keyword, city, price, activeBrand, sortBy, hasRealData, dbListings])
+
+  const PAGE_SIZE = 16
+  const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const paginatedListings = listings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -300,16 +328,16 @@ export default function ToysCategoryPage() {
       </div>
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {[{label:'Rabat',href:`/${locale}`},{label:'The Vault',href:`/${locale}/vault`},{label:'Toys & Games',href:`/${locale}/toys`},{label:catData.label,href:null}].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1&&<span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Toys & Games', href:`/${locale}/toys` },
+            { label:catData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
@@ -402,44 +430,30 @@ export default function ToysCategoryPage() {
         </div>
 
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {paginatedListings.length} of {listings.length} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
+            {paginatedListings.map((item,i)=><ListingCard key={i} {...item} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
-            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:clampedPage===p?C.mint:'white', color:clampedPage===p?C.ink:C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>14</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'20px' }}>Explore Other Toy Categories</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'14px' }}>
-            {ALL_CATS.filter(c=>c.slug!==catSlug).slice(0,8).map(cat=>(
-              <Link key={cat.slug} href={`/${locale}/toys/${cat.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.boxShadow=`0 8px 24px ${C.mint}18`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.1)';e.currentTarget.style.boxShadow='none'}}
-              >
-                <p style={{ fontSize:'11px', ...UB, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>{cat.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/toys`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}
-          >← Back to All Toys</Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Toy Categories"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).slice(0,8).map(cat=>({ label:cat.label, href:`/${locale}/toys/${cat.slug}` }))}
+          backHref={`/${locale}/toys`}
+          backLabel="Back to All Toys"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
     </div>
   )

@@ -194,7 +194,23 @@ export default function TraditionalSubPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const grid = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 16)
+  const gridAll = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 16)
+  const matchesKeyword = (item: any) => keyword.trim()==='' ||
+    (item.title || '').toLowerCase().includes(keyword.toLowerCase()) ||
+    (item.brand || '').toLowerCase().includes(keyword.toLowerCase())
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+  const matchesCity = (item: any) => !city.trim() || (item.location || '').toLowerCase().includes(city.toLowerCase())
+  const grid = gridAll.filter(item => matchesKeyword(item) && priceInRange(item.price, price) && matchesCity(item))
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(grid.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedGrid = grid.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -282,7 +298,7 @@ export default function TraditionalSubPage() {
         {/* BREADCRUMB */}
         <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
           {[
-            { label:'Rabat',           href:`/${locale}` },
+            { label:'Home',            href:`/${locale}` },
             { label:'Fashion',         href:`/${locale}/fashion` },
             { label:'Traditional Wear',href:`/${locale}/fashion/traditional` },
             { label:data.label,        href:null },
@@ -371,8 +387,8 @@ export default function TraditionalSubPage() {
 
         {/* MAIN GRID */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing 16 of {data.count} results</p>
-          {[grid.slice(0,4),grid.slice(4,8),grid.slice(8,12),grid.slice(12,16)].map((row,ri)=>(
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {pagedGrid.length} of {data.count} results</p>
+          {[pagedGrid.slice(0,4),pagedGrid.slice(4,8),pagedGrid.slice(8,12),pagedGrid.slice(12,16)].map((row,ri)=>(
             <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
               {row.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
@@ -381,11 +397,13 @@ export default function TraditionalSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
-            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:clampedPage===p?C.mint:'white', color:clampedPage===p?C.ink:C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* CROSS-NAV */}

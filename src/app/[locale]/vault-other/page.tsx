@@ -6,6 +6,8 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -144,6 +146,8 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
   const [gridView,     setGridView    ] = useState(true)
   const [page,         setPage        ] = useState(1)
   const [keyword,      setKeyword     ] = useState('')
+  const [applied, setApplied] = useState({ keyword: '' })
+  function applySearch() { setApplied({ keyword }) }
   const [city,         setCity        ] = useState('Rabat')
   const [price,        setPrice       ] = useState('Any Price')
   const [cityOpen,     setCityOpen    ] = useState(false)
@@ -162,7 +166,15 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
     return () => clearTimeout(t)
   }, [])
 
-  const realFeaturedItems = dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const realFeaturedItems = (dbListings.length >= 4 ? dbListings.slice(0, 4).map(row => ({
     vendor:   row.profiles?.full_name || '',
     title:    row.title,
     price:    (row.price || 0) / 100,
@@ -170,16 +182,26 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
     img:      (row.images && row.images[0]) || I.g1,
     badges:   row.badge ? [row.badge] : ['certified'],
     phone:    row.profiles?.phone,
-  })) : featuredItems
+  })) : featuredItems)
+    .filter((item: any) => applied.keyword.trim()==='' || item.title.toLowerCase().includes(applied.keyword.toLowerCase()))
+    .filter((item: any) => city==='Rabat' || !item.location || item.location.toLowerCase().includes(city.toLowerCase()))
+    .filter((item: any) => priceInRange(item.price, price))
 
-  const realGridItems = dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
+  const realGridItemsAll = (dbListings.length >= 20 ? dbListings.slice(4, 20).map(row => ({
     vendor: row.profiles?.full_name || '',
     title:  row.title,
     price:  (row.price || 0) / 100,
     img:    (row.images && row.images[0]) || I.g1,
     badge:  row.badge || 'certified',
     phone:  row.profiles?.phone,
-  })) : gridItems
+  })) : gridItems)
+    .filter((item: any) => applied.keyword.trim()==='' || item.title.toLowerCase().includes(applied.keyword.toLowerCase()))
+    .filter((item: any) => priceInRange(item.price, price))
+
+  const PAGE_SIZE = 8
+  const totalPages = Math.max(1, Math.ceil(realGridItemsAll.length / PAGE_SIZE))
+  const realGridItems = realGridItemsAll.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => { setPage(1) }, [applied, city, price])
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -226,10 +248,10 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search rare, unique, collectible items..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search rare, unique, collectible items..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -267,23 +289,16 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {[
-            { label:'Rabat',      href:`/${locale}` },
-            { label:'The Vault',  href:`/${locale}/vault` },
-            { label:'Other Items',href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none', transition:'color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-                  >{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Rabat',       href:`/${locale}` },
+            { label:'The Vault',   href:`/${locale}/vault` },
+            { label:'Other Items' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:'10px', letterSpacing:'0.12em', marginBottom:'12px' }}
+        />
 
         {/* TITLE + SORT */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
@@ -359,7 +374,7 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
 
         {/* MAIN GRID */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {realGridItems.length} of 642 results</p>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {realGridItems.length} of {realGridItemsAll.length} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
             {realGridItems.map((item,i)=><GridCard key={i} {...item} />)}
           </div>
@@ -367,23 +382,22 @@ export default function VaultOtherPage({ params }: { params: Promise<{ locale: s
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>10</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* BACK */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/vault`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}
-          >← Back to The Vault</Link>
-        </div>
+        <CategoryFooterNav
+          backHref={`/${locale}/vault`}
+          backLabel="Back to The Vault"
+          inkColor={C.ink}
+          mintDkColor={C.mint}
+        />
       </main>
     </div>
   )

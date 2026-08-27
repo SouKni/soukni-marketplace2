@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Search, ChevronRight, ChevronLeft, MapPin, Maximize, Phone, LayoutGrid, List, FileCheck, Heart } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -224,9 +226,36 @@ export default function LandSubPage() {
       seaView: false,
     }
   }
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const normalized = rangeLabel.replace(/,/g, '').replace(/(\d+(?:\.\d+)?)M/gi, (_, n) => String(Number(n) * 1000000))
+    const nums = normalized.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
   const hasRealData = dbListings.length > 0
   const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 18)
-  const listings    = allListings.filter(l => permit === 'all' ? true : l.permit === permit)
+  const filteredListings = allListings.filter(l =>
+    (permit === 'all' ? true : l.permit === permit) &&
+    (keyword.trim() === '' || l.title.toLowerCase().includes(keyword.toLowerCase()) || l.location.toLowerCase().includes(keyword.toLowerCase())) &&
+    (city === 'All Morocco' || l.location.toLowerCase().includes(city.toLowerCase())) &&
+    priceInRange(l.price, price)
+  )
+  const sortedListings = [...filteredListings].sort((a, b) => {
+    if (sort === 'Price Low') return a.price - b.price
+    if (sort === 'Price High') return b.price - a.price
+    if (sort === 'Largest') return (b.area || 0) - (a.area || 0)
+    if (sort === 'Price/m²') return (a.price / (a.area || 1)) - (b.price / (b.area || 1))
+    return 0
+  })
+  const PAGE_SIZE = 6
+  const totalPages = Math.max(1, Math.ceil(sortedListings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const listings = sortedListings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword, city, price, permit, sort])
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -312,23 +341,17 @@ export default function LandSubPage() {
       <div style={{ maxWidth:1440, margin:'40px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:24 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',          href:`/${locale}` },
             { label:'Property',      href:`/${locale}/property` },
             { label:'Lands & Plots', href:`/${locale}/property/land-plots` },
             { label:data.label,      href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:24 }}
+        />
 
         {/* TITLE + CONTROLS */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' }}>
@@ -369,7 +392,7 @@ export default function LandSubPage() {
           </Link>
         </div>
 
-        <p style={{ fontSize:13, color:C.muted, fontWeight:600, marginBottom:20 }}>{listings.length} {data.label.toLowerCase()} plots found</p>
+        <p style={{ fontSize:13, color:C.muted, fontWeight:600, marginBottom:20 }}>{sortedListings.length} {data.label.toLowerCase()} plots found</p>
 
         {/* LISTINGS */}
         {listings.length > 0 ? (
@@ -386,17 +409,17 @@ export default function LandSubPage() {
           <div style={{ textAlign:'center', padding:'80px 0' }}>
             <span style={{ fontSize:48, display:'block', marginBottom:16 }}>🔍</span>
             <p style={{ fontSize:18, fontWeight:700, color:C.muted, marginBottom:16 }}>No plots match your filters.</p>
-            <button onClick={()=>setPermit('all')} style={{ padding:'12px 28px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontSize:14, fontWeight:700, cursor:'pointer' }}>Clear Filters</button>
+            <button onClick={()=>{setPermit('all');setCity('All Morocco');setPrice('Any Price');setKeyword('');setPage(1)}} style={{ padding:'12px 28px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontSize:14, fontWeight:700, cursor:'pointer' }}>Clear Filters</button>
           </div>
         )}
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3].map(p=>(
-            <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
+          <button onClick={()=>setPage(Math.max(1,clampedPage-1))} disabled={clampedPage<=1} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
+            <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:clampedPage===p?C.mint:'white', color:clampedPage===p?'white':C.muted, borderColor:clampedPage===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <button onClick={()=>setPage(Math.min(5,page+1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,clampedPage+1))} disabled={clampedPage>=totalPages} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* EXPLORE OTHER ZONE TYPES */}
@@ -430,6 +453,14 @@ export default function LandSubPage() {
             ))}
           </div>
         </div>
+        <CategoryFooterNav
+          backHref={`/${locale}/property/land-plots`}
+          backLabel="Back to All Lands & Plots"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/property/land-plots/${c.slug}` }))}
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
+
       </div>
     </div>
   )

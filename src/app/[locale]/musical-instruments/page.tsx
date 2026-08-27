@@ -7,6 +7,7 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const C = {
   mint:   '#22d4a8',
@@ -298,8 +299,17 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
     if (diamond) {
       items = [...items].sort((a,b)=>{ const r=(x:string)=>x==='diamond'?2:x==='certified'?1:0; return r(b.badge)-r(a.badge) })
     }
+    if (price !== 'Any Price') {
+      const nums = price.replace(/,/g,'').match(/\d+/g)?.map(Number) || []
+      items = items.filter(item => price.includes('+') ? item.price >= nums[0] : item.price >= nums[0] && item.price <= nums[1])
+    }
     return items
-  }, [applied, activeSeller, diamond, city, realGridItems])
+  }, [applied, activeSeller, diamond, city, price, realGridItems])
+
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
+  const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  React.useEffect(() => { setPage(1) }, [filteredItems])
 
   const cities        = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoodMap: Record<string,string[]> = {
@@ -379,15 +389,15 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Rabat','The Vault','Musical Instruments'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:i===1?`/${locale}/vault`:'#'} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Musical Instruments' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Musical Instruments in Rabat</h2>
@@ -617,11 +627,11 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
             </div>
           ) : gridView ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-              {filteredItems.map((item,j)=><GridCard key={j} {...item} />)}
+              {paginatedItems.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
-              {filteredItems.map((item,j)=>(
+              {paginatedItems.map((item,j)=>(
                 <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
                   <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
                   <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -645,17 +655,17 @@ export default function MusicalInstrumentsPage({ params }: { params: Promise<{ l
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
                 backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>10</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. DIAMOND TRUST BANNER ═════════════════════════ */}

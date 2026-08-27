@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, MapPin, Bed, Bath, Maximize, Phone, Wifi } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -134,8 +136,17 @@ export default function RoomsPage({ params }: { params: Promise<{ locale: string
   const sourceListings     = hasRealData ? realCards.slice(0, 6) : listings
   const sourceMoreListings = hasRealData ? realCards.slice(6)    : moreListings
 
-  const filteredListings     = sourceListings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
-  const filteredMoreListings = sourceMoreListings.filter(l => furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished)
+  const matchesKeyword = (l: any) => keyword.trim() === '' ||
+    l.title.toLowerCase().includes(keyword.toLowerCase()) ||
+    l.location.toLowerCase().includes(keyword.toLowerCase())
+  const matchesCity = (l: any) => city === 'All Morocco' || l.location.toLowerCase().includes(city.toLowerCase())
+  const matchesMaxPrice = (l: any) => {
+    if (!maxP.trim()) return true
+    const num = Number(String(l.price).replace(/,/g, ''))
+    return num <= Number(maxP)
+  }
+  const filteredListings     = sourceListings.filter(l => (furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished) && matchesKeyword(l) && matchesCity(l) && matchesMaxPrice(l))
+  const filteredMoreListings = sourceMoreListings.filter(l => (furnish === 'All' ? true : furnish === 'Furnished' ? l.furnished : !l.furnished) && matchesKeyword(l) && matchesCity(l) && matchesMaxPrice(l))
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -198,12 +209,17 @@ export default function RoomsPage({ params }: { params: Promise<{ locale: string
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`}          style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/property`}  style={{ color:C.muted, textDecoration:'none' }}>Property</Link><span>›</span>
-          <Link href={`/${locale}/property/for-rent`} style={{ color:C.muted, textDecoration:'none' }}>For Rent</Link><span>›</span>
-          <span style={{ color:C.ink }}>Rooms</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'For Rent', href:`/${locale}/property/for-rent` },
+            { label:'Rooms' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:32 }}
+        />
 
         {/* SUBCATEGORY HUB GRID */}
         <section style={{ marginBottom:48 }}>
@@ -361,6 +377,12 @@ export default function RoomsPage({ params }: { params: Promise<{ locale: string
           </Link>
         </section>
 
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </div>
     </div>
   )

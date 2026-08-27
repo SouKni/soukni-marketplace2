@@ -3,6 +3,7 @@
 import { useState, use, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, SlidersHorizontal, X, ChevronDown, Heart, Grid, List, ArrowUpDown, Check } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -160,6 +161,8 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
       </div>
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
+
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Search Results' }]} style={{ marginBottom: 16, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* RESULTS HEADER */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>

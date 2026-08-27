@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Clock, ChevronRight, Heart, MessageCircle, Building2, GraduationCap, Briefcase, Users } from 'lucide-react'
 import { useDictionary } from '@/lib/useDictionary'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const jobCategories = [
   { label: 'Real Estate', count: '460', slug: 'real-estate', image: 'https://images.pexels.com/photos/7415083/pexels-photo-7415083.jpeg?auto=compress&w=600' },
@@ -227,6 +228,13 @@ export default function JobsPage({ params }: { params: Promise<{ locale: string 
             </div>
           ))}
         </div>
+
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: `/${locale}` },
+            { label: 'Jobs' },
+          ]}
+        />
 
         {/* JOBS BY CATEGORY — image grid */}
         <section style={{ marginBottom: '56px' }}>

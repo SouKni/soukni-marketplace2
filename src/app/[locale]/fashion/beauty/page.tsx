@@ -7,6 +7,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -305,6 +306,10 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
   }
   if (sortBy === 'Price: Low to High') filteredGridItems = [...filteredGridItems].sort((a,b)=>a.price-b.price)
   if (sortBy === 'Price: High to Low') filteredGridItems = [...filteredGridItems].sort((a,b)=>b.price-a.price)
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(filteredGridItems.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedGridItems = filteredGridItems.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -637,24 +642,26 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             <p style={{ textAlign:'center' as const, color:C.muted, padding:'40px 0', fontSize:'14px', ...CB }}>No items match your filters. Try adjusting your search.</p>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns: gridView ? 'repeat(4,1fr)' : '1fr', gap:'20px' }}>
-              {filteredGridItems.map((item,j)=><GridCard key={j} {...item} />)}
+              {pagedGridItems.map((item,j)=><GridCard key={j} {...item} />)}
             </div>
           )}
         </section>
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mint : 'white',
-                color:           page===p ? C.ink  : C.muted,
-                borderColor:     page===p ? C.mint : 'rgba(107,122,118,0.12)',
+                backgroundColor: clampedPage===p ? C.mint : 'white',
+                color:           clampedPage===p ? C.ink  : C.muted,
+                borderColor:     clampedPage===p ? C.mint : 'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>24</button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. DIAMOND TRUST BANNER ═════════════════════════ */}
@@ -704,6 +711,9 @@ export default function BeautyPage({ params }: { params: Promise<{ locale: strin
             </div>
           </div>
         </section>
+
+        <FashionCrossNav currentSlug="beauty" />
+        <CategoryFooterNav backHref={`/${locale}/fashion`} backLabel="Back to All Fashion" inkColor={C.ink} mintDkColor={C.mintDk} />
       </main>
 
       <FashionFooter />

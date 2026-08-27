@@ -3,6 +3,7 @@
 import { useState, use, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import {
   Camera, Mic, MicOff, Check, X, Sparkles, ArrowRight,
   ChevronRight, RotateCcw, Upload, Loader, AlertTriangle
@@ -253,11 +254,7 @@ Respond ONLY with valid JSON:
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '32px 24px 80px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-          <Link href={`/${locale}/post-ad`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Post Ad</Link>
-          <ChevronRight size={13} color={MUTED} />
-          <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>Voice Mode 🎤</span>
-        </div>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Post Ad', href: `/${locale}/post-ad` }, { label: 'Voice Mode 🎤' }]} style={{ marginBottom: 20, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
           <div style={{ width: '44px', height: '44px', borderRadius: '13px', background: `linear-gradient(135deg, ${MINT}, #0f9b8e)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

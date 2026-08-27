@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import '../globals.css'
 import { Providers } from '../providers'
 import SouKniConcierge from '@/components/ui/SouKniConcierge'
+import BackToTop from '@/components/ui/BackToTop'
 
 export async function generateStaticParams() {
   return [
@@ -44,6 +45,7 @@ export default async function LocaleLayout({
             <main>{children}</main>
             <Footer locale={locale} />
             <SouKniConcierge locale={locale} />
+            <BackToTop />
           </MarketProvider>
         </Providers>
       </body>

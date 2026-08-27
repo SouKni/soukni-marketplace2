@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Heart, Search, ChevronLeft, ChevronRight, MapPin, Star, Users, Wifi, Waves, TreePine, Sun, Coffee, Car, LayoutGrid, List } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -213,6 +215,7 @@ export default function DailyRentalSubPage() {
   const [view,     setView    ]  = useState<'grid'|'list'>('grid')
   const [sort,     setSort    ]  = useState<'Popular'|'Price Low'|'Price High'|'Top Rated'>('Popular')
   const [page,     setPage    ]  = useState(1)
+  useEffect(() => { setPage(1) }, [city, priceMax, amenity, sort])
 
   const cities = ['Anywhere','Marrakech','Agadir','Casablanca','Essaouira','Chefchaouen','Merzouga','Ifrane','Fès','Tanger']
   const guestOpts = ['1 guest','2 guests','3 guests','4 guests','5 guests','6 guests','8+ guests','10+ guests']
@@ -241,10 +244,22 @@ export default function DailyRentalSubPage() {
     }
   }
   const hasRealData = dbListings.length > 0
-  const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
-  const listings = allListings.filter(l =>
-    amenity ? l.amenities.includes(amenity) : true
-  )
+  const sourceListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+  const filteredListings = sourceListings.filter(l => {
+    const ma = amenity ? l.amenities.includes(amenity) : true
+    const mc = city === 'Anywhere' || l.location.toLowerCase().includes(city.toLowerCase())
+    const priceCap = /^\d/.test(priceMax) ? Number(priceMax.replace(/[^\d]/g, '')) : null
+    const mp = priceCap === null || l.price <= priceCap
+    return ma && mc && mp
+  }).sort((a, b) => {
+    if (sort === 'Price Low') return a.price - b.price
+    if (sort === 'Price High') return b.price - a.price
+    if (sort === 'Top Rated') return b.rating - a.rating
+    return b.reviews - a.reviews // Popular (default)
+  })
+  const PAGE_SIZE = 5
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE))
+  const listings = filteredListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const AMENITY_FILTERS = [
     { key:'pool',    label:'Pool',    icon:'🏊' },
@@ -353,23 +368,17 @@ export default function DailyRentalSubPage() {
       <div style={{ maxWidth:1440, margin:'0 auto', padding:'32px 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:24 }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',             href:`/${locale}` },
             { label:'Property',         href:`/${locale}/property` },
             { label:'Daily Rentals',    href:`/${locale}/property/daily-rentals` },
             { label:data.label,         href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:24 }}
+        />
 
         {/* TITLE + SORT + VIEW */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' }}>
@@ -442,11 +451,11 @@ export default function DailyRentalSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button onClick={()=>setPage(Math.max(1,page-1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(Math.max(1,page-1))} disabled={page===1} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page===1?'not-allowed':'pointer', opacity:page===1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18}/></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, fontWeight:900, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)', fontFamily:"'Inter',sans-serif" }}>{p}</button>
           ))}
-          <button onClick={()=>setPage(Math.min(10,page+1))} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
+          <button onClick={()=>setPage(Math.min(totalPages,page+1))} disabled={page>=totalPages} style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18}/></button>
         </div>
 
         {/* EXPLORE OTHER STAY TYPES */}
@@ -482,6 +491,14 @@ export default function DailyRentalSubPage() {
             ))}
           </div>
         </div>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property/daily-rentals`}
+          backLabel="Back to All Daily Rentals"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(c=>({ label:c.label, href:`/${locale}/property/daily-rentals/${c.slug}` }))}
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

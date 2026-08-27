@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, ChevronLeft, MapPin, TrendingUp, Building, Heart, LayoutGrid, List, Phone, DollarSign, PieChart, Shield } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -181,7 +183,17 @@ export default function BusinessInvestmentPage({ params }: { params: Promise<{ l
     if (yieldRange === '6-8' && (l.yield_pct < 6 || l.yield_pct > 8)) return false
     if (yieldRange === '8+' && l.yield_pct < 8) return false
     if (tenanted && !l.tenanted) return false
+    if (keyword.trim() && !l.title.toLowerCase().includes(keyword.toLowerCase()) && !l.location.toLowerCase().includes(keyword.toLowerCase())) return false
+    if (city && city !== 'All Morocco' && !l.location.toLowerCase().includes(city.toLowerCase())) return false
+    const priceNum = Number(String(l.price).replace(/,/g, ''))
+    if (minPrice.trim() && priceNum < Number(minPrice)) return false
+    if (maxPrice.trim() && priceNum > Number(maxPrice)) return false
     return true
+  }).sort((a, b) => {
+    if (sort === 'Price Low') return Number(String(a.price).replace(/,/g,'')) - Number(String(b.price).replace(/,/g,''))
+    if (sort === 'Price High') return Number(String(b.price).replace(/,/g,'')) - Number(String(a.price).replace(/,/g,''))
+    if (sort === 'Occupancy') return b.occupancy - a.occupancy
+    return b.yield_pct - a.yield_pct // Highest Yield (default)
   })
 
   const stats = [
@@ -287,22 +299,16 @@ export default function BusinessInvestmentPage({ params }: { params: Promise<{ l
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:32 }}>
-          {[
-            { label:'Home',               href:`/${locale}` },
-            { label:'Property',           href:`/${locale}/property` },
-            { label:'Business Investment',href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <ChevronRight size={12} color={C.muted}/>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'Business Investment' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:11, marginBottom:32 }}
+        />
 
         {/* STATS */}
         <section style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:56 }}>
@@ -473,6 +479,12 @@ export default function BusinessInvestmentPage({ params }: { params: Promise<{ l
           </div>
         </div>
 
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </div>
     </div>
   )

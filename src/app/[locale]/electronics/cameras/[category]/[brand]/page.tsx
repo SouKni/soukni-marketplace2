@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -137,8 +138,17 @@ export default function CamerasBrandPage() {
     const mk = !keyword || item.model.toLowerCase().includes(keyword.toLowerCase())
     const mc = !city    || item.location.toLowerCase().includes(city.toLowerCase())
     const mm = activeModel === 'All Models' || item.model === activeModel
-    return mk && mc && mm
+    const mp = priceInRange(item.price, price)
+    return mk && mc && mm && mp
   })
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -220,21 +230,17 @@ export default function CamerasBrandPage() {
       </div>
 
       <main style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:10, ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:12 }}>
-          {[
-            {label:'Home',href:`/${locale}`},
-            {label:'Electronics',href:`/${locale}/electronics`},
-            {label:'Cameras',href:`/${locale}/electronics/cameras`},
-            {label:'All Cameras',href:`/${locale}/electronics/cameras/${category}`},
-            {label:brandData.label,href:null},
-          ].map((b,i,arr)=>(
-            <span key={b.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {b.href?<Link href={b.href} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{b.label}</Link>
-                     :<span style={{ color:C.ink }}>{b.label}</span>}
-              {i<arr.length-1&&<span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Cameras', href:`/${locale}/electronics/cameras` },
+            { label:'All Cameras', href:`/${locale}/electronics/cameras/${category}` },
+            { label:brandData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' as const }}>
           <div>

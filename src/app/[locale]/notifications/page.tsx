@@ -3,6 +3,7 @@
 import { useState, use, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Bell, BellOff, MessageCircle, Heart, TrendingDown, Tag, Shield, Sparkles, Check, Trash2, Settings, ChevronRight, X, Smartphone, Monitor, CheckCircle, Zap, Clock, AlertTriangle } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useNotifications } from '@/hooks/useNotifications'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
@@ -131,6 +132,8 @@ export default function NotificationsPage({ params }: { params: Promise<{ locale
   return (
     <div style={{ background: SURFACE, minHeight: '100vh', fontFamily: FONT }}>
       <div style={{ maxWidth: '740px', margin: '0 auto', padding: '32px 24px 80px' }}>
+
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Notifications' }]} style={{ marginBottom: 20, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* Push notification banner */}
         {showPushBanner && pushStatus !== 'denied' && pushStatus !== 'unsupported' && pushStatus !== 'granted' && (

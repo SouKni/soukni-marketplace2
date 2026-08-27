@@ -5,6 +5,8 @@ import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
@@ -153,13 +155,14 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
     phone: row.profiles?.phone,
   }))
   const hasRealData = dbListings.length >= 4
-  const displayFeatured = hasRealData ? realFeatured : featuredItems
-  const displayGrid = hasRealData ? realGrid : gridItems
+  const displayFeaturedAll = hasRealData ? realFeatured : featuredItems
+  const displayGridAll = hasRealData ? realGrid : gridItems
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond, setDiamond] = useState(true)
   const [gridView, setGridView] = useState(true)
   const [page, setPage] = useState(1)
   const [keyword, setKeyword] = useState('')
+  const [applied, setApplied] = useState({ keyword: '' })
   const [city, setCity] = useState('Rabat')
   const [neighborhood, setNeighborhood] = useState('All Neighborhoods')
   const [price, setPrice] = useState('Any Price')
@@ -170,6 +173,30 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
   const cities = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
   const neighborhoods = ['All Neighborhoods','Agdal','Souissi','Hay Riad','Hassan','Médina','Océan']
   const priceRanges = ['Any Price','0 – 5,000 MAD','5,000 – 15,000 MAD','15,000 – 30,000 MAD','30,000 – 50,000 MAD','50,000+ MAD']
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const applySearch = () => setApplied({ keyword })
+  const matchesFilters = (item: any) =>
+    (!applied.keyword.trim() ||
+      (item.title || '').toLowerCase().includes(applied.keyword.toLowerCase()) ||
+      (item.brand || '').toLowerCase().includes(applied.keyword.toLowerCase())) &&
+    (!city || (item.location || '').toLowerCase().includes(city.toLowerCase())) &&
+    priceInRange(item.price, price)
+  const displayFeatured = displayFeaturedAll.filter(matchesFilters)
+  const filteredGrid = displayGridAll.filter(matchesFilters)
+
+  const PAGE_SIZE = 16
+  const totalPages = Math.max(1, Math.ceil(filteredGrid.length / PAGE_SIZE))
+  const displayGrid = filteredGrid.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [applied, city, price])
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -211,10 +238,10 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search brands, builds, specs..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search brands, builds, specs..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer' }}>SEARCH</button>
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer' }}>SEARCH</button>
           </div>
         </div>
       </section>
@@ -227,7 +254,7 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
               <Search size={13} color={C.muted} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. iMac, RTX 4090, OptiPlex..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="e.g. iMac, RTX 4090, OptiPlex..."
                 style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'14px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
               {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
@@ -244,15 +271,15 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
       </div>
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Rabat','Electronics','Desktops'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Rabat', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Desktops' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>New and Pre-Owned Desktops in Rabat</h2>
@@ -434,13 +461,13 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page<=1?0.4:1 }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>8</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page>=totalPages?0.4:1 }}><ChevronRight size={18} /></button>
         </div>
 
         <section style={{ marginBottom:'64px' }}>
@@ -478,6 +505,13 @@ export default function DesktopsPage({ params }: { params: Promise<{ locale: str
             </div>
           </div>
         </section>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/electronics`}
+          backLabel="Back to Electronics"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
 
       <footer style={{ backgroundColor:C.ink, color:'white', padding:'64px 24px 32px' }}>

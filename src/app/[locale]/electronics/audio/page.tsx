@@ -1,6 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -151,7 +153,10 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
   const hasRealData = realMapped.length >= 4
   const displayFeatured  = hasRealData ? realMapped.slice(0, 4)  : featuredListings
   const displayExclusive = hasRealData ? realMapped.slice(4, 8)  : exclusiveListings
-  const displayDiscovery = hasRealData ? realMapped.slice(8, 20) : discoveryListings
+  const PAGE_SIZE = 12
+  const discoveryPool = hasRealData ? realMapped.slice(8) : discoveryListings
+  const totalPages = Math.max(1, Math.ceil(discoveryPool.length / PAGE_SIZE))
+  const displayDiscovery = discoveryPool.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const exclusiveHero = displayExclusive[0] || exclusiveListings[0]
 
   return (
@@ -209,11 +214,15 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
       <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
-          <span style={{ color:C.ink }}>Audio &amp; Sound</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Audio &amp; Sound' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         {/* TITLE + SORT/SAVE */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
@@ -410,13 +419,14 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
-          {[1,2,3,4].map(p=>(
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
               {p}
             </button>
           ))}
-          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:page>=totalPages?'not-allowed':'pointer', display:'flex', alignItems:'center', gap:4, opacity:page>=totalPages?0.4:1 }}>
             Next <ChevronRight size={14} />
           </button>
         </div>
@@ -456,6 +466,13 @@ export default function AudioPage({ params }: { params: Promise<{ locale:string 
             <span style={{ display:'inline-block', backgroundColor:'white', color:C.mint, padding:'16px 36px', borderRadius:100, fontWeight:900, fontSize:14, cursor:'pointer', whiteSpace:'nowrap' as const, ...UB }}>Post Free Ad →</span>
           </Link>
         </section>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/electronics`}
+          backLabel="Back to Electronics"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </div>
     </div>

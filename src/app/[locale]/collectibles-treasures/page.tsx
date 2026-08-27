@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Search, X, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
 
@@ -202,6 +203,12 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
     })
   }, [applied, price, realDiscoveryGrid])
 
+  const PAGE_SIZE = 6
+  const totalPages = Math.max(1, Math.ceil(filteredDiscovery.length / PAGE_SIZE))
+  const paginatedDiscovery = filteredDiscovery.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [filteredDiscovery])
+
   const VISIBLE_COUNT = 8
   const visibleSubcats = showAll ? ALL_SUBCATS : ALL_SUBCATS.slice(0, VISIBLE_COUNT)
 
@@ -321,11 +328,16 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
       <div style={{ maxWidth:'1440px', margin:'32px auto 0', padding:'0 40px 64px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'12px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/vault`} style={{ color:'#6b7a76', textDecoration:'none' }}>The Vault</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Collectibles &amp; Treasures</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Collectibles & Treasures' },
+          ]}
+          mutedColor="#6b7a76"
+          inkColor="#161d1b"
+          style={{ fontSize:'12px' }}
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Collectibles &amp; Treasures in Rabat</h2>
@@ -514,11 +526,11 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
             </div>
           ) : grid ? (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-              {filteredDiscovery.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
+              {paginatedDiscovery.map(item=><DiscoveryCard key={item.id} item={item} locale={locale} />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:'12px' }}>
-              {filteredDiscovery.map(item=>(
+              {paginatedDiscovery.map(item=>(
                 <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'120px' }}>
                   <img src={item.image} alt={item.title} style={{ width:'120px', height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
                   <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -542,10 +554,11 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(p=>(
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>
           ))}
-          <button style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ padding:'0 16px', height:'36px', borderRadius:'10px', border:'1px solid #e2e8f0', backgroundColor:'white', color:'#161d1b', fontWeight:700, fontSize:'13px', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', gap:'4px' }}>Next <ChevronRight size={14} /></button>
         </div>
 
         {/* JOIN THE SOUKNI FAMILY */}

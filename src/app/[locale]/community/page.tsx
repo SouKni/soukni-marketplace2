@@ -2,6 +2,7 @@
 import React, { useState, use } from 'react'
 import Link from 'next/link'
 import { Heart, Star, MapPin, Search, Diamond, Shield } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const categoryCards = [
   { label: 'Movers & Removals', count: '6,183', slug: 'movers', image: 'https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?auto=compress&w=600' },
@@ -146,6 +147,7 @@ function CommunityInner({ locale }: { locale: string }) {
 
       {/* CATEGORY GRID */}
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', marginTop: '-48px', position: 'relative', zIndex: 20 }}>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Services' }]} style={{ marginBottom: 12, marginTop: 56, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
           {categoryCards.map(cat => (
             <Link key={cat.slug} href={`/${locale}/community/${cat.slug}`} style={{ textDecoration: 'none' }}>

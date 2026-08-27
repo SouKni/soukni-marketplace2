@@ -4,6 +4,7 @@ import { useState, use, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import AiPhotoEnhancer from '@/components/ui/AiPhotoEnhancer'
 import VideoUpload from '@/components/ui/VideoUpload'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useListings } from '@/hooks/useListings'
@@ -268,11 +269,7 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
       {/* HEADER */}
       <div style={{ background: 'white', borderBottom: '1px solid #e2eae6', padding: '20px 0' }}>
         <div style={{ maxWidth: '720px', margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <Link href={`/${locale}`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-            <ChevronRight size={14} color={MUTED} />
-            <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>Post a Free Ad</span>
-          </div>
+          <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Post a Free Ad' }]} style={{ marginBottom: 20, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {STEPS.map((s, i) => {
               const done = step > s.id; const active = step === s.id

@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -233,7 +235,20 @@ export default function JewelryCategoryPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24)
+  const listings = (hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(catSlug, 24))
+    .filter(item => keyword.trim()==='' || item.title.toLowerCase().includes(keyword.toLowerCase()))
+    .filter(item => city==='Rabat' || !item.location || item.location.toLowerCase().includes(city.toLowerCase()))
+    .filter(item => {
+      if (price === 'Any Price') return true
+      const nums = price.replace(/,/g,'').match(/\d+/g)?.map(Number) || []
+      return price.includes('+') ? item.price >= nums[0] : item.price >= nums[0] && item.price <= nums[1]
+    })
+    .filter((item:any) => activeBrand==='All Brands' || item.brand===activeBrand)
+
+  const PAGE_SIZE = 12
+  const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE))
+  const paginatedListings = listings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => { setPage(1) }, [keyword, city, price, activeBrand, catSlug])
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -316,24 +331,16 @@ export default function JewelryCategoryPage() {
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {[
-            { label:'Rabat',              href:`/${locale}` },
-            { label:'The Vault',          href:`/${locale}/vault` },
-            { label:'Jewelry & Watches',  href:`/${locale}/jewelry-watches` },
-            { label:catData.label,        href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none', transition:'color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-                  >{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Jewelry & Watches', href:`/${locale}/jewelry-watches` },
+            { label:catData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         {/* TITLE + SORT */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
@@ -420,45 +427,27 @@ export default function JewelryCategoryPage() {
         <section style={{ marginBottom:'48px' }}>
           <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {catData.count} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
+            {paginatedListings.map((item,i)=><ListingCard key={i} {...item} />)}
           </div>
         </section>
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>16</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
-        {/* EXPLORE OTHER CATEGORIES */}
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'20px' }}>Explore Other Categories</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'14px' }}>
-            {ALL_CATS.filter(c=>c.slug!==catSlug).map(cat=>(
-              <Link key={cat.slug} href={`/${locale}/jewelry-watches/${cat.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.boxShadow=`0 8px 24px ${C.mint}18`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.1)';e.currentTarget.style.boxShadow='none'}}
-              >
-                <p style={{ fontSize:'11px', ...UB, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>{cat.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* BACK */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/jewelry-watches`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}
-          >← Back to Jewelry & Watches</Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Categories"
+          related={ALL_CATS.filter(c=>c.slug!==catSlug).map(cat=>({ label:cat.label, href:`/${locale}/jewelry-watches/${cat.slug}` }))}
+          backHref={`/${locale}/jewelry-watches`}
+          backLabel="Back to Jewelry & Watches"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
     </div>
   )

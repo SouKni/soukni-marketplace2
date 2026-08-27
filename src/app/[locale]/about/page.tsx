@@ -3,6 +3,7 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { ChevronRight, MapPin, Users, Package, Shield, Heart, Sparkles } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -51,11 +52,7 @@ export default function AboutPage({ params }: { params: Promise<{ locale: Locale
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 24px 80px' }}>
 
         {/* Breadcrumb */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '24px 0', position: 'relative', zIndex: 10 }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: '#6b7a76', textDecoration: 'none' }}>Home</Link>
-          <ChevronRight size={13} color="#6b7a76" />
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#161d1b' }}>About Us</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'About Us' }]} style={{ margin: '24px 0', position: 'relative', zIndex: 10, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* STATS */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '48px', marginTop: '-32px' }}>

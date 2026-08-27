@@ -1,8 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, MapPin, Bed, Bath, Maximize, Phone } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -13,7 +15,7 @@ const ALL_CATS = [
   { label:'Studios', slug:'studios' }, { label:'Offices & Commercial', slug:'offices' }, { label:'Farmhouses', slug:'farmhouses' }, { label:'Land / Plots', slug:'land-plots' },
 ]
 
-const listings = [
+const VILLA_LISTINGS = [
   { id:'vl1', badge:'Exclusive', badge2:'Pool', title:'Contemporary Oasis Villa with Infinity Pool', price:'11,800,000', location:'Marrakech, Hivernage', beds:5, baths:6, area:600, image:'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=700' },
   { id:'vl2', badge:'New', title:'Beachfront Villa — Private Access', price:'15,000,000', location:'Agadir, Atlantic Coast', beds:6, baths:7, area:850, image:'https://images.pexels.com/photos/1643384/pexels-photo-1643384.jpeg?auto=compress&w=700' },
   { id:'vl3', badge:'Verified', title:'Modern Villa with Landscaped Garden', price:'8,500,000', location:'Marrakech, Palmeraie', beds:4, baths:4, area:380, image:'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=700' },
@@ -34,7 +36,7 @@ function BadgeChip({ label }: { label: string }) {
   return <span style={{ backgroundColor:isNavy?'rgba(15,23,42,0.8)':C.mint, color:'white', fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:4, letterSpacing:'0.08em', textTransform:'uppercase' as const }}>{label}</span>
 }
 
-function PropertyCard({ prop }: { prop: typeof listings[0] }) {
+function PropertyCard({ prop }: { prop: typeof VILLA_LISTINGS[0] }) {
   const [saved, setSaved]     = useState(false)
   const [hovered, setHovered] = useState(false)
   return (
@@ -104,6 +106,26 @@ export default function VillasPage({ params }: { params: Promise<{ locale: strin
   const cities        = ['Marrakech','Casablanca','Rabat','Agadir','Tanger','Fès']
   const propertyTypes = ['All Villas','Contemporary Villa','Traditional Villa','Gated Community','Golf Villa','Beachfront Villa']
   const priceRanges   = ['Any Price','0 – 5M MAD','5M – 8M MAD','8M – 12M MAD','12M – 20M MAD','20M+ MAD']
+
+  function priceInRange(itemPrice, rangeLabel) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const normalized = rangeLabel.replace(/,/g, '').replace(/(\d+(?:\.\d+)?)M/gi, (_, n) => String(Number(n) * 1000000))
+    const nums = normalized.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const listings = useMemo(() => VILLA_LISTINGS.filter(item => {
+    const itemPriceNum = Number(String(item.price).replace(/,/g, ''))
+    const mk = keyword.trim() === '' ||
+      item.title.toLowerCase().includes(keyword.toLowerCase()) ||
+      item.location.toLowerCase().includes(keyword.toLowerCase())
+    const mc = !city || item.location.toLowerCase().includes(city.toLowerCase())
+    const mp = priceInRange(itemPriceNum, price)
+    return mk && mc && mp
+  }), [keyword, city, price])
+  const totalPages = Math.max(1, Math.ceil(listings.length / VILLA_LISTINGS.length))
   const bedOptions    = ['Any','2+','3+','4+','5+','6+']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -175,15 +197,16 @@ export default function VillasPage({ params }: { params: Promise<{ locale: strin
       </div>
 
       <main style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:10, ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:12 }}>
-          {['Rabat','Property','Villas'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:`/${locale}/property`} style={{ color:C.muted, textDecoration:'none' }}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Rabat', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'Villas' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:10, marginBottom:12 }}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:4 }}>Villas for Sale in Morocco</h2>
@@ -258,18 +281,16 @@ export default function VillasPage({ params }: { params: Promise<{ locale: strin
             {listings.slice(6).map(p=><PropertyCard key={p.id} prop={p} />)}
             <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginTop:12 }}>
               <div style={{ display:'flex', gap:6, marginRight:16 }}>
-                {[ChevronsLeft, ChevronLeft].map((Icon,i)=>(
-                  <button key={i} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon size={15} color="#94a3b8" /></button>
-                ))}
+                <button onClick={()=>setCurrentPage(1)} disabled={currentPage===1} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:currentPage===1?'not-allowed':'pointer', opacity:currentPage===1?0.4:1 }}><ChevronsLeft size={15} color="#94a3b8" /></button>
+                <button onClick={()=>setCurrentPage(p=>Math.max(1,p-1))} disabled={currentPage===1} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:currentPage===1?'not-allowed':'pointer', opacity:currentPage===1?0.4:1 }}><ChevronLeft size={15} color="#94a3b8" /></button>
               </div>
-              {[1,2,3,4,5,6,7,8,9,10].map(page=>(
+              {Array.from({length:totalPages},(_,i)=>i+1).map(page=>(
                 <button key={page} onClick={()=>setCurrentPage(page)}
                   style={{ width:40, height:40, borderRadius:8, border:page===currentPage?'none':'1px solid #e2e8f0', backgroundColor:page===currentPage?C.mint:'white', color:page===currentPage?'white':'#0f172a', fontSize:13, fontWeight:page===currentPage?700:500, cursor:'pointer', boxShadow:page===currentPage?'0 2px 8px rgba(45,212,191,0.3)':'none' }}>{page}</button>
               ))}
               <div style={{ display:'flex', gap:6, marginLeft:16 }}>
-                {[ChevronRight, ChevronsRight].map((Icon,i)=>(
-                  <button key={i} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon size={15} color="#94a3b8" /></button>
-                ))}
+                <button onClick={()=>setCurrentPage(p=>Math.min(totalPages,p+1))} disabled={currentPage>=totalPages} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:currentPage>=totalPages?'not-allowed':'pointer', opacity:currentPage>=totalPages?0.4:1 }}><ChevronRight size={15} color="#94a3b8" /></button>
+                <button onClick={()=>setCurrentPage(totalPages)} disabled={currentPage>=totalPages} style={{ width:40, height:40, borderRadius:8, border:'1px solid #e2e8f0', backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:currentPage>=totalPages?'not-allowed':'pointer', opacity:currentPage>=totalPages?0.4:1 }}><ChevronsRight size={15} color="#94a3b8" /></button>
               </div>
             </div>
           </div>
@@ -317,6 +338,21 @@ export default function VillasPage({ params }: { params: Promise<{ locale: strin
           </div>
           <button style={{ backgroundColor:'white', color:C.mint, border:'none', padding:'14px 32px', borderRadius:12, fontWeight:800, fontSize:15, cursor:'pointer', flexShrink:0, whiteSpace:'nowrap' as const }}>Get Verified Now</button>
         </section>
+
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          related={[
+            { label:'Apartments', href:`/${locale}/property/apartments` },
+            { label:'Riads', href:`/${locale}/property/riads` },
+            { label:'Studios', href:`/${locale}/property/studios` },
+            { label:'Offices & Commercial', href:`/${locale}/property/offices` },
+            { label:'Farmhouses', href:`/${locale}/property/farmhouses` }
+          ]}
+          relatedTitle="Explore Other Property Types"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </main>
     </div>
   )

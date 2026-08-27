@@ -6,6 +6,8 @@ import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizonta
 import Link from 'next/link'
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = {
@@ -183,7 +185,30 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
     }
   }
   const hasRealData = dbListings.length > 0
-  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
+  const rawGridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(48)
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const filteredGridItems = rawGridItems.filter((item: any) => {
+    const mk = !makeModel.trim() || item.title.toLowerCase().includes(makeModel.toLowerCase()) || item.brand.toLowerCase().includes(makeModel.toLowerCase())
+    const mp = priceInRange(item.price, price)
+    return mk && mp
+    // Note: cityNeigh is intentionally NOT applied here — neither the real
+    // Supabase row mapping nor the mock generator carries a location field
+    // for cars, so there's nothing real to filter against.
+  })
+
+  const PAGE_SIZE = 16
+  const totalPages = Math.max(1, Math.ceil(filteredGridItems.length / PAGE_SIZE))
+  const gridItems = filteredGridItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [makeModel, price])
 
   const cityNeighs = ['All Morocco','Casablanca, Maarif','Casablanca, Ain Diab','Rabat, Agdal','Rabat, Souissi','Marrakech, Gueliz','Tanger, Centre','Agadir, Centre']
   const years       = ['Any Year','2026','2025','2024','2023','2022','2021','2020','2019 & older']
@@ -283,15 +308,16 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* ══ 3. BREADCRUMB + TITLE + SORT ═════════════════════ */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {['Home','Motors','Used Cars'].map((c,i,arr)=>(
-            <React.Fragment key={c}>
-              {i<arr.length-1
-                ? <><Link href={i===0?`/${locale}`:`/${locale}/motors`} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c}</Link><span style={{ opacity:0.4 }}>›</span></>
-                : <span style={{ color:C.ink }}>{c}</span>}
-            </React.Fragment>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Motors', href:`/${locale}/motors` },
+            { label:'Used Cars' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ fontSize:'10px', ...UB, letterSpacing:'0.12em', marginBottom:'12px' }}
+        />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
           <div>
             <h2 style={{ fontSize:'clamp(20px,2.5vw,28px)', ...UB, color:C.ink, marginBottom:'4px' }}>Used Cars for Sale in Morocco</h2>
@@ -515,17 +541,17 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', opacity:page<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
                 backgroundColor: page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>8</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. DIAMOND TRUST BANNER ═════════════════════════ */}
@@ -574,6 +600,12 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
             </div>
           </div>
         </section>
+        <CategoryFooterNav
+          backHref={`/${locale}/motors`}
+          backLabel="Back to All Motors"
+          inkColor={C.ink}
+          mintDkColor={C.mint}
+        />
       </main>
 
       {/* ══ 15. FOOTER ═══════════════════════════════════════ */}

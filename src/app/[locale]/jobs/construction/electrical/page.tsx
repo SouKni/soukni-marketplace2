@@ -4,6 +4,8 @@ import React from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:'#22d4a8', mintDk:'#006c53', ink:'#161d1b',
@@ -156,7 +158,7 @@ function makeListings(catSlug: string, count: number) {
 export default function ConstructionSubPage() {
   const params   = useParams()
   const locale   = (params?.locale as string) || 'en'
-  const catSlug  = (params?.category as string) || 'civil-engineering'
+  const catSlug  = 'electrical'
   const catData  = CAT_DATA[catSlug] || CAT_DATA['civil-engineering']
 
   const [activeSeller,   setActiveSeller  ] = useState('All Sellers')
@@ -172,7 +174,29 @@ export default function ConstructionSubPage() {
   const [cityOpen,       setCityOpen      ] = useState(false)
   const [priceOpen,      setPriceOpen     ] = useState(false)
 
-  const listings = makeListings(catSlug, 24)
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const normalized = rangeLabel.replace(/,/g, '').replace(/(\d+(?:\.\d+)?)k/gi, (_, n) => String(Number(n) * 1000))
+    const nums = normalized.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const filteredListings = makeListings(catSlug, 24).filter(item =>
+    (!keyword.trim() || item.title.toLowerCase().includes(keyword.toLowerCase()) || item.brand.toLowerCase().includes(keyword.toLowerCase())) &&
+    (!city.trim() || item.location.toLowerCase().includes(city.toLowerCase())) &&
+    priceInRange(item.price, price)
+  )
+  const sortedListings = [...filteredListings].sort((a, b) => {
+    if (sortBy === 'Salary: Low to High') return a.price - b.price
+    if (sortBy === 'Salary: High to Low') return b.price - a.price
+    return 0
+  })
+  const LISTINGS_PAGE_SIZE = 8
+  const totalListingPages = Math.max(1, Math.ceil(sortedListings.length / LISTINGS_PAGE_SIZE))
+  const clampedPage = Math.min(page, totalListingPages)
+  const listings = sortedListings.slice((clampedPage - 1) * LISTINGS_PAGE_SIZE, clampedPage * LISTINGS_PAGE_SIZE)
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tangier','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -251,24 +275,16 @@ export default function ConstructionSubPage() {
 
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
-        {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {[
+        <Breadcrumb
+          items={[
             { label:'Home',         href:`/${locale}` },
             { label:'Jobs',         href:`/${locale}/jobs` },
             { label:'Construction', href:`/${locale}/jobs/construction` },
-            { label:catData.label,   href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none', transition:'color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.color=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+            { label:'Electrical' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         {/* TITLE + SORT */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
@@ -377,44 +393,25 @@ export default function ConstructionSubPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}>
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page<=1?0.4:1, cursor:page<=1?'not-allowed':'pointer' }}>
             <ChevronLeft size={18} />
           </button>
-          {[1,2,3,4,5].map(p=>(
+          {Array.from({length: totalListingPages}, (_, i) => i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', ...UB, fontSize:'15px', color:C.muted }}>10</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}>
+          <button onClick={()=>setPage(p=>Math.min(totalListingPages,p+1))} disabled={page>=totalListingPages} style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page>=totalListingPages?0.4:1, cursor:page>=totalListingPages?'not-allowed':'pointer' }}>
             <ChevronRight size={18} />
           </button>
         </div>
 
-        {/* EXPLORE OTHER SPECIALTIES */}
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'20px' }}>Explore Other Construction Specialties</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'14px' }}>
-            {SUBCATS.filter(c=>c.slug!==catSlug).map(cat=>(
-              <Link key={cat.slug} href={`/${locale}/jobs/construction/${cat.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=C.mint;(e.currentTarget as HTMLElement).style.boxShadow=`0 8px 24px ${C.mint}18`}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='rgba(107,122,118,0.1)';(e.currentTarget as HTMLElement).style.boxShadow='none'}}
-              >
-                <p style={{ fontSize:'11px', ...UB, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>{cat.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* BACK */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/jobs/construction`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}>
-            ← Back to All Construction
-          </Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Construction Specialties"
+          related={SUBCATS.filter(c=>c.slug!=='electrical').map(cat=>({ label:cat.label, href:`/${locale}/jobs/construction/${cat.slug}` }))}
+          backHref={`/${locale}/jobs/construction`}
+          backLabel="Back to All Construction"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
       </main>
     </div>

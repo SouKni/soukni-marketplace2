@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { Mail, Phone, MapPin, MessageCircle, Clock, Send, Check, ChevronRight, Shield, Building2, AlertTriangle, Sparkles } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Topic = 'general' | 'safety' | 'billing' | 'listing' | 'account' | 'press' | 'business'
@@ -74,11 +75,7 @@ export default function ContactPage({ params }: { params: Promise<{ locale: Loca
 
       {/* BREADCRUMB */}
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px 24px 0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: '#6b7a76', textDecoration: 'none', fontWeight: 700 }}>Home</Link>
-          <ChevronRight size={13} color="#6b7a76" />
-          <span style={{ fontSize: '13px', fontWeight: 900, color: '#161d1b' }}>Contact Us</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Contact Us' }]} style={{ textTransform: 'none', fontSize: 13, letterSpacing: 'normal', marginBottom: 0 }} />
       </div>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 80px' }}>

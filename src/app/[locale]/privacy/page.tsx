@@ -3,6 +3,7 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { ChevronRight, ShieldCheck } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -66,11 +67,7 @@ export default function PrivacyPage({ params }: { params: Promise<{ locale: Loca
     <div style={{ background: '#f4fbf8', minHeight: '100vh', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
       <div style={{ maxWidth: '820px', margin: '0 auto', padding: '40px 24px 80px' }}>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '28px' }}>
-          <Link href={`/${locale}`} style={{ fontSize: '13px', color: '#6b7a76', textDecoration: 'none' }}>Home</Link>
-          <ChevronRight size={13} color="#6b7a76" />
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#161d1b' }}>Privacy Policy</span>
-        </nav>
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Privacy Policy' }]} style={{ marginBottom: 28, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '12px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star, X } from 'lucide-react'
 import { ALL_CITIES } from '@/data/moroccoLocations'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const HERO = 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&w=1600'
 
@@ -274,11 +276,13 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
   function applySearch() {
     setApplied({ city: heroCity, keyword: heroKeyword })
     setBudgetOpen(false); setAvailOpen(false)
+    setPage(1)
   }
   function clearAll() {
     setHeroCity(''); setHeroKeyword('')
     setApplied({ city:'', keyword:'' })
     setBudget('Any Budget'); setAvailability('Anytime')
+    setPage(1)
   }
 
   const filtered = useMemo(() => {
@@ -297,6 +301,10 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
     return list
   }, [applied, budget, chip])
   const hasFilters = applied.city || applied.keyword || budget !== 'Any Budget' || availability !== 'Anytime'
+  const PAGE_SIZE = 2
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const paginated = filtered.slice((clampedPage-1)*PAGE_SIZE, clampedPage*PAGE_SIZE)
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
@@ -343,7 +351,7 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
             </div>
           </div>
           <div style={{ position:'relative', flex:1, padding:'0 22px', borderRight:'1px solid rgba(186,202,197,0.3)' }}>
-            <GenericDDrop label="BUDGET" value={budget} options={BUDGETS} open={budgetOpen} setOpen={setBudgetOpen} onChange={setBudget} closeOthers={()=>{setCityOpen(false);setAvailOpen(false)}} />
+            <GenericDDrop label="BUDGET" value={budget} options={BUDGETS} open={budgetOpen} setOpen={setBudgetOpen} onChange={(v:string)=>{setBudget(v);setPage(1)}} closeOthers={()=>{setCityOpen(false);setAvailOpen(false)}} />
           </div>
           <div style={{ position:'relative', flex:1, padding:'0 22px' }}>
             <GenericDDrop label="AVAILABILITY" value={availability} options={AVAILABILITIES} open={availOpen} setOpen={setAvailOpen} onChange={setAvailability} closeOthers={()=>{setCityOpen(false);setBudgetOpen(false)}} />
@@ -356,11 +364,13 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
       </div>
 
       <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }}>Services</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Home Maintenance</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Services', href:`/${locale}/services` },
+            { label:'Home Maintenance' },
+          ]}
+        />
 
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap' as const, gap:'12px' }}>
           <div>
@@ -512,7 +522,7 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
             </div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:grid?'repeat(4,1fr)':'1fr', gap:'16px' }}>
-              {filtered.map(item=> grid
+              {paginated.map(item=> grid
                 ? <GridDiscoCard key={item.id} item={item} locale={locale} />
                 : <DiscoCard key={item.id} item={item} locale={locale} />
               )}
@@ -521,7 +531,7 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
         </div>
 
         <section style={{ borderRadius:'40px', background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', padding:'56px 48px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'40px', flexWrap:'wrap' as const, marginBottom:'48px' }}>
@@ -538,14 +548,12 @@ export default function HomeMaintenancePage({ params }: { params: Promise<{ loca
           </Link>
         </section>
 
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/services`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 40px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
-            ← Back to All Services
-          </Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Home Maintenance Categories"
+          related={SUBCATS.map(s=>({ label:s.label, href:`/${locale}/services/home-maintenance/${s.slug}` }))}
+          backHref={`/${locale}/services`}
+          backLabel="Back to All Services"
+        />
 
       </div>
     </div>

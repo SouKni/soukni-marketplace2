@@ -6,6 +6,7 @@ import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, ChevronDown, Di
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const I = {
   hero:    'https://images.pexels.com/photos/1772123/pexels-photo-1772123.jpeg?auto=compress&w=1600',
@@ -238,6 +239,12 @@ export default function GamingPage({ params }: { params: Promise<{ locale:string
       return mc && mk && mp
     })
   }, [applied, price, realDiscoveryListings])
+
+  const PAGE_SIZE = 8
+  const totalPages = Math.max(1, Math.ceil(filteredDiscovery.length / PAGE_SIZE))
+  const paginatedDiscovery = filteredDiscovery.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => { setPage(1) }, [filteredDiscovery])
+
   const pills = ['All Gaming','Consoles','Gaming PCs','Monitors','Headsets','Controllers','VR & AR','Handheld']
   const pillSlugs: Record<string,string> = {
     'All Gaming':'all-gaming',
@@ -306,11 +313,15 @@ export default function GamingPage({ params }: { params: Promise<{ locale:string
       <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
-          <span style={{ color:C.ink }}>Gaming</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'The Vault', href:`/${locale}/vault` },
+            { label:'Gaming' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         {/* TITLE + SORT/SAVE */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
@@ -541,11 +552,11 @@ export default function GamingPage({ params }: { params: Promise<{ locale:string
             </div>
           ) : viewGrid ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
-              {filteredDiscovery.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
+              {paginatedDiscovery.map(item=><ListingCard key={item.id} item={item} locale={locale} compact />)}
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:12 }}>
-              {filteredDiscovery.map(item=>(
+              {paginatedDiscovery.map(item=>(
                 <div key={item.id} style={{ display:'flex', backgroundColor:'white', borderRadius:20, border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:120 }}>
                   <img src={item.image} alt={item.title} style={{ width:120, height:'100%', objectFit:'cover' as const, flexShrink:0 }} />
                   <div style={{ flex:1, padding:'14px 18px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -569,13 +580,14 @@ export default function GamingPage({ params }: { params: Promise<{ locale:string
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:56 }}>
-          {[1,2,3,4].map(p=>(
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
               {p}
             </button>
           ))}
-          <button style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ padding:'0 16px', height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', color:C.ink, fontWeight:700, fontSize:13, cursor:page>=totalPages?'not-allowed':'pointer', opacity:page>=totalPages?0.4:1, display:'flex', alignItems:'center', gap:4 }}>
             Next <ChevronRight size={14} />
           </button>
         </div>

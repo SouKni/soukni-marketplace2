@@ -5,6 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { useListings } from '@/hooks/useListings'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
@@ -171,13 +172,29 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
   }
 
   const hasRealData = dbListings.length > 0
-  const gridItems = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
+  const gridItemsAll = hasRealData ? dbListings.map(mapDbRowToCard) : makeGrid(16)
   const [activeCat,    setActiveCat   ] = useState('All Shoes')
   const [activeSeller, setActiveSeller] = useState('All Sellers')
   const [diamond,      setDiamond     ] = useState(true)
   const [gridView,     setGridView    ] = useState(true)
   const [page,         setPage        ] = useState(1)
   const [keyword,      setKeyword     ] = useState('')
+  const [applied, setApplied] = useState({ keyword: '', price: 'Any Price' })
+  const applySearch = () => { setApplied({ keyword, price }); setPage(1) }
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+  const gridItems = gridItemsAll.filter((item: any) => (!applied.keyword.trim() ||
+    (item.title || '').toLowerCase().includes(applied.keyword.toLowerCase()) ||
+    (item.brand || '').toLowerCase().includes(applied.keyword.toLowerCase())) && priceInRange(item.price, applied.price))
+  const PAGE_SIZE = 16
+  const totalPages = Math.max(1, Math.ceil(gridItems.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const pagedGridItems = gridItems.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
   const [city,         setCity        ] = useState('Rabat')
   const [neighborhood, setNeighborhood] = useState('All Neighborhoods')
   const [price,        setPrice       ] = useState('Any Price')
@@ -233,10 +250,10 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
             </div>
             <div style={{ flex:2, padding:'0 28px', display:'flex', flexDirection:'column' as const, gap:'2px' }}>
               <span style={{ fontSize:'9px', ...UB, color:'rgba(255,255,255,0.62)', textTransform:'uppercase' as const, letterSpacing:'0.15em' }}>KEYWORD</span>
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search for brands, styles, sizes..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="Search for brands, styles, sizes..."
                 style={{ backgroundColor:'transparent', border:'none', outline:'none', color:'white', fontSize:'14px', ...UB, fontFamily:'Inter,sans-serif', width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:C.ink, border:'none', padding:'16px 44px', borderRadius:'100px', fontSize:'11px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.12em', cursor:'pointer', transition:'filter 0.15s' }}
               onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.08)'}
               onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}
             >SEARCH</button>
@@ -253,7 +270,7 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
             <span style={{ fontSize:'9px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.14em', color:C.muted, marginBottom:'3px' }}>KEYWORD</span>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
               <Search size={13} color={C.muted} />
-              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. Louboutin, Manolo, Sneakers..."
+              <input type="text" value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder="e.g. Louboutin, Manolo, Sneakers..."
                 style={{ flex:1, background:'none', border:'none', outline:'none', fontSize:'14px', ...UB, color:C.ink, fontFamily:'Inter,sans-serif' }} />
               {keyword && <button onClick={()=>setKeyword('')} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:'16px' }}>✕</button>}
             </div>
@@ -509,14 +526,14 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
             <a href="#" style={{ fontSize:'12px', ...UB, color:C.mint, textDecoration:'none' }}>View All →</a>
           </div>
           {gridView ? (
-            [gridItems.slice(0,4),gridItems.slice(4,8),gridItems.slice(8,12),gridItems.slice(12,16)].map((row,ri)=>(
+            [pagedGridItems.slice(0,4),pagedGridItems.slice(4,8),pagedGridItems.slice(8,12),pagedGridItems.slice(12,16)].map((row,ri)=>(
               <div key={ri} style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px', marginBottom:'20px' }}>
                 {row.map((item,j)=><GridCard key={j} {...item} />)}
               </div>
             ))
           ) : (
             <div style={{ display:'flex', flexDirection:'column' as const, gap:'14px' }}>
-              {gridItems.map((item,j)=>(
+              {pagedGridItems.map((item,j)=>(
                 <div key={j} style={{ display:'flex', backgroundColor:'white', borderRadius:'20px', border:'1px solid rgba(107,122,118,0.1)', overflow:'hidden', height:'140px' }}>
                   <img src={item.img} alt={item.title} style={{ width:'140px', height:'100%', objectFit:'cover' as const }} />
                   <div style={{ flex:1, padding:'16px 20px', display:'flex', flexDirection:'column' as const, justifyContent:'space-between' }}>
@@ -534,19 +551,19 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
 
         {/* ══ 12. PAGINATION ═══════════════════════════════════ */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={clampedPage<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage<=1?'not-allowed':'pointer', opacity:clampedPage<=1?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
+          {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s',
-                backgroundColor: page===p ? C.mint : 'white',
-                color:           page===p ? C.ink  : C.muted,
-                borderColor:     page===p ? C.mint : 'rgba(107,122,118,0.12)',
+                backgroundColor: clampedPage===p ? C.mint : 'white',
+                color:           clampedPage===p ? C.ink  : C.muted,
+                borderColor:     clampedPage===p ? C.mint : 'rgba(107,122,118,0.12)',
               }}
             >{p}</button>
           ))}
-          <span style={{ color:C.muted, padding:'0 4px' }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>14</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={clampedPage>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:clampedPage>=totalPages?'not-allowed':'pointer', opacity:clampedPage>=totalPages?0.4:1, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
         </div>
 
         {/* ══ 13. DIAMOND TRUST BANNER ═════════════════════════ */}
@@ -595,6 +612,9 @@ export default function ShoesPage({ params }: { params: Promise<{ locale: string
             </div>
           </div>
         </section>
+
+        <FashionCrossNav currentSlug="shoes" />
+        <CategoryFooterNav backHref={`/${locale}/fashion`} backLabel="Back to All Fashion" inkColor={C.ink} mintDkColor={C.mintDk} />
       </main>
 
       <FashionFooter />

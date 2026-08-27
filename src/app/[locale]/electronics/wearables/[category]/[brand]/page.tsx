@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -156,8 +157,21 @@ export default function WearablesBrandPage() {
     const mk = !keyword     || item.model.toLowerCase().includes(keyword.toLowerCase())
     const mc = !city        || item.location.toLowerCase().includes(city.toLowerCase())
     const mm = activeModel === 'All Models' || item.model === activeModel
-    return mk && mc && mm
+    const mp = priceInRange(item.price, price)
+    return mk && mc && mm && mp
   })
+  const PG_SIZE = 16
+  const totalPg = Math.max(1, Math.ceil(listings.length / PG_SIZE))
+  const clampedPg = Math.min(pg, totalPg)
+  const paginatedListings = listings.slice((clampedPg - 1) * PG_SIZE, clampedPg * PG_SIZE)
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
 
   return (
     <div style={{ ...UB, backgroundColor:C.surface, color:C.ink, minHeight:'100vh' }}>
@@ -250,21 +264,17 @@ export default function WearablesBrandPage() {
       </div>
 
       <main style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:10, ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:12 }}>
-          {[
-            { label:'Home',         href:`/${locale}` },
-            { label:'Electronics',  href:`/${locale}/electronics` },
-            { label:'Wearables',    href:`/${locale}/electronics/wearables` },
-            { label:'All Wearables',href:`/${locale}/electronics/wearables/${category}` },
-            { label:brandData.label,href:null },
-          ].map((b,i,arr)=>(
-            <span key={b.label} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {b.href ? <Link href={b.href} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{b.label}</Link>
-                      : <span style={{ color:C.ink }}>{b.label}</span>}
-              {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Wearables', href:`/${locale}/electronics/wearables` },
+            { label:'All Wearables', href:`/${locale}/electronics/wearables/${category}` },
+            { label:brandData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, marginBottom:24, flexWrap:'wrap' as const }}>
           <div>
@@ -322,14 +332,14 @@ export default function WearablesBrandPage() {
           </div>
         ) : (
           <div style={{ display:'grid', gridTemplateColumns:gridView?'repeat(4,1fr)':'1fr', gap:20, marginBottom:48 }}>
-            {listings.map((item,i)=><ListingCard key={i} {...item} />)}
+            {paginatedListings.map((item,i)=><ListingCard key={i} {...item} />)}
           </div>
         )}
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:48 }}>
-          {[1,2,3,4,5].map(p=>(
+          {Array.from({length:totalPg},(_,i)=>i+1).map(p=>(
             <button key={p} onClick={()=>setPg(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, ...UB, border:'1px solid', transition:'all 0.2s',
-              backgroundColor:pg===p?C.mint:'white', color:pg===p?C.ink:C.muted, borderColor:pg===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
+              backgroundColor:clampedPg===p?C.mint:'white', color:clampedPg===p?C.ink:C.muted, borderColor:clampedPg===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
         </div>
 

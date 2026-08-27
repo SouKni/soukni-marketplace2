@@ -1,6 +1,7 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo} from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, MessageCircle, ChevronLeft } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
@@ -156,7 +157,19 @@ export default function ProjectorsTVsCategoryPage() {
     phone: row.profiles?.phone,
   }))
   const hasRealData = realMapped.length > 0
-  const listings = hasRealData ? realMapped : makeListings(catSlug, 24)
+  const PAGE_SIZE = 12
+
+  const filteredListings = useMemo(() => {
+    const allListings = hasRealData ? realMapped : makeListings(catSlug, 24)
+    return allListings.filter((item: any) =>
+      keyword.trim() === '' || item.title.toLowerCase().includes(keyword.toLowerCase())
+    )
+  }, [hasRealData, realMapped, catSlug, keyword])
+
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE))
+  const listings = filteredListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword])
   const sellerTabs = ['All Sellers','SouKni Members','SouKni Pro']
 
   return (
@@ -183,12 +196,16 @@ export default function ProjectorsTVsCategoryPage() {
       <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:8 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
-          <Link href={`/${locale}/electronics/projectors-tvs`} style={{ color:C.muted, textDecoration:'none' }}>TVs & Projectors</Link><span>›</span>
-          <span style={{ color:C.ink }}>{catData.label}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'TVs & Projectors', href:`/${locale}/electronics/projectors-tvs` },
+            { label:catData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
           <h2 style={{ ...UB, fontSize:22, color:C.ink }}>{catData.label} in Rabat</h2>
@@ -263,7 +280,7 @@ export default function ProjectorsTVsCategoryPage() {
 
         {/* LISTINGS */}
         <section style={{ marginBottom:48 }}>
-          <p style={{ fontSize:13, color:C.muted, ...HK, marginBottom:20 }}>Showing {listings.length} of {catData.count} results</p>
+          <p style={{ fontSize:13, color:C.muted, ...HK, marginBottom:20 }}>Showing {listings.length} of {filteredListings.length} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
             {listings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
@@ -271,12 +288,13 @@ export default function ProjectorsTVsCategoryPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:10, marginBottom:64 }}>
-          <button style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page<=1?0.4:1 }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:44, height:44, borderRadius:12, cursor:'pointer', fontSize:15, ...UB, border:'1px solid', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:44, height:44, borderRadius:12, backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page>=totalPages?0.4:1 }}><ChevronRight size={18} /></button>
         </div>
 
         {/* EXPLORE OTHER CATEGORIES */}

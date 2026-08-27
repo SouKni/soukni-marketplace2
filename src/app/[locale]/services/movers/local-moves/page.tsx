@@ -1,7 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const HERO = 'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=1600'
 const SIBLINGS = [
@@ -107,6 +109,31 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
   const [grid, setGrid] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
+  const [budget, setBudget] = useState('Any Range')
+
+  const _prices = discoveryGrid.map(i => i.price)
+  const _minPrice = Math.min(..._prices)
+  const _maxPrice = Math.max(..._prices)
+  const _midPrice = Math.round((_minPrice + _maxPrice) / 2)
+  const budgetRanges = ['Any Range', `${_minPrice.toLocaleString()} – ${_midPrice.toLocaleString()} MAD`, `${_midPrice.toLocaleString()} – ${_maxPrice.toLocaleString()} MAD`, `${_maxPrice.toLocaleString()}+ MAD`]
+  function priceInRange(itemPrice, rangeLabel) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const filteredDiscoveryGrid = discoveryGrid.filter(item =>
+    (keyword.trim() === '' || item.title.toLowerCase().includes(keyword.toLowerCase())) &&
+    (city.trim() === '' || item.location.toLowerCase().includes(city.toLowerCase())) &&
+    priceInRange(item.price, budget)
+  )
+
+  const PAGE_SIZE = 2
+  const totalPages = Math.max(1, Math.ceil(filteredDiscoveryGrid.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [keyword, city, budget])
+  const paginatedDiscoveryGrid = filteredDiscoveryGrid.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ fontFamily:'Inter, sans-serif', backgroundColor:'#f4fbf8', minHeight:'100vh' }}>
@@ -133,23 +160,41 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
 
       <div style={{ maxWidth:'1440px', margin:'-24px auto 0', padding:'0 40px', position:'relative', zIndex:30 }}>
         <div style={{ backgroundColor:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', borderRadius:'100px', padding:'8px 8px 8px 24px', boxShadow:'0 8px 40px rgba(0,0,0,0.12)', border:'1px solid rgba(255,255,255,0.6)', display:'flex', alignItems:'center' }}>
-          {[['City','Rabat'],['Keyword','Search...'],['Budget','Any Range'],['Availability','Anytime'],['Filters','All']].map(([l,v],i)=>(
-            <div key={l} style={{ flex:i===1?2:1, padding:'6px 18px', borderRight:i<4?'1px solid rgba(186,202,197,0.3)':'none', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
-              <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>{l}</span>
-              <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>{v}</span>
-            </div>
-          ))}
+          <div style={{ flex:1, padding:'6px 18px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>City</span>
+            <input value={city} onChange={e=>setCity(e.target.value)} placeholder="Rabat" style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', background:'none', border:'none', outline:'none', padding:0, width:'100%' }} />
+          </div>
+          <div style={{ flex:2, padding:'6px 18px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Keyword</span>
+            <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="Search..." style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', background:'none', border:'none', outline:'none', padding:0, width:'100%' }} />
+          </div>
+          <div style={{ flex:1, padding:'6px 18px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Budget</span>
+            <select value={budget} onChange={e=>setBudget(e.target.value)} style={{ fontSize:'13px', fontWeight:500, color:'#161d1b', background:'none', border:'none', outline:'none', padding:0, width:'100%', cursor:'pointer' }}>
+              {budgetRanges.map(r=><option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div style={{ flex:1, padding:'6px 18px', borderRight:'1px solid rgba(186,202,197,0.3)', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Availability</span>
+            <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>Anytime</span>
+          </div>
+          <div style={{ flex:1, padding:'6px 18px', display:'flex', flexDirection:'column' as const, cursor:'pointer', gap:'1px' }}>
+            <span style={{ fontSize:'9px', textTransform:'uppercase' as const, fontWeight:700, color:'#6b7a76', letterSpacing:'0.1em' }}>Filters</span>
+            <span style={{ fontSize:'13px', fontWeight:500, color:'#161d1b' }}>All</span>
+          </div>
           <button style={{ backgroundColor:'#22d4a8', color:'white', border:'none', padding:'12px 24px', borderRadius:'100px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px', fontWeight:700, fontSize:'12px', flexShrink:0, marginLeft:'8px' }}><Search size={14} /> SEARCH</button>
         </div>
       </div>
 
       <div style={{ maxWidth:'1440px', margin:'28px auto 0', padding:'0 40px 64px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'11px', fontWeight:700, color:'#6b7a76', textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:'8px' }}>
-          <Link href={`/${locale}`} style={{ color:'#6b7a76', textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/services`} style={{ color:'#6b7a76', textDecoration:'none' }}>Services</Link><span>›</span>
-          <Link href={`/${locale}/services/movers`} style={{ color:'#6b7a76', textDecoration:'none' }}>Movers & Storage</Link><span>›</span>
-          <span style={{ color:'#161d1b' }}>Local Moves</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Services', href:`/${locale}/services` },
+            { label:'Movers & Storage', href:`/${locale}/services/movers` },
+            { label:'Local Moves' },
+          ]}
+        />
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px' }}>
           <h2 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'22px', color:'#161d1b' }}>Local Moves in Morocco</h2>
@@ -260,38 +305,21 @@ export default function Page({ params }: { params: Promise<{ locale: string }> }
             <Link href="#" style={{ color:'#22d4a8', fontWeight:700, fontSize:'13px', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ChevronRight size={14} /></Link>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
-            {discoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
+            {paginatedDiscoveryGrid.map(item=><DiscoCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginBottom:'48px' }}>
-          {[1,2,3,4].map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=><button key={p} onClick={()=>setPage(p)} style={{ width:'36px', height:'36px', borderRadius:'10px', border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?'#22d4a8':'white', color:page===p?'white':'#161d1b', fontWeight:700, fontSize:'13px', cursor:'pointer' }}>{p}</button>)}
         </div>
 
         {/* EXPLORE OTHER */}
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'16px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.08em', marginBottom:'16px' }}>Explore Other Moving Services</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'12px' }}>
-            {SIBLINGS.filter(s=>s.slug!=='local-moves').map(s=>(
-              <Link key={s.slug} href={`/${locale}/services/movers/${s.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'16px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#22d4a8';(e.currentTarget as HTMLElement).style.boxShadow='0 8px 24px rgba(34,212,168,0.12)'}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='rgba(107,122,118,0.1)';(e.currentTarget as HTMLElement).style.boxShadow='none'}}>
-                <p style={{ fontSize:'12px', fontWeight:900, color:'#161d1b', textTransform:'uppercase' as const, letterSpacing:'0.06em' }}>{s.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* BACK BUTTON */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/services/movers`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'14px 40px', borderRadius:'100px', backgroundColor:'#161d1b', color:'white', textDecoration:'none', fontSize:'12px', fontWeight:700, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor='#22d4a8'}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='#161d1b'}>
-            ← Back to Movers & Storage
-          </Link>
-        </div>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Moving Services"
+          related={SIBLINGS.filter(s=>s.slug!=='local-moves').map(s=>({ label:s.label, href:`/${locale}/services/movers/${s.slug}` }))}
+          backHref={`/${locale}/services/movers`}
+          backLabel="Back to Movers & Storage"
+        />
       </div>
     </div>
   )

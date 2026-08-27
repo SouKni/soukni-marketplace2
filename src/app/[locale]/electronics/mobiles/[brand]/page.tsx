@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = {
   mint:   '#22d4a8',
@@ -204,7 +206,37 @@ export default function MobileBrandPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(brandSlug, 24)
+
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const PAGE_SIZE = 12
+
+  const filteredListings = useMemo(() => {
+    const allListings = hasRealData ? dbListings.map(mapDbRowToCard) : makeListings(brandSlug, 24)
+    let items = allListings.filter((item: any) =>
+      (keyword.trim() === '' ||
+        item.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        item.brand.toLowerCase().includes(keyword.toLowerCase())) &&
+      (!city || item.location.toLowerCase().includes(city.toLowerCase())) &&
+      priceInRange(item.price, price) &&
+      (activeModel === 'All Models' || item.title === activeModel)
+    )
+    if (sortBy === 'Price: Low to High') items = [...items].sort((a: any, b: any) => a.price - b.price)
+    if (sortBy === 'Price: High to Low') items = [...items].sort((a: any, b: any) => b.price - a.price)
+    return items
+  }, [hasRealData, dbListings, brandSlug, keyword, city, price, activeModel, sortBy])
+
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const listings = filteredListings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword, city, price, sortBy])
   const cities   = ['Rabat','Casablanca','Marrakech','Fès','Tanger','Agadir','Meknès']
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
@@ -285,21 +317,16 @@ export default function MobileBrandPage() {
       <main style={{ maxWidth:'1280px', margin:'0 auto', padding:'32px 24px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'10px', ...UB, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.12em', marginBottom:'12px' }}>
-          {[
-            { label:'Rabat',        href:`/${locale}` },
-            { label:'Electronics',  href:`/${locale}/electronics` },
-            { label:'Mobiles',      href:`/${locale}/electronics/mobiles` },
-            { label:brandData.label,href:null },
-          ].map((c,i,arr)=>(
-            <span key={c.label} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-              {c.href
-                ? <Link href={c.href} style={{ color:C.muted, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.color=C.mint} onMouseLeave={e=>e.currentTarget.style.color=C.muted}>{c.label}</Link>
-                : <span style={{ color:C.ink }}>{c.label}</span>}
-              {i<arr.length-1 && <span style={{ opacity:0.4 }}>›</span>}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Rabat', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Mobiles', href:`/${locale}/electronics/mobiles` },
+            { label:brandData.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         {/* TITLE + SORT */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'16px', marginBottom:'24px', flexWrap:'wrap' as const }}>
@@ -386,7 +413,7 @@ export default function MobileBrandPage() {
 
         {/* LISTINGS */}
         <section style={{ marginBottom:'48px' }}>
-          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {brandData.count} results</p>
+          <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'20px' }}>Showing {listings.length} of {filteredListings.length} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'20px' }}>
             {listings.map((item,i)=><ListingCard key={i} {...item} />)}
           </div>
@@ -394,39 +421,24 @@ export default function MobileBrandPage() {
 
         {/* PAGINATION */}
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', marginBottom:'64px' }}>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronLeft size={18} /></button>
-          {[1,2,3,4,5].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page<=1?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page<=1?0.4:1 }}><ChevronLeft size={18} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)} style={{ width:'44px', height:'44px', borderRadius:'12px', cursor:'pointer', fontSize:'15px', ...UB, border:'1px solid', transition:'all 0.2s', backgroundColor:page===p?C.mint:'white', color:page===p?C.ink:C.muted, borderColor:page===p?C.mint:'rgba(107,122,118,0.12)' }}>{p}</button>
           ))}
-          <span style={{ color:C.muted }}>…</span>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', fontSize:'15px', ...UB, color:C.muted }}>12</button>
-          <button style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted }}><ChevronRight size={18} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:'44px', height:'44px', borderRadius:'12px', backgroundColor:'white', border:'1px solid rgba(107,122,118,0.12)', cursor:page>=totalPages?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, opacity:page>=totalPages?0.4:1 }}><ChevronRight size={18} /></button>
         </div>
 
-        {/* EXPLORE OTHER BRANDS */}
-        <section style={{ marginBottom:'48px' }}>
-          <h3 style={{ fontSize:'clamp(18px,2.5vw,24px)', ...UB, color:C.ink, textTransform:'uppercase' as const, marginBottom:'20px' }}>Explore Other Brands</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:'14px' }}>
-            {ALL_BRANDS.filter(b=>b.slug!==brandSlug).map(b=>(
-              <Link key={b.slug} href={`/${locale}/electronics/mobiles/${b.slug}`}
-                style={{ backgroundColor:'white', borderRadius:'20px', padding:'20px 16px', textAlign:'center' as const, border:'1px solid rgba(107,122,118,0.1)', textDecoration:'none', transition:'all 0.2s', display:'block' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.boxShadow=`0 8px 24px ${C.mint}18`}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.1)';e.currentTarget.style.boxShadow='none'}}
-              >
-                <p style={{ fontSize:'11px', ...UB, color:C.ink, textTransform:'uppercase' as const, letterSpacing:'0.08em' }}>{b.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
+        <CategoryFooterNav
+          relatedTitle="Explore Other Brands"
+          related={ALL_BRANDS.filter(b=>b.slug!==brandSlug).map(b=>({ label:b.label, href:`/${locale}/electronics/mobiles/${b.slug}` }))}
+          backHref={`/${locale}/electronics/mobiles`}
+          backLabel="Back to All Mobiles"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
 
-        {/* BACK */}
-        <div style={{ textAlign:'center' as const }}>
-          <Link href={`/${locale}/electronics/mobiles`}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'16px 40px', borderRadius:'100px', backgroundColor:C.ink, color:'white', textDecoration:'none', fontSize:'12px', ...UB, textTransform:'uppercase' as const, letterSpacing:'0.1em', transition:'background 0.2s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.ink}
-          >← Back to All Mobiles</Link>
-        </div>
       </main>
     </div>
   )

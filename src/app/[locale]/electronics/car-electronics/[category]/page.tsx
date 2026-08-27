@@ -1,6 +1,7 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo} from 'react'
 import Link from 'next/link'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
@@ -169,7 +170,33 @@ export default function CarElectronicsCategoryPage() {
   }
 
   const hasRealData = dbListings.length > 0
-  const listings = hasRealData ? dbListings.map(mapDbRowToItem) : makeListings(catSlug, 16)
+  function priceInRange(itemPrice: number, rangeLabel: string) {
+    if (!rangeLabel || rangeLabel.startsWith('Any')) return true
+    const nums = rangeLabel.replace(/,/g, '').match(/\d+/g)?.map(Number) || []
+    if (rangeLabel.includes('+')) return itemPrice >= nums[0]
+    if (nums.length === 2) return itemPrice >= nums[0] && itemPrice <= nums[1]
+    return true
+  }
+
+  const PAGE_SIZE = 12
+
+  const filteredListings = useMemo(() => {
+    const allListings = hasRealData ? dbListings.map(mapDbRowToItem) : makeListings(catSlug, 16)
+    return allListings.filter((item: any) =>
+      (keyword.trim() === '' ||
+        item.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        (item.brand || '').toLowerCase().includes(keyword.toLowerCase())) &&
+      (city === 'All Morocco' || !city || item.location.toLowerCase().includes(city.toLowerCase())) &&
+      priceInRange(item.price, price) &&
+      (!activeBrand || item.brand === activeBrand)
+    )
+  }, [hasRealData, dbListings, catSlug, keyword, city, price, activeBrand])
+
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE))
+  const clampedPage = Math.min(page, totalPages)
+  const listings = filteredListings.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE)
+
+  useEffect(() => { setPage(1) }, [keyword, city, price])
 
   function DDrop({ label, value, options, open, setOpen, onChange }: any) {
     return (
@@ -230,12 +257,16 @@ export default function CarElectronicsCategoryPage() {
       </div>
 
       <div style={{ maxWidth:1440, margin:'32px auto 0', padding:'0 40px 80px' }}>
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:16 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/electronics`} style={{ color:C.muted, textDecoration:'none' }}>Electronics</Link><span>›</span>
-          <Link href={`/${locale}/electronics/car-electronics`} style={{ color:C.muted, textDecoration:'none' }}>Car Electronics</Link><span>›</span>
-          <span style={{ color:C.ink }}>{cat.label}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Electronics', href:`/${locale}/electronics` },
+            { label:'Car Electronics', href:`/${locale}/electronics/car-electronics` },
+            { label:cat.label },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+        />
 
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' as const, marginBottom:4 }}>
           <div>
@@ -283,7 +314,7 @@ export default function CarElectronicsCategoryPage() {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:`repeat(${cat.brands.length},1fr)`, gap:12 }}>
             {cat.brands.map(brand=>(
-              <button key={brand} onClick={()=>setActiveBrand(activeBrand===brand?'':brand)}
+              <button key={brand} onClick={()=>{setActiveBrand(activeBrand===brand?'':brand);setPage(1)}}
                 style={{ position:'relative', borderRadius:20, overflow:'hidden', border:`2px solid ${activeBrand===brand?C.mint:'transparent'}`, cursor:'pointer', transition:'all 0.2s', background:'none', padding:0 }}>
                 <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden' }}>
                   <img src={BRAND_IMG[brand] || cat.image} alt={brand} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.4s', transform:activeBrand===brand?'scale(1.06)':'scale(1)' }} />
@@ -298,21 +329,23 @@ export default function CarElectronicsCategoryPage() {
         </section>
 
         <section style={{ marginBottom:40 }}>
-          <p style={{ fontSize:13, color:C.muted, marginBottom:16 }}>Showing {listings.length} of {cat.count} results</p>
+          <p style={{ fontSize:13, color:C.muted, marginBottom:16 }}>Showing {listings.length} of {filteredListings.length} results</p>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
             {listings.map(item=><ListingCard key={item.id} item={item} locale={locale} />)}
           </div>
         </section>
 
         <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, marginBottom:48 }}>
-          <button style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronLeft size={16} /></button>
-          {[1,2,3].map(p=>(
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:page<=1?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink, opacity:page<=1?0.4:1 }}><ChevronLeft size={16} /></button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p=>(
             <button key={p} onClick={()=>setPage(p)}
               style={{ width:36, height:36, borderRadius:10, border:page===p?'none':'1px solid #e2e8f0', backgroundColor:page===p?C.mint:'white', color:page===p?'white':C.ink, fontWeight:700, fontSize:13, cursor:'pointer' }}>
               {p}
             </button>
           ))}
-          <button style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink }}><ChevronRight size={16} /></button>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ width:36, height:36, borderRadius:10, border:'1px solid #e2e8f0', backgroundColor:'white', cursor:page>=totalPages?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:C.ink, opacity:page>=totalPages?0.4:1 }}><ChevronRight size={16} /></button>
         </div>
 
         <section style={{ marginBottom:40 }}>

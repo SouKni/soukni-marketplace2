@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Heart, Search, ChevronRight } from 'lucide-react'
 import { useDictionary } from '@/lib/useDictionary'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -84,8 +86,13 @@ function PropertyCard({ item, t }: { item: PropItem; t: any }) {
 export default function PropertyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = React.use(params)
   const t = useDictionary(locale)
+  const router = useRouter()
   const [keyword, setKeyword] = useState('')
   const [hovCat, setHovCat] = useState<string|null>(null)
+
+  function applySearch() {
+    if (keyword.trim()) router.push(`/${locale}/search?q=${encodeURIComponent(keyword.trim())}`)
+  }
   const categories = [
     { slug:'for-sale',            label:t.property.catForSale,            count:'25,180', emoji:'🏢', image:'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=600' },
     { slug:'for-rent',            label:t.property.catForRent,            count:'1,840',  emoji:'🏡', image:'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&w=600' },
@@ -120,9 +127,9 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
             </div>
             <div style={{ display:'flex', flexDirection:'column' as const, padding:'14px 22px', flex:1, borderRight:'1px solid rgba(255,255,255,0.2)', gap:2 }}>
               <span style={{ fontSize:9, fontWeight:800, color:'rgba(255,255,255,0.55)', textTransform:'uppercase' as const, letterSpacing:'0.12em' }}>{t.common.keyword}</span>
-              <input value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder={t.property.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
+              <input value={keyword} onChange={e=>setKeyword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applySearch()} placeholder={t.property.keywordPlaceholder} style={{ backgroundColor:'transparent', border:'none', outline:'none', fontSize:14, fontWeight:600, color:'white', fontFamily:"'Inter',sans-serif", padding:0, width:'100%' }} />
             </div>
-            <button style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
+            <button onClick={applySearch} style={{ backgroundColor:C.mint, color:'white', border:'none', padding:'0 32px', fontWeight:800, fontSize:14, cursor:'pointer', flexShrink:0, transition:'background 0.15s', display:'flex', alignItems:'center', gap:8 }}
               onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mintDk}
               onMouseLeave={e=>e.currentTarget.style.backgroundColor=C.mint}>
               <Search size={16} /> {t.common.search}
@@ -154,10 +161,15 @@ export default function PropertyPage({ params }: { params: Promise<{ locale: str
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>{t.common.home}</Link><span>›</span>
-          <span style={{ color:C.ink }}>{t.property.badge}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:t.common.home, href:`/${locale}` },
+            { label:t.property.badge },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:32 }}
+        />
 
         {/* CATEGORY GRID */}
         <section style={{ marginBottom:32 }}>

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Search, ChevronRight, MapPin, Bed, Bath, Maximize, Phone } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -140,8 +142,19 @@ export default function ForRentPage({ params }: { params: Promise<{ locale: stri
 
   const hasRealData = dbListings.length > 0
   const realListings = hasRealData ? dbListings.map(mapDbRowToCard) : []
-  const listings = hasRealData ? realListings.slice(0, 6) : MOCK_LISTINGS
-  const moreListings = hasRealData ? realListings.slice(6) : MOCK_MORE_LISTINGS
+  const matchesFilters = (item: any) => {
+    const mk = keyword.trim() === '' ||
+      item.title.toLowerCase().includes(keyword.toLowerCase()) ||
+      item.location.toLowerCase().includes(keyword.toLowerCase())
+    const mc = city === 'All Morocco' || item.location.toLowerCase().includes(city.toLowerCase())
+    const mt = type === 'All Types' || item.type === type
+    const priceNum = Number(String(item.price).replace(/,/g, ''))
+    const mp = !maxP.trim() || priceNum <= Number(maxP)
+    const mb = beds === 'Any' || (item.beds != null && item.beds >= Number(beds.replace('+', '')))
+    return mk && mc && mt && mp && mb
+  }
+  const listings = (hasRealData ? realListings.slice(0, 6) : MOCK_LISTINGS).filter(matchesFilters)
+  const moreListings = (hasRealData ? realListings.slice(6) : MOCK_MORE_LISTINGS).filter(matchesFilters)
 
   return (
     <div style={{ fontFamily:"'Inter',sans-serif", backgroundColor:C.surface, minHeight:'100vh' }}>
@@ -211,11 +224,16 @@ export default function ForRentPage({ params }: { params: Promise<{ locale: stri
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`}          style={{ color:C.muted, textDecoration:'none' }}>Home</Link><span>›</span>
-          <Link href={`/${locale}/property`}  style={{ color:C.muted, textDecoration:'none' }}>Property</Link><span>›</span>
-          <span style={{ color:C.ink }}>For Rent</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:'Home', href:`/${locale}` },
+            { label:'Property', href:`/${locale}/property` },
+            { label:'For Rent' },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:32 }}
+        />
 
         {/* SUBCATEGORY HUB GRID */}
         <section style={{ marginBottom:64 }}>
@@ -388,6 +406,12 @@ export default function ForRentPage({ params }: { params: Promise<{ locale: stri
           </Link>
         </section>
 
+        <CategoryFooterNav
+          backHref={`/${locale}/property`}
+          backLabel="Back to All Property"
+          inkColor={C.ink}
+          mintDkColor={C.mintDk}
+        />
       </div>
     </div>
   )

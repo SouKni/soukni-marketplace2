@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useDictionary } from '@/lib/useDictionary'
 import { ALL_CITIES } from '@/data/moroccoLocations'
 import { Search, ChevronRight, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -190,10 +191,15 @@ export default function ServicesPage({ params }: { params: Promise<{ locale:stri
       <div style={{ maxWidth:1440, margin:'48px auto 0', padding:'0 40px 80px' }}>
 
         {/* BREADCRUMB */}
-        <nav style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase' as const, letterSpacing:'0.06em', marginBottom:32 }}>
-          <Link href={`/${locale}`} style={{ color:C.muted, textDecoration:'none' }}>{t.common.home}</Link><span>›</span>
-          <span style={{ color:C.ink }}>{t.services.breadcrumb}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label:t.common.home, href:`/${locale}` },
+            { label:t.services.breadcrumb },
+          ]}
+          mutedColor={C.muted}
+          inkColor={C.ink}
+          style={{ marginBottom:32 }}
+        />
 
         {/* CATEGORY GRID */}
         <section style={{ marginBottom:64 }}>

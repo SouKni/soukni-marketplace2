@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import Link from 'next/link'
 import { Search, ChevronRight, MessageCircle, Mail, Phone, Shield, Package, CreditCard, User, Tag, AlertTriangle, ChevronDown, ChevronUp, Zap, Star } from 'lucide-react'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -128,6 +129,8 @@ export default function HelpPage({ params }: { params: Promise<{ locale: Locale 
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px 80px' }}>
+
+        <Breadcrumb items={[{ label: 'Home', href: `/${locale}` }, { label: 'Help Center' }]} style={{ marginBottom: 24, textTransform: 'none', fontSize: 13, letterSpacing: 'normal' }} />
 
         {/* SEARCH RESULTS */}
         {searchResults !== null && (
