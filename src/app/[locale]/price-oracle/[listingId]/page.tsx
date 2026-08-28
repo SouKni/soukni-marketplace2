@@ -12,67 +12,55 @@ const MUTED = '#6b7a76'
 const SURFACE = '#f4fbf8'
 const FONT = "'Inter', system-ui, sans-serif"
 
-const MOCK_ITEM = {
-  title: 'iPhone 15 Pro Max 256GB', currentPrice: 12500, image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=400',
-  category: 'Electronics', city: 'Rabat'
+type OracleResponse = {
+  listing: { id: string; title: string; price: number; currency: string; category_slug: string | null; condition: string | null; city: string | null; image: string | null }
+  comparableCount: number
+  verdict: {
+    recommendation: 'buy_now' | 'wait' | 'fair'
+    verdict: string
+    reasoning: string
+    confidence: number
+    suggestedMin: number | null
+    suggestedMax: number | null
+    source: 'ai' | 'fallback'
+  }
 }
 
-const HISTORICAL = [
-  { month: 'Feb', price: 14200 }, { month: 'Mar', price: 13800 }, { month: 'Apr', price: 13500 },
-  { month: 'May', price: 13100 }, { month: 'Jun', price: 12800 }, { month: 'Jul', price: 12500 },
-]
-const FORECAST = [
-  { month: 'Aug', price: 12100, confidence: 82 }, { month: 'Sep', price: 11700, confidence: 74 },
-  { month: 'Oct', price: 11400, confidence: 63 },
-]
+function categoryLabel(slug: string | null) {
+  if (!slug) return 'Listing'
+  return slug.split('-').map(w => w[0]?.toUpperCase() + w.slice(1)).join(' ')
+}
 
 export default function PriceOraclePage({ params }: { params: Promise<{ locale: Locale; listingId: string }> }) {
   const { locale, listingId } = use(params)
-  const [loading, setLoading]   = useState(true)
-  const [analysis, setAnalysis] = useState<{ verdict: string; recommendation: 'buy_now' | 'wait'; reasoning: string; confidence: number } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [data, setData] = useState<OracleResponse | null>(null)
 
   useEffect(() => {
-    fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: `You are a marketplace pricing forecaster for Morocco. Product: "${MOCK_ITEM.title}", current price ${MOCK_ITEM.currentPrice} MAD.
-Historical prices (last 6 months, declining trend): ${HISTORICAL.map(h => h.price).join(', ')} MAD.
-This typically happens with electronics as newer models release.
-
-Respond ONLY with JSON: {"verdict":"<one sentence>","recommendation":"buy_now|wait","reasoning":"<2 sentences explaining why>","confidence":<60-95>}`
-        }]
+    let cancelled = false
+    setLoading(true)
+    fetch('/api/price-oracle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ listingId }) })
+      .then(async r => {
+        if (r.status === 404) { if (!cancelled) setNotFound(true); return null }
+        return r.json()
       })
-    }).then(r => r.json()).then(data => {
-      try {
-        const text = data.content?.[0]?.text || '{}'
-        setAnalysis(JSON.parse(text.replace(/```json|```/g, '').trim()))
-      } catch {
-        setAnalysis({ verdict: 'Prices trending down — waiting may save money', recommendation: 'wait', reasoning: 'This item has dropped consistently over 6 months as newer models release. Expect further decreases.', confidence: 78 })
-      }
-      setLoading(false)
-    }).catch(() => {
-      setAnalysis({ verdict: 'Prices trending down — waiting may save money', recommendation: 'wait', reasoning: 'This item has dropped consistently over 6 months.', confidence: 78 })
-      setLoading(false)
-    })
-  }, [])
+      .then(json => { if (!cancelled && json) setData(json) })
+      .catch(() => { if (!cancelled) setNotFound(true) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [listingId])
 
-  const allData = [...HISTORICAL, ...FORECAST]
-  const maxP = Math.max(...allData.map(d => d.price))
-  const minP = Math.min(...allData.map(d => d.price)) - 500
-  const range = maxP - minP
-  const w = 600, h = 220, pad = 30
-  const toX = (i: number) => pad + (i / (allData.length - 1)) * (w - pad * 2)
-  const toY = (p: number) => h - pad - ((p - minP) / range) * (h - pad * 2)
+  if (notFound) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, flexDirection: 'column', gap: '12px', padding: '24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '16px', fontWeight: 900, color: INK }}>Listing not found</p>
+        <Link href={`/${locale}`} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>Back to SouKni</Link>
+      </div>
+    )
+  }
 
-  const histPath = HISTORICAL.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(d.price)}`).join(' ')
-  const forecastPath = [HISTORICAL[HISTORICAL.length-1], ...FORECAST].map((d, i) =>
-    `${i === 0 ? 'M' : 'L'} ${toX(HISTORICAL.length - 1 + i)} ${toY(d.price)}`
-  ).join(' ')
+  const { listing, verdict, comparableCount } = data || {}
 
   return (
     <div style={{ background: SURFACE, minHeight: '100vh', fontFamily: FONT }}>
@@ -90,98 +78,70 @@ Respond ONLY with JSON: {"verdict":"<one sentence>","recommendation":"buy_now|wa
           </div>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: 900, color: INK, letterSpacing: '-0.05em' }}>AI Price Oracle</h1>
-            <p style={{ fontSize: '13px', color: MUTED, fontWeight: 700 }}>Should you buy now or wait for a better price?</p>
+            <p style={{ fontSize: '13px', color: MUTED, fontWeight: 700 }}>Is this listing priced fairly against the real market right now?</p>
           </div>
         </div>
 
         {/* Item */}
-        <div style={{ display: 'flex', gap: '14px', padding: '16px', background: 'white', borderRadius: '18px', border: '1px solid #e2eae6', marginBottom: '20px' }}>
-          <img src={MOCK_ITEM.image} alt="" style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>{MOCK_ITEM.category} · {MOCK_ITEM.city}</p>
-            <p style={{ fontSize: '14px', fontWeight: 900, color: INK, marginBottom: '2px' }}>{MOCK_ITEM.title}</p>
-            <p style={{ fontSize: '18px', fontWeight: 900, color: MINT }}>{MOCK_ITEM.currentPrice.toLocaleString()} MAD</p>
+        {listing && (
+          <div style={{ display: 'flex', gap: '14px', padding: '16px', background: 'white', borderRadius: '18px', border: '1px solid #e2eae6', marginBottom: '20px' }}>
+            {listing.image && <img src={listing.image} alt="" style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }} />}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>
+                {categoryLabel(listing.category_slug)}{listing.city ? ` · ${listing.city}` : ''}{listing.condition ? ` · ${listing.condition.replace('_', ' ')}` : ''}
+              </p>
+              <p style={{ fontSize: '14px', fontWeight: 900, color: INK, marginBottom: '2px' }}>{listing.title}</p>
+              <p style={{ fontSize: '18px', fontWeight: 900, color: MINT }}>{listing.price.toLocaleString()} {listing.currency}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recommendation */}
         {loading ? (
           <div style={{ padding: '40px', background: 'white', borderRadius: '20px', border: '1px solid #e2eae6', textAlign: 'center', marginBottom: '20px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: `3px solid #e2eae6`, borderTopColor: '#7c3aed', margin: '0 auto 12px', animation: 'spin 0.8s linear infinite' }} />
-            <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>AI analysing 6 months of price data...</p>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Comparing against real listings in this category…</p>
           </div>
-        ) : analysis && (
-          <div style={{ padding: '20px 24px', borderRadius: '20px', background: analysis.recommendation === 'wait' ? '#fff4e0' : '#f0fdf9', border: `1.5px solid ${analysis.recommendation === 'wait' ? '#f59e0b' : MINT}`, marginBottom: '20px' }}>
+        ) : verdict && (
+          <div style={{ padding: '20px 24px', borderRadius: '20px', background: verdict.recommendation === 'wait' ? '#fff4e0' : verdict.recommendation === 'buy_now' ? '#f0fdf9' : SURFACE, border: `1.5px solid ${verdict.recommendation === 'wait' ? '#f59e0b' : verdict.recommendation === 'buy_now' ? MINT : '#e2eae6'}`, marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '28px' }}>{analysis.recommendation === 'wait' ? '⏳' : '🎯'}</span>
+              <span style={{ fontSize: '28px' }}>{verdict.recommendation === 'wait' ? '⏳' : verdict.recommendation === 'buy_now' ? '🎯' : '⚖️'}</span>
               <div>
-                <p style={{ fontSize: '17px', fontWeight: 900, color: analysis.recommendation === 'wait' ? '#b45309' : '#0f9b8e', letterSpacing: '-0.03em' }}>
-                  {analysis.recommendation === 'wait' ? 'Wait for a better price' : 'Buy Now — Good Time!'}
+                <p style={{ fontSize: '17px', fontWeight: 900, color: verdict.recommendation === 'wait' ? '#b45309' : verdict.recommendation === 'buy_now' ? '#0f9b8e' : INK, letterSpacing: '-0.03em' }}>
+                  {verdict.verdict}
                 </p>
-                <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>AI confidence: {analysis.confidence}%</p>
+                <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>
+                  {verdict.source === 'ai' ? 'AI' : 'Market'} confidence: {verdict.confidence}% · based on {comparableCount} comparable listing{comparableCount === 1 ? '' : 's'}
+                </p>
               </div>
             </div>
-            <p style={{ fontSize: '14px', color: INK, fontWeight: 700, lineHeight: 1.6 }}>{analysis.reasoning}</p>
+            <p style={{ fontSize: '14px', color: INK, fontWeight: 700, lineHeight: 1.6 }}>{verdict.reasoning}</p>
           </div>
         )}
 
-        {/* Chart */}
-        <div style={{ background: 'white', borderRadius: '20px', padding: '24px', border: '1px solid #e2eae6', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 900, color: INK, letterSpacing: '-0.03em' }}>Price History & Forecast</h3>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: MUTED }}>
-                <div style={{ width: '12px', height: '2px', background: INK }} /> Actual
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: MUTED }}>
-                <div style={{ width: '12px', height: '2px', background: '#7c3aed', backgroundImage: 'repeating-linear-gradient(90deg, #7c3aed 0, #7c3aed 4px, transparent 4px, transparent 8px)' }} /> AI Forecast
-              </span>
+        {/* Comparable range — real, from actual active listings in the same
+            category. No fabricated price-history chart: this app doesn't
+            track price changes over time, only the current listed price. */}
+        {!loading && verdict && verdict.suggestedMin != null && verdict.suggestedMax != null && (
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', border: '1px solid #e2eae6', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 900, color: INK, letterSpacing: '-0.03em', marginBottom: '16px' }}>Comparable Listings Right Now</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginBottom: '4px' }}>Market range ({comparableCount} listings)</p>
+                <p style={{ fontSize: '20px', fontWeight: 900, color: INK, letterSpacing: '-0.03em' }}>
+                  {verdict.suggestedMin.toLocaleString()} – {verdict.suggestedMax.toLocaleString()} {listing?.currency}
+                </p>
+              </div>
+              <div style={{ width: '2px', height: '36px', background: '#e2eae6' }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginBottom: '4px' }}>This listing</p>
+                <p style={{ fontSize: '20px', fontWeight: 900, color: MINT, letterSpacing: '-0.03em' }}>
+                  {listing?.price.toLocaleString()} {listing?.currency}
+                </p>
+              </div>
             </div>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ minWidth: '400px', width: '100%' }}>
-              {[0, 0.25, 0.5, 0.75, 1].map(t => {
-                const y = pad + t * (h - pad * 2)
-                const val = Math.round(maxP - t * range)
-                return (
-                  <g key={t}>
-                    <line x1={pad} y1={y} x2={w-pad} y2={y} stroke="#f1f5f9" strokeWidth="1" />
-                    <text x={pad-6} y={y+4} textAnchor="end" fontSize="9" fill={MUTED} fontWeight="700">{(val/1000).toFixed(1)}k</text>
-                  </g>
-                )
-              })}
-              {/* Historical line */}
-              <path d={histPath} fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
-              {/* Forecast line dashed */}
-              <path d={forecastPath} fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6,4" />
-              {/* Points */}
-              {HISTORICAL.map((d, i) => (
-                <g key={i}>
-                  <circle cx={toX(i)} cy={toY(d.price)} r="4" fill="white" stroke={INK} strokeWidth="2" />
-                  <text x={toX(i)} y={h-6} textAnchor="middle" fontSize="9" fill={MUTED} fontWeight="700">{d.month}</text>
-                </g>
-              ))}
-              {FORECAST.map((d, i) => (
-                <g key={i}>
-                  <circle cx={toX(HISTORICAL.length + i)} cy={toY(d.price)} r="4" fill="white" stroke="#7c3aed" strokeWidth="2" />
-                  <text x={toX(HISTORICAL.length + i)} y={h-6} textAnchor="middle" fontSize="9" fill="#7c3aed" fontWeight="700">{d.month}</text>
-                  <text x={toX(HISTORICAL.length + i)} y={toY(d.price)-10} textAnchor="middle" fontSize="9" fill="#7c3aed" fontWeight="900">{(d.price/1000).toFixed(1)}k</text>
-                </g>
-              ))}
-            </svg>
-          </div>
-        </div>
-
-        {/* Forecast breakdown */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-          {FORECAST.map(f => (
-            <div key={f.month} style={{ padding: '14px', background: 'white', borderRadius: '14px', border: '1px solid #e2eae6', textAlign: 'center' }}>
-              <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginBottom: '4px' }}>{f.month} 2026</p>
-              <p style={{ fontSize: '16px', fontWeight: 900, color: '#7c3aed', letterSpacing: '-0.03em' }}>{f.price.toLocaleString()}</p>
-              <p style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>MAD · {f.confidence}% confidence</p>
-            </div>
-          ))}
-        </div>
+        )}
 
         <Link href={`/${locale}/listing/${listingId}`}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '14px', background: MINT, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: 900 }}>

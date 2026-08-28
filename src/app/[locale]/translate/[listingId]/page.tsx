@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Check, Globe, Sparkles, Copy, X } from 'lucide-react'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
-type Lang = 'ar' | 'fr' | 'en' | 'es' | 'de' | 'tamazight'
+type Lang = 'ar' | 'fr' | 'en' | 'es' | 'nl' | 'tzm'
 
 const MINT    = '#22d4a8'
 const SURFACE = '#f4fbf8'
@@ -14,64 +15,61 @@ const MUTED   = '#6b7a76'
 const FONT    = "'Inter', system-ui, sans-serif"
 
 const LANGUAGES: { code: Lang; label: string; flag: string; rtl?: boolean }[] = [
-  { code: 'ar',        label: 'العربية',   flag: '🇲🇦', rtl: true },
-  { code: 'fr',        label: 'Français',  flag: '🇫🇷' },
-  { code: 'en',        label: 'English',   flag: '🇬🇧' },
-  { code: 'es',        label: 'Español',   flag: '🇪🇸' },
-  { code: 'de',        label: 'Deutsch',   flag: '🇩🇪' },
-  { code: 'tamazight', label: 'Tamazight', flag: '🏔️' },
+  { code: 'ar',  label: 'العربية',   flag: '🇲🇦', rtl: true },
+  { code: 'fr',  label: 'Français',  flag: '🇫🇷' },
+  { code: 'en',  label: 'English',   flag: '🇬🇧' },
+  { code: 'es',  label: 'Español',   flag: '🇪🇸' },
+  { code: 'nl',  label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'tzm', label: 'Tamazight', flag: '🏔️' },
 ]
 
-const MOCK_LISTINGS: Record<string, { title: string; description: string; price: string; image: string; category: string }> = {
-  '1': {
-    title: 'iPhone 15 Pro Max 256GB — Titanium Black, Mint Condition',
-    description: 'Selling my iPhone 15 Pro Max 256GB in Titanium Black. The phone is in absolutely mint condition — no scratches, no dents. Used for only 4 months with a case and screen protector since day one.\n\nComes with original box, charger and all accessories.\n\nBattery health: 98%\nFace ID: Perfect\n\nReason for selling: Upgrading to different model.',
-    price: '12,500 MAD',
-    image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=400',
-    category: 'Electronics'
-  },
+type DbListing = { id: string; title: string; description: string | null; price: number; currency: string; images: string[]; category_slug: string | null }
+
+function categoryLabel(slug: string | null) {
+  if (!slug) return 'Listing'
+  return slug.split('-').map(w => w[0]?.toUpperCase() + w.slice(1)).join(' ')
 }
 
 export default function TranslatePage({ params }: { params: Promise<{ locale: Locale; listingId: string }> }) {
   const { locale, listingId } = use(params)
-  const listing = MOCK_LISTINGS[listingId] || MOCK_LISTINGS['1']
+  const supabase = getSupabaseClient()
 
+  const [listing, setListing] = useState<DbListing | null | undefined>(undefined) // undefined = loading, null = not found
   const [targetLang, setTargetLang]     = useState<Lang>('ar')
   const [loading, setLoading]           = useState(false)
   const [result, setResult]             = useState<{ title: string; description: string } | null>(null)
+  const [error, setError]               = useState<string | null>(null)
   const [copied, setCopied]             = useState<'title' | 'desc' | null>(null)
-  const [autoTranslate, setAutoTranslate] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('listings').select('id, title, description, price, currency, images, category_slug').eq('id', listingId).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setListing(data ?? null) })
+    return () => { cancelled = true }
+  }, [listingId])
 
   const langLabel = LANGUAGES.find(l => l.code === targetLang)
   const isRTL     = langLabel?.rtl
 
   const translate = async () => {
+    if (!listing) return
     setLoading(true)
     setResult(null)
+    setError(null)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `Translate this marketplace listing accurately to ${langLabel?.label}. Keep it natural, not literal. Preserve the meaning and selling tone. For Arabic, use Moroccan Arabic (Darija) where appropriate for informal parts but Modern Standard Arabic for the title.
-
-Title: "${listing.title}"
-Description: "${listing.description}"
-
-Respond ONLY with valid JSON: {"title":"<translated title>","description":"<translated description>"}`
-          }]
-        })
+        body: JSON.stringify({ title: listing.title, description: listing.description || '', targetLang }),
       })
-      const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
-      setResult(parsed)
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(body.error || 'Translation is temporarily unavailable')
+      } else {
+        setResult(await res.json())
+      }
     } catch {
-      setResult({ title: 'Translation error — please try again', description: '' })
+      setError('Translation is temporarily unavailable — check your connection and try again')
     }
     setLoading(false)
   }
@@ -83,13 +81,30 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
     setTimeout(() => setCopied(null), 2000)
   }
 
+  if (listing === undefined) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Loading…</p>
+      </div>
+    )
+  }
+
+  if (listing === null) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, flexDirection: 'column', gap: '12px', padding: '24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '16px', fontWeight: 900, color: INK }}>Listing not found</p>
+        <Link href={`/${locale}`} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>Back to SouKni</Link>
+      </div>
+    )
+  }
+
   return (
     <div style={{ background: SURFACE, minHeight: '100vh', fontFamily: FONT }}>
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '32px 24px 80px' }}>
 
         {/* Breadcrumb */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' }}>
-          <Link href={`/${locale}/account/my-ads`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>My Ads</Link>
+          <Link href={`/${locale}/listing/${listingId}`} style={{ fontSize: '13px', color: MUTED, textDecoration: 'none', fontWeight: 700 }}>Listing</Link>
           <ChevronRight size={13} color={MUTED} />
           <span style={{ fontSize: '13px', fontWeight: 900, color: INK }}>AI Translate</span>
         </nav>
@@ -110,17 +125,17 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
           <div style={{ background: 'white', borderRadius: '20px', padding: '24px', border: '1px solid #e2eae6' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <span style={{ fontSize: '16px' }}>🇬🇧</span>
-              <p style={{ fontSize: '13px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Original (English)</p>
+              <p style={{ fontSize: '13px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Original</p>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <img src={listing.image} alt="" style={{ width: '52px', height: '52px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
+              {listing.images?.[0] && <img src={listing.images[0]} alt="" style={{ width: '52px', height: '52px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />}
               <div>
-                <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>{listing.category}</p>
-                <p style={{ fontSize: '12px', fontWeight: 900, color: MINT }}>{listing.price}</p>
+                <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>{categoryLabel(listing.category_slug)}</p>
+                <p style={{ fontSize: '12px', fontWeight: 900, color: MINT }}>{Math.round(listing.price / 100).toLocaleString()} {listing.currency}</p>
               </div>
             </div>
             <p style={{ fontSize: '14px', fontWeight: 900, color: INK, marginBottom: '10px', lineHeight: 1.3 }}>{listing.title}</p>
-            <p style={{ fontSize: '12px', color: MUTED, lineHeight: 1.7, fontWeight: 600, maxHeight: '160px', overflowY: 'auto' }}>{listing.description}</p>
+            <p style={{ fontSize: '12px', color: MUTED, lineHeight: 1.7, fontWeight: 600, maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-line' }}>{listing.description || 'No description provided.'}</p>
           </div>
 
           {/* Translation panel */}
@@ -130,7 +145,7 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
               <p style={{ fontSize: '12px', fontWeight: 900, color: INK, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Translate to</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
                 {LANGUAGES.map(l => (
-                  <button key={l.code} onClick={() => { setTargetLang(l.code); setResult(null) }}
+                  <button key={l.code} onClick={() => { setTargetLang(l.code); setResult(null); setError(null) }}
                     style={{ padding: '10px 8px', borderRadius: '10px', border: `1.5px solid ${targetLang === l.code ? MINT : '#e2eae6'}`, background: targetLang === l.code ? '#f0fdf9' : 'white', cursor: 'pointer', fontFamily: FONT, textAlign: 'center', transition: 'all 0.15s' }}>
                     <p style={{ fontSize: '18px', marginBottom: '3px' }}>{l.flag}</p>
                     <p style={{ fontSize: '11px', fontWeight: 900, color: targetLang === l.code ? MINT : INK }}>{l.label}</p>
@@ -145,6 +160,12 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
                 }
               </button>
             </div>
+
+            {error && (
+              <div style={{ background: '#fee2e2', borderRadius: '14px', padding: '16px 20px', border: '1px solid #fecaca' }}>
+                <p style={{ fontSize: '13px', color: '#dc2626', fontWeight: 700 }}>{error}</p>
+              </div>
+            )}
 
             {/* Translation result */}
             {result && (
@@ -176,7 +197,7 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
                 </div>
 
                 <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginTop: '10px', textAlign: 'center' }}>
-                  Powered by Claude AI · Copy and paste into your listing
+                  AI-translated · Copy and paste into your listing
                 </p>
               </div>
             )}
@@ -184,28 +205,6 @@ Respond ONLY with valid JSON: {"title":"<translated title>","description":"<tran
         </div>
 
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-
-        {/* All languages grid */}
-        {result && (
-          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', border: '1px solid #e2eae6', marginTop: '20px' }}>
-            <p style={{ fontSize: '14px', fontWeight: 900, color: INK, marginBottom: '14px', letterSpacing: '-0.03em' }}>
-              🌍 Want to translate to all languages at once?
-            </p>
-            <p style={{ fontSize: '13px', color: MUTED, fontWeight: 700, marginBottom: '16px' }}>
-              SouKni can automatically show your listing in the viewer's language. Enable Auto-Translate to reach all Moroccan buyers — Arabic, French, Amazigh speakers and more.
-            </p>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: SURFACE, borderRadius: '12px', border: `1.5px solid ${autoTranslate ? MINT : '#e2eae6'}`, cursor: 'pointer' }}>
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: 900, color: INK }}>Auto-Translate for all viewers</p>
-                <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>Listing shown in viewer's language automatically</p>
-              </div>
-              <div onClick={() => setAutoTranslate(!autoTranslate)}
-                style={{ width: '44px', height: '24px', borderRadius: '12px', background: autoTranslate ? MINT : '#e2eae6', position: 'relative', flexShrink: 0, cursor: 'pointer', transition: 'background 0.2s' }}>
-                <div style={{ position: 'absolute', top: '2px', left: autoTranslate ? '22px' : '2px', width: '20px', height: '20px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
-              </div>
-            </label>
-          </div>
-        )}
       </div>
     </div>
   )
