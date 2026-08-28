@@ -131,7 +131,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
     { label: t.categories.property,    count: '12,450', icon: '🏡', slug: 'property',    image: 'https://images.pexels.com/photos/2581922/pexels-photo-2581922.jpeg?auto=compress&w=600', color: '#2dd4bf' },
   ]
   const bentoStack = [
-    { label: t.categories.homeLiving, count: '9,200', icon: '🛋️', slug: 'home-living',     image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600' },
+    { label: t.categories.homeLiving, count: '9,200', icon: '🛋️', slug: 'home-garden',     image: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&w=600' },
     { label: t.categories.newCars,    count: '1,540', icon: '🚙', slug: 'motors/new-cars', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=600' },
   ]
 
