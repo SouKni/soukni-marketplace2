@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, use, useRef } from 'react'
+import { useState, use, useRef, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Download, Share2, Printer, Check, Smartphone, Eye, ExternalLink } from 'lucide-react'
+import QRCode from 'qrcode'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -12,62 +14,67 @@ const INK     = '#161d1b'
 const MUTED   = '#6b7a76'
 const FONT    = "'Inter', system-ui, sans-serif"
 
-const MOCK_ADS: Record<string, { title: string; price: string; image: string; city: string; category: string }> = {
-  '1': { title: 'iPhone 15 Pro Max 256GB — Titanium Black', price: '12,500 MAD', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=400', city: 'Rabat', category: 'Electronics' },
-  '2': { title: 'MacBook Pro 14" M3 Pro 18GB/512GB', price: '24,800 MAD', image: 'https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&w=400', city: 'Rabat', category: 'Electronics' },
-  '3': { title: 'AirPods Pro 2nd Gen — Sealed Box', price: '1,850 MAD', image: 'https://images.pexels.com/photos/8000631/pexels-photo-8000631.jpeg?auto=compress&w=400', city: 'Rabat', category: 'Electronics' },
+type DbListing = {
+  id: string
+  title: string
+  price: number
+  currency: string
+  images: string[]
+  city: string | null
+  category_slug: string | null
+  views: number | null
 }
 
-// Generate a simple SVG QR code pattern (decorative — in production use a real QR library)
-const generateQRPattern = (size: number) => {
-  const cells: { x: number; y: number }[] = []
-  const modules = 21
+// Real QR-encode of `text` — returns the same {cells, modules, cell} shape
+// the existing rendering code already expects, so a scanned code actually
+// resolves to the given text instead of a decorative static pattern.
+function generateRealQR(text: string, size: number) {
+  const qr = QRCode.create(text, { errorCorrectionLevel: 'M' })
+  const modules = qr.modules.size
   const cell = size / modules
-
-  // Simulate QR code data pattern
-  const pattern = [
-    [1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,1,1,0,0],
-    [1,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,1,0,0],
-    [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,0],
-    [1,0,1,1,1,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0],
-    [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,0],
-    [1,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,1,0,0],
-    [1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0],
-    [1,1,0,1,0,1,1,1,0,0,1,0,1,1,0,1,0,1,1,1,0],
-    [0,1,1,0,1,0,0,0,1,1,0,1,0,1,1,0,1,0,0,0,1],
-    [1,0,1,1,0,1,1,0,0,0,1,0,1,0,1,1,0,1,1,0,0],
-    [0,1,0,0,1,0,0,1,1,1,0,1,0,1,0,0,1,0,0,1,1],
-    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
-    [0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,0,1,0,0,1,0],
-    [1,1,1,1,1,1,1,0,0,0,1,0,1,0,1,1,0,1,1,0,0],
-    [1,0,0,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,0,1,1],
-    [1,0,1,1,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,0,0],
-    [1,0,1,1,1,0,1,0,1,1,0,1,0,1,0,0,1,0,0,1,1],
-    [1,0,1,1,1,0,1,0,0,0,1,0,1,0,1,1,0,1,1,0,0],
-    [1,0,0,0,0,0,1,1,1,1,0,1,0,1,0,0,1,0,0,1,0],
-    [1,1,1,1,1,1,1,0,0,0,1,0,1,0,1,1,0,1,1,0,0],
-  ]
-
-  pattern.forEach((row, y) => {
-    row.forEach((val, x) => {
-      if (val === 1) cells.push({ x, y })
-    })
-  })
-
+  const cells: { x: number; y: number }[] = []
+  for (let y = 0; y < modules; y++) {
+    for (let x = 0; x < modules; x++) {
+      if (qr.modules.get(x, y)) cells.push({ x, y })
+    }
+  }
   return { cells, modules, cell }
+}
+
+function categoryLabel(slug: string | null) {
+  if (!slug) return 'Listing'
+  return slug.split('-').map(w => w[0]?.toUpperCase() + w.slice(1)).join(' ')
 }
 
 export default function QRPage({ params }: { params: Promise<{ locale: Locale; adId: string }> }) {
   const { locale, adId } = use(params)
+  const supabase = getSupabaseClient()
   const [copied, setCopied]   = useState(false)
   const [style, setStyle]     = useState<'minimal' | 'branded' | 'flyer'>('branded')
+  const [listing, setListing] = useState<DbListing | null | undefined>(undefined) // undefined = loading, null = not found
   const qrRef = useRef<SVGSVGElement>(null)
 
-  const ad  = MOCK_ADS[adId] || MOCK_ADS['1']
-  const url = `https://soukni.com/${locale}/listing/${adId}`
+  useEffect(() => {
+    let cancelled = false
+    supabase.from('listings').select('id, title, price, currency, images, city, category_slug, views').eq('id', adId).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setListing(data ?? null) })
+    return () => { cancelled = true }
+  }, [adId])
 
-  const { cells, modules, cell } = generateQRPattern(200)
+  const ad = listing ? {
+    title: listing.title,
+    price: `${Math.round(listing.price / 100).toLocaleString()} ${listing.currency}`,
+    image: listing.images?.[0] || '',
+    city: listing.city || '',
+    category: categoryLabel(listing.category_slug),
+  } : null
+
+  const url = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+    return `${window.location.origin}/${locale}/listing/${adId}`
+  }, [locale, adId])
+
+  const { cells, modules, cell } = useMemo(() => url ? generateRealQR(url, 200) : { cells: [], modules: 1, cell: 200 }, [url])
 
   const handleCopy = () => {
     navigator.clipboard?.writeText(url)
@@ -76,11 +83,30 @@ export default function QRPage({ params }: { params: Promise<{ locale: Locale; a
   }
 
   const handleShare = () => {
+    if (!ad) return
     if (navigator.share) {
       navigator.share({ title: ad.title, text: `Check out this listing on SouKni: ${ad.title}`, url })
     } else {
       handleCopy()
     }
+  }
+
+  if (listing === undefined) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: MUTED }}>Loading…</p>
+      </div>
+    )
+  }
+
+  if (listing === null || !ad) {
+    return (
+      <div style={{ background: SURFACE, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, flexDirection: 'column', gap: '12px', padding: '24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '16px', fontWeight: 900, color: INK }}>Listing not found</p>
+        <p style={{ fontSize: '13px', color: MUTED, fontWeight: 700 }}>This ad may have been removed or the link is incorrect.</p>
+        <Link href={`/${locale}/account/my-ads`} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>Back to My Ads</Link>
+      </div>
+    )
   }
 
   return (
@@ -276,21 +302,14 @@ export default function QRPage({ params }: { params: Promise<{ locale: Locale; a
               </Link>
             </div>
 
-            {/* Stats */}
+            {/* Stats — real listing views. There's no scan-tracking endpoint
+                behind this QR code, so per-scan analytics aren't shown here
+                rather than inventing numbers for a real, functioning code. */}
             <div style={{ background: 'white', borderRadius: '16px', padding: '18px', border: '1px solid #e2eae6' }}>
-              <p style={{ fontSize: '12px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>QR Code Scans</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {[
-                  { label: 'Total Scans', value: '47' },
-                  { label: 'This Week', value: '12' },
-                  { label: 'WhatsApp', value: '23' },
-                  { label: 'Conversions', value: '3' },
-                ].map(s => (
-                  <div key={s.label} style={{ padding: '10px', background: SURFACE, borderRadius: '10px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '18px', fontWeight: 900, color: INK, letterSpacing: '-0.05em' }}>{s.value}</p>
-                    <p style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>{s.label}</p>
-                  </div>
-                ))}
+              <p style={{ fontSize: '12px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Listing Activity</p>
+              <div style={{ padding: '10px', background: SURFACE, borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '18px', fontWeight: 900, color: INK, letterSpacing: '-0.05em' }}>{listing?.views ?? 0}</p>
+                <p style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>Total Views</p>
               </div>
             </div>
           </div>
