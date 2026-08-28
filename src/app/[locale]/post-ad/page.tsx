@@ -3,6 +3,7 @@
 import { useState, use, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import AiPhotoEnhancer from '@/components/ui/AiPhotoEnhancer'
+import ConditionGrader from '@/components/ui/ConditionGrader'
 import VideoUpload from '@/components/ui/VideoUpload'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { ChevronRight, ChevronLeft, Check, Upload, X, MapPin, Tag, FileText, Camera, DollarSign, Eye, Sparkles, AlertTriangle } from 'lucide-react'
@@ -464,6 +465,16 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
               <div style={{ marginTop: '12px' }}>
                 <p style={{ fontSize: '12px', fontWeight: 900, color: INK, marginBottom: '8px' }}>✨ Enhance with AI</p>
                 <AiPhotoEnhancer onEnhanced={(url) => setPhotos(prev => [url, ...prev.slice(0, 11)])} />
+              </div>
+
+              {/* AI Condition & Authenticity Grader */}
+              <div style={{ marginTop: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 900, color: INK, marginBottom: '8px' }}>🔎 AI Condition Check</p>
+                <ConditionGrader title={title} category={selectedCat?.label}
+                  onApply={({ condition: c, note }) => {
+                    setCondition(c)
+                    setDescription(prev => prev ? `${prev}\n\n${note}` : note)
+                  }} />
               </div>
 
               {/* Video Upload */}
