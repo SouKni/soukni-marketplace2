@@ -5,6 +5,7 @@ const PROTECTED_ROUTES = [
   '/account',
   '/post-ad',
   '/post-ad-voice',
+  '/sell',
   '/messages',
   '/orders',
   '/favorites',

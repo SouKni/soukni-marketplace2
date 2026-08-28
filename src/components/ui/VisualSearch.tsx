@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, Search, X, ChevronRight } from 'lucide-react'
 import { CATEGORIES, CONDITION_FROM_DB } from '@/lib/categories'
+import { resizeImage } from '@/lib/resizeImage'
 
 const MINT = '#22d4a8'
 const INK  = '#161d1b'
@@ -33,32 +34,6 @@ type Result = {
 
 function categoryLabel(slug: string | null) {
   return CATEGORIES.find(c => c.slug === slug)?.label || null
-}
-
-// Downscale to a reasonable max dimension before upload — keeps the request
-// small and the Gemini call cheap without any visible quality loss for
-// product identification purposes.
-function resizeImage(file: File, maxDim = 1024, quality = 0.82): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(reader.error)
-    reader.onload = () => {
-      const img = new Image()
-      img.onerror = () => reject(new Error('Could not read image'))
-      img.onload = () => {
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height))
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return reject(new Error('Canvas unavailable'))
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', quality))
-      }
-      img.src = reader.result as string
-    }
-    reader.readAsDataURL(file)
-  })
 }
 
 export default function VisualSearch({ locale }: { locale: string }) {

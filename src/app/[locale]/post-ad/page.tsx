@@ -300,10 +300,16 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
                   <h2 style={{ fontSize: '24px', fontWeight: 900, color: INK, marginBottom: '6px', letterSpacing: '-0.05em' }}>What are you selling?</h2>
                   <p style={{ fontSize: '14px', color: MUTED, fontWeight: 700 }}>Choose the best category for your item.</p>
                 </div>
-                <a href={`/${locale}/post-ad-voice`}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '100px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(34,212,168,0.3)' }}>
-                  🎤 Post by Voice Instead
-                </a>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <a href={`/${locale}/sell/quick`}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '100px', background: INK, color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                    ⚡ Quick List with Photo
+                  </a>
+                  <a href={`/${locale}/post-ad-voice`}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '100px', background: 'linear-gradient(135deg, #22d4a8, #0f9b8e)', color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(34,212,168,0.3)' }}>
+                    🎤 Post by Voice Instead
+                  </a>
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '28px' }}>
                 {CATEGORIES.map(cat => (
