@@ -9,6 +9,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import ReportButton from '@/components/ui/ReportButton'
+import NegotiationAdvisor from '@/components/ui/NegotiationAdvisor'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -203,6 +204,7 @@ export default function ListingPage() {
                 style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:'#eef5f2', border:'none', color:C.ink, fontSize:14, ...UB, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <MessageCircle size={16} /> Send Message
               </MessageSellerButton>
+              <NegotiationAdvisor listingId={listing.id} sellerId={listing.seller_id} askingPrice={price} currency={listing.currency} title={listing.title} />
             </div>
 
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
