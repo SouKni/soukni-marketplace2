@@ -8,6 +8,7 @@ import React from 'react'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -56,7 +57,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ id, owner, title, price, location, rating, img, badges }: any) {
+function FeaturedCard({ id, owner, title, price, location, rating, img, badges, sellerId }: any) {
   const [hov, setHov]     = useState(false)
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
@@ -81,10 +82,10 @@ function FeaturedCard({ id, owner, title, price, location, rating, img, badges }
         <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>MAD {price.toLocaleString()} <span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}>/ day</span></p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >Message</button>
+          >Message</MessageSellerButton>
           <button style={{ flex:1, backgroundColor:'#25D366', color:'white', border:'none', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
         </div>
       </div>
@@ -92,7 +93,7 @@ function FeaturedCard({ id, owner, title, price, location, rating, img, badges }
   )
 }
 
-function GridCard({ id, owner, title, price, img, badge, rating }: any) {
+function GridCard({ id, owner, title, price, img, badge, rating, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -114,10 +115,10 @@ function GridCard({ id, owner, title, price, img, badge, rating }: any) {
         </div>
         <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>MAD {price.toLocaleString()}<span style={{ fontSize:'9px', fontWeight:400, color:C.muted }}> /day</span></p>
         <div style={{ display:'flex', gap:'6px' }}>
-          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
         </div>
       </div>
@@ -187,10 +188,11 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
   function mapDbRowToCard(row: any) {
     return {
       id: row.id,
+      sellerId: row.seller_id,
       owner: row.profiles?.full_name || '',
       title: row.title,
       price: (row.price || 0) / 100,
-      rating: row.profiles?.rating || 4.5,
+      rating: row.profiles?.rating ?? 0,
       img: (row.images && row.images[0]) || I.g1,
       badge: row.badge || 'verified',
     }
@@ -439,10 +441,10 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
                 </div>
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>★ 5.0 · Delivery available · Casablanca</p>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Book Now</button>
                 </div>
               </div>
@@ -461,7 +463,7 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 9,500</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</MessageSellerButton>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Book Now</button>
                 </div>
               </div>
@@ -480,7 +482,7 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>MAD 8,000</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</MessageSellerButton>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Book Now</button>
                 </div>
               </div>
@@ -498,10 +500,10 @@ export default function CarRentalPage({ params }: { params: Promise<{ locale: st
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>★ 4.7 · Automatic · GPS included · Casablanca</p>
                 <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>MAD 4,900<span style={{ fontSize:'11px', fontWeight:400, color:C.muted }}> /day</span></span>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer' }}>Book Now</button>
                 </div>
               </div>

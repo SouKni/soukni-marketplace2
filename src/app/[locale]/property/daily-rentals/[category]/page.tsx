@@ -7,6 +7,7 @@ import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -142,7 +143,7 @@ function StayCard({ item, locale, view }: { item:any; locale:string; view:'grid'
               <span style={{ fontSize:'13px', color:C.muted, fontWeight:600 }}>MAD / {item.per}</span>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'12px', fontWeight:700, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>Message</button>
+              <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'12px', fontWeight:700, fontFamily:"'Inter',sans-serif" }}>Message</MessageSellerButton>
               <button onClick={e=>e.preventDefault()} style={{ padding:'9px 20px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontSize:'12px', fontWeight:700, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>Book Now</button>
             </div>
           </div>
@@ -233,11 +234,12 @@ export default function DailyRentalSubPage() {
   function mapDbRowToCard(row: any) {
     return {
       id: row.id,
+      sellerId: row.seller_id,
       title: row.title,
       price: (row.price || 0) / 100,
       per: 'night',
       guests: 2,
-      rating: row.profiles?.rating || 4.5,
+      rating: row.profiles?.rating ?? 0,
       reviews: row.profiles?.review_count || 0,
       location: row.city,
       amenities: [] as string[],

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
@@ -107,7 +108,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ id, brand, title, price, location, condition, img, badge, size, phone }: any) {
+function ListingCard({ id, brand, title, price, location, condition, img, badge, size, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -130,10 +131,10 @@ function ListingCard({ id, brand, title, price, location, condition, img, badge,
         <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'6px' }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'12px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title}
             style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             WhatsApp
@@ -243,6 +244,7 @@ export default function WeddingCategoryPage() {
       img: (row.images && row.images[0]) || WEDDING_IMGS[0],
       badge: row.badge || 'certified',
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 
@@ -462,7 +464,7 @@ export default function WeddingCategoryPage() {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <p style={{ fontSize:'18px', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:900, color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
                       <div style={{ display:'flex', gap:'8px' }}>
-                        <button style={{ padding:'8px 16px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', cursor:'pointer' }}>Message</button>
+                        <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ padding:'8px 16px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', cursor:'pointer' }}>Message</MessageSellerButton>
                         <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px' }} />
                       </div>
                     </div>

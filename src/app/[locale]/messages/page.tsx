@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, use, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, use, useRef, useEffect, useCallback, useMemo, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Search, Send, MoreVertical, Check, CheckCheck, Image as ImageIcon, Phone, MapPin, X, Smile, Paperclip, ArrowLeft, Bell, BellOff, Circle, Clock, Shield, Flag, Trash2, Archive, Star } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useMessages } from '@/hooks/useMessages'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import ReportModal, { ReportTargetType } from '@/components/ui/ReportModal'
+import ReviewModal from '@/components/ui/ReviewModal'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -26,6 +29,7 @@ type Message = {
 
 type Conversation = {
   id: string
+  otherId: string
   name: string
   initials: string
   online: boolean
@@ -84,12 +88,22 @@ const QUICK_REPLIES = [
 ]
 
 export default function MessagesPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  return (
+    <Suspense fallback={null}>
+      <MessagesPageInner params={params} />
+    </Suspense>
+  )
+}
+
+function MessagesPageInner({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
   const messagesEndRef  = useRef<HTMLDivElement>(null)
   const inputRef        = useRef<HTMLInputElement>(null)
   const supabase        = getSupabaseClient()
 
   const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const deepLinkedId = searchParams.get('c')
   const [rawConversations, setRawConversations] = useState<DbConversation[]>([])
   const [loadingConvos, setLoadingConvos]  = useState(true)
   const [activeId, setActiveId]           = useState<string | null>(null)
@@ -103,6 +117,8 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
   // local-only UI state until the schema grows one (see audit notes).
   const [mutedIds, setMutedIds]     = useState<Set<string>>(new Set())
   const [starredIds, setStarredIds] = useState<Set<string>>(new Set())
+  const [reportTarget, setReportTarget] = useState<{ type: ReportTargetType; id: string } | null>(null)
+  const [reviewTarget, setReviewTarget] = useState<string | null>(null)
 
   const EMOJIS = ['😊','👍','❤️','🙏','✅','😂','🔥','💯','👋','🤝','💰','📦']
 
@@ -115,7 +131,7 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
       .then(d => {
         const convos: DbConversation[] = d.conversations || []
         setRawConversations(convos)
-        setActiveId(prev => prev ?? convos[0]?.id ?? null)
+        setActiveId(prev => prev ?? (deepLinkedId && convos.some(c => c.id === deepLinkedId) ? deepLinkedId : convos[0]?.id ?? null))
       })
       .finally(() => setLoadingConvos(false))
   }, [user])
@@ -126,6 +142,7 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
     const name    = other?.full_name || 'SouKni User'
     return {
       id: c.id,
+      otherId: isBuyer ? c.seller_id : c.buyer_id,
       name,
       initials: initialsOf(name),
       online: false,
@@ -385,7 +402,8 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
                   {[
                     { icon: <Star size={14} />, label: active.starred ? 'Unstar' : 'Star Conversation', action: () => { toggleStar(active.id); setShowMenu(false) } },
                     { icon: active.muted ? <Bell size={14} /> : <BellOff size={14} />, label: active.muted ? 'Unmute' : 'Mute Notifications', action: () => toggleMute(active.id) },
-                    { icon: <Shield size={14} />, label: 'Block & Report', action: () => setShowMenu(false), danger: false },
+                    { icon: <Star size={14} />, label: 'Leave a Review', action: () => { setReviewTarget(active.otherId); setShowMenu(false) }, danger: false },
+                    { icon: <Shield size={14} />, label: 'Report this user', action: () => { setReportTarget({ type: 'user', id: active.otherId }); setShowMenu(false) }, danger: false },
                     { icon: <Trash2 size={14} />, label: 'Delete Conversation', action: () => deleteConvo(active.id), danger: true },
                   ].map(item => (
                     <button key={item.label} onClick={item.action}
@@ -451,7 +469,7 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
                   }}>
                     {msg.text}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>{msg.time}</span>
                     {isMe && (
                       msg.sending
@@ -459,6 +477,13 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
                         : msg.read
                           ? <CheckCheck size={12} color={MINT} />
                           : <Check size={12} color={MUTED} />
+                    )}
+                    {!isMe && (
+                      <button onClick={() => setReportTarget({ type: 'message', id: msg.id })}
+                        title="Report this message"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', opacity: 0.5 }}>
+                        <Flag size={10} color={MUTED} />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -519,6 +544,12 @@ export default function MessagesPage({ params }: { params: Promise<{ locale: Loc
         </>
         )}
       </div>
+      {reportTarget && (
+        <ReportModal targetType={reportTarget.type} targetId={reportTarget.id} open={true} onClose={() => setReportTarget(null)} />
+      )}
+      {reviewTarget && (
+        <ReviewModal revieweeId={reviewTarget} open={true} onClose={() => setReviewTarget(null)} />
+      )}
     </div>
   )
 }

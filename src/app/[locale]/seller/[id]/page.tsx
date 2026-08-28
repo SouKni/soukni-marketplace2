@@ -5,6 +5,9 @@ import { MapPin, Star, Shield, MessageCircle, Phone, Heart, Diamond, Check, Chev
 import { useMarket } from '@/context/MarketContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
+import ReportButton from '@/components/ui/ReportButton'
+import ReviewButton from '@/components/ui/ReviewButton'
 
 type DbProfile = {
   id: string; full_name: string | null; username: string | null; avatar_url: string | null
@@ -89,21 +92,26 @@ export default function SellerProfilePage({ params }: { params: Promise<{ locale
   const [rawReviews, setRawReviews]   = useState<DbReview[]>([])
   const [loading, setLoading]     = useState(true)
 
+  const fetchSellerAndReviews = React.useCallback(() => {
+    return Promise.all([
+      supabase.from('profiles').select('*').eq('id', id).single(),
+      supabase.from('reviews').select('*, reviewer:profiles!reviewer_id(full_name)').eq('reviewee_id', id).order('created_at', { ascending: false }),
+    ]).then(([profileRes, reviewsRes]) => {
+      setSeller((profileRes.data as DbProfile) || null)
+      setRawReviews((reviewsRes.data as unknown as DbReview[]) || [])
+    })
+  }, [id])
+
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      supabase.from('profiles').select('*').eq('id', id).single(),
-      supabase.from('listings').select('id,title,price,city,created_at,images,badge').eq('seller_id', id).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
-      supabase.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', id).eq('status', 'active'),
-      supabase.from('reviews').select('*, reviewer:profiles!reviewer_id(full_name)').eq('reviewee_id', id).order('created_at', { ascending: false }),
-    ]).then(([profileRes, listingsRes, countRes, reviewsRes]) => {
-      setSeller((profileRes.data as DbProfile) || null)
-      setRawListings((listingsRes.data as DbListing[]) || [])
-      setActiveCount(countRes.count || 0)
-      setRawReviews((reviewsRes.data as unknown as DbReview[]) || [])
-      setLoading(false)
-    })
-  }, [id])
+      fetchSellerAndReviews(),
+      supabase.from('listings').select('id,title,price,city,created_at,images,badge').eq('seller_id', id).eq('status', 'active').order('created_at', { ascending: false }).limit(6)
+        .then(res => { setRawListings((res.data as DbListing[]) || []) }),
+      supabase.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', id).eq('status', 'active')
+        .then(res => { setActiveCount(res.count || 0) }),
+    ]).then(() => setLoading(false))
+  }, [id, fetchSellerAndReviews])
 
   const listings: ListingCardItem[] = rawListings.map(l => ({
     id: l.id,
@@ -214,12 +222,16 @@ export default function SellerProfilePage({ params }: { params: Promise<{ locale
                   style={{ backgroundColor: '#25D366', color: 'white', border: 'none', padding: '13px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', cursor: seller.phone ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', opacity: seller.phone ? 1 : 0.5 }}>
                   <MessageCircle size={16} /> WhatsApp
                 </a>
-                <Link href={`/${locale}/messages`} style={{ backgroundColor: '#eef5f2', color: '#3c4a46', border: 'none', padding: '13px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}>
+                <MessageSellerButton listingId={null} sellerId={seller.id} style={{ backgroundColor: '#eef5f2', color: '#3c4a46', border: 'none', padding: '13px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <MessageCircle size={16} /> Send Message
-                </Link>
+                </MessageSellerButton>
                 <button onClick={() => setShowPhone(true)} disabled={!seller.phone} style={{ backgroundColor: 'transparent', color: '#22d4a8', border: '2px solid #22d4a8', padding: '12px', borderRadius: '100px', fontWeight: 700, fontSize: '14px', cursor: seller.phone ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: seller.phone ? 1 : 0.5 }}>
                   <Phone size={15} /> {showPhone && seller.phone ? `+212 ${seller.phone}` : seller.phone ? 'Show Phone Number' : 'No phone on file'}
                 </button>
+                <ReportButton targetType="user" targetId={seller.id}
+                  style={{ justifyContent: 'center', color: '#94a3b8', fontSize: '12px', fontWeight: 700, padding: '4px' }}>
+                  Report this seller
+                </ReportButton>
               </div>
             </div>
 
@@ -275,6 +287,8 @@ export default function SellerProfilePage({ params }: { params: Promise<{ locale
                     <span style={{ fontSize: '13px', color: '#6b7a76' }}>· {seller.review_count || 0} reviews</span>
                   </div>
                 </div>
+                <ReviewButton revieweeId={seller.id} onSubmitted={fetchSellerAndReviews}
+                  style={{ padding: '10px 18px', borderRadius: 100, border: '1.5px solid #22d4a8', color: '#22d4a8', fontSize: '12px', fontWeight: 700 }} />
               </div>
 
               {reviews.length === 0 && (

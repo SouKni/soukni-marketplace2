@@ -9,6 +9,7 @@ import { useEffect } from 'react'
 import { useListings } from '@/hooks/useListings'
 import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useMarket } from '@/context/MarketContext'
@@ -129,7 +130,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale, phone }: any) {
+function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -154,10 +155,10 @@ function ListingCard({ brand, title, price, location, condition, img, badge, yea
         <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'6px' }}>{formatPrice(price)}</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'12px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title}
             style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             WhatsApp
@@ -266,6 +267,7 @@ export default function CarsCategoryPage() {
       year: row.year || '',
       id: row.id,
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 

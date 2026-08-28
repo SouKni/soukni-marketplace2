@@ -9,6 +9,7 @@ import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
 import { FashionBreadcrumb, FashionFooter, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import { Heart, Search, ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, MapPin, Plus } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -60,7 +61,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ id, brand, title, price, location, img, badges, phone }: any) {
+function FeaturedCard({ id, brand, title, price, location, img, badges, phone, sellerId }: any) {
   const [hov, setHov]     = useState(false)
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
@@ -82,10 +83,10 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, phone }:
         <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
@@ -93,7 +94,7 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, phone }:
   )
 }
 
-function GridCard({ id, brand, title, price, img, badge, phone }: any) {
+function GridCard({ id, brand, title, price, img, badge, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -112,10 +113,10 @@ function GridCard({ id, brand, title, price, img, badge, phone }: any) {
         <h4 style={{ fontSize:'12px', ...CB, color:hov?C.mint:C.ink, marginBottom:'8px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
         <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>{price.toLocaleString()} MAD</p>
         <div style={{ display:'flex', gap:'6px' }}>
-          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
@@ -271,6 +272,7 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
       isNew: row.badge === 'new',
       location: row.city,
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 
@@ -499,10 +501,10 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
                 </div>
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>Size 52 · Pristine condition · Full Cartier box & certificate · Rabat, Souissi</p>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="Love Ring — 18K Yellow Gold Diamonds" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -522,10 +524,10 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>85,000 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="Alhambra Long Necklace" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -545,10 +547,10 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>145,000 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="Datejust 41 Oyster Steel" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -567,10 +569,10 @@ export default function JewelryPage({ params }: { params: Promise<{ locale: stri
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>Size 17 · Brand new · Complete set with screwdriver & box</p>
                 <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>65,000 MAD</span>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="Love Bracelet — 18K White Gold" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>

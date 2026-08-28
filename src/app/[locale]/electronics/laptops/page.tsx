@@ -8,6 +8,7 @@ import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
@@ -51,7 +52,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ id, brand, title, price, location, img, badges, condition, phone }: any) {
+function FeaturedCard({ id, brand, title, price, location, img, badges, condition, phone, sellerId }: any) {
   const [hov, setHov]     = useState(false)
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
@@ -74,10 +75,7 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, conditio
         <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
-            onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >Message</button>
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
         </div>
       </div>
@@ -85,7 +83,7 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, conditio
   )
 }
 
-function GridCard({ id, brand, title, price, img, badge, condition, phone }: any) {
+function GridCard({ id, brand, title, price, img, badge, condition, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -105,10 +103,7 @@ function GridCard({ id, brand, title, price, img, badge, condition, phone }: any
         <h4 style={{ fontSize:'12px', ...CB, color:hov?C.mint:C.ink, marginBottom:'8px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
         <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>{price.toLocaleString()} MAD</p>
         <div style={{ display:'flex', gap:'6px' }}>
-          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-          >Message</button>
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }}>Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }} />
         </div>
       </div>
@@ -175,6 +170,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
     badges: row.badge && VALID_BADGES.includes(row.badge) ? [row.badge] : [],
     condition: row.condition || undefined,
     phone: row.profiles?.phone,
+    sellerId: row.seller_id,
   }))
   const realGrid = dbListings.slice(4, 20).map(row => ({
     id: row.id,
@@ -185,6 +181,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
     badge: (row.badge && VALID_BADGES.includes(row.badge) ? row.badge : 'certified') as BadgeT,
     condition: row.condition || undefined,
     phone: row.profiles?.phone,
+    sellerId: row.seller_id,
   }))
   const hasRealData = dbListings.length >= 4
   const displayFeaturedAll = hasRealData ? realFeatured : featuredItems
@@ -451,10 +448,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
                 </div>
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>64GB RAM · 2TB SSD · Brand new sealed · Rabat, Agdal</p>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
-                  >Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title='MacBook Pro M4 Max 16" — Space Black' style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -473,7 +467,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>38,000 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="Blade 16 RTX 4090 OLED 240Hz" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }} />
                 </div>
               </div>
@@ -492,7 +486,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>28,500 MAD</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="ROG Zephyrus G16 Core Ultra 9" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }} />
                 </div>
               </div>
@@ -510,10 +504,7 @@ export default function LaptopsPage({ params }: { params: Promise<{ locale: stri
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>4K OLED Touch · Brand new · Full warranty</p>
                 <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>24,000 MAD</span>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
-                    onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="XPS 15 (9530) i9 32GB 1TB" style={{ flex:1, backgroundColor:C.mint, color:C.ink, padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>💬 WhatsApp</WhatsAppButton>
                 </div>
               </div>

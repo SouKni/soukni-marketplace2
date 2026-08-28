@@ -6,6 +6,7 @@ import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -46,7 +47,7 @@ const highlights = [
   { icon:'📈', label:'6.8%',     sub:'Avg. Rental Yield'  },
 ]
 
-type Listing = typeof featuredListings[0]
+type Listing = typeof featuredListings[0] & { sellerId?: string | null }
 
 function BadgeChip({ label, green }: { label: string; green?: boolean }) {
   return (
@@ -97,7 +98,7 @@ function CommercialCard({ item, locale, view }: { item: Listing; locale: string;
               <span style={{ fontSize:'13px', color:C.muted, fontWeight:600 }}>MAD{item.unit.includes('/')?' '+item.unit.replace('MAD/','/ '):''}</span>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer', fontFamily:"'Inter',sans-serif" }}>Message</button>
+              <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'13px', fontWeight:700, fontFamily:"'Inter',sans-serif" }}>Message</MessageSellerButton>
               <button onClick={e=>e.preventDefault()} style={{ padding:'9px 20px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:"'Inter',sans-serif" }}><Phone size={13}/>Contact</button>
             </div>
           </div>
@@ -188,6 +189,7 @@ export default function CommercialPage({ params }: { params: Promise<{ locale: s
   function mapDbRowToCard(row: any): Listing {
     return {
       id: row.id,
+      sellerId: row.seller_id,
       title: row.title,
       price: Math.round((row.price || 0) / 100).toLocaleString(),
       unit: 'MAD',

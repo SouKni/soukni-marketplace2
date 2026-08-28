@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
@@ -99,9 +100,7 @@ function ListingCard({ id, model, price, location, condition, img, badge }: any)
         <p style={{ fontSize:18, ...CB, color:C.mint, marginBottom:6 }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ display:'flex', alignItems:'center', gap:3, fontSize:'10px', color:C.muted, marginBottom:12 }}><MapPin size={10}/>{location}</p>}
         <div style={{ display:'flex', gap:8 }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
-            onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
-            onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}>Message</button>
+          <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>Message</MessageSellerButton>
           <WhatsAppButton phone={undefined} title={model}
             style={{ flex:1, padding:'9px', borderRadius:12, fontSize:'10px', ...CB, textTransform:'uppercase' as const }} />
         </div>

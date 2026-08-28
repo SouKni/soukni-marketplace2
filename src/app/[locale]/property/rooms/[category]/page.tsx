@@ -7,6 +7,7 @@ import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -65,6 +66,7 @@ function makeListings(cat: string, count: number) {
     badge:     badges[i%badges.length],
     badge2:    i%3===0 ? undefined : (i%3===1 ? 'Furnished' : 'Bills Incl.'),
     diamond:   i%5===0,
+    sellerId:  undefined as string | undefined,
   }))
 }
 
@@ -111,7 +113,7 @@ function RoomCard({ item, locale, view }: { item: ReturnType<typeof makeListings
               <span style={{ fontSize:'13px', color:C.muted, fontWeight:600 }}>{item.unit}</span>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>Message</button>
+              <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.surface, color:C.ink, border:'none', fontSize:'13px', fontWeight:700 }}>Message</MessageSellerButton>
               <button onClick={e=>e.preventDefault()} style={{ padding:'9px 18px', borderRadius:100, backgroundColor:C.mint, color:'white', border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}><Phone size={13}/>Contact</button>
             </div>
           </div>
@@ -210,6 +212,7 @@ export default function RoomSubPage() {
   function mapDbRowToCard(row: any) {
     return {
       id: row.id,
+      sellerId: row.seller_id,
       title: row.title,
       price: (row.price || 0) / 100,
       unit: 'MAD/mo',

@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useFavorites } from '@/hooks/useFavorites'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -108,7 +109,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ id, brand, title, price, location, condition, img, badge, year }: any) {
+function ListingCard({ id, brand, title, price, location, condition, img, badge, year, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -131,10 +132,10 @@ function ListingCard({ id, brand, title, price, location, condition, img, badge,
         <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'6px' }}>MAD {price.toLocaleString()}</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'12px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <button style={{ flex:1, backgroundColor:C.mint, color:C.ink, border:'none', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer' }}>Call</button>
         </div>
       </div>
@@ -198,6 +199,7 @@ export default function HeavyVehiclesCategoryPage() {
   function mapDbRowToCard(row: any) {
     return {
       id: row.id,
+      sellerId: row.seller_id,
       brand: row.brand || '',
       title: row.title,
       price: (row.price || 0) / 100,

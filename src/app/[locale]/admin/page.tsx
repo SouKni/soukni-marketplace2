@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, useEffect, useCallback, use } from 'react'
 import Link from 'next/link'
 import { LayoutDashboard, Users, Package, Shield, TrendingUp, AlertTriangle, Check, X, Eye, MessageCircle, Sparkles, ChevronRight, Search, Filter, MoreVertical, Ban, CheckCircle, Clock, DollarSign, ArrowUp, ArrowDown, Flag, Trash2, RefreshCw, Download, Bell, LogOut, Star, MapPin, Calendar, Building2 } from 'lucide-react'
+import { getSupabaseClient } from '@/lib/supabase/client'
+import { useStore } from '@/lib/store'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type AdminTab = 'overview' | 'listings' | 'users' | 'diamond' | 'reports' | 'revenue'
@@ -14,58 +16,30 @@ const INK     = '#161d1b'
 const MUTED   = '#6b7a76'
 const FONT    = "'Inter', system-ui, sans-serif"
 
-// ── Mock Data ──────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────
 
-const STATS = [
-  { label: 'Total Users',      value: '24,831', change: '+12.4%', up: true,  icon: <Users size={18} color={MINT} /> },
-  { label: 'Active Listings',  value: '187,294',change: '+8.7%',  up: true,  icon: <Package size={18} color={MINT} /> },
-  { label: 'Diamond Members',  value: '3,412',  change: '+21.3%', up: true,  icon: <Sparkles size={18} color={MINT} /> },
-  { label: 'Monthly Revenue',  value: '1.02M MAD', change: '+15.1%', up: true, icon: <DollarSign size={18} color={MINT} /> },
-  { label: 'Reported Listings',value: '47',     change: '-8.2%',  up: false, icon: <Flag size={18} color="#f97316" /> },
-  { label: 'Pending Diamond',  value: '23',     change: '+5',     up: false, icon: <Clock size={18} color="#f59e0b" /> },
-]
+function timeAgo(iso: string | null): string {
+  if (!iso) return ''
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(iso).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+}
 
-const PENDING_LISTINGS = [
-  { id: 1, title: 'Mercedes G-Class 2023 — Full Options', category: 'Motors', seller: 'Karim Benali', city: 'Casablanca', price: '1,850,000 MAD', image: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&w=200', flagged: false, reported: 0, postedAt: '10 min ago', status: 'pending' },
-  { id: 2, title: 'Villa 500m² avec piscine — Marrakech Palmeraie', category: 'Property', seller: 'Sara Mansouri', city: 'Marrakech', price: '8,500,000 MAD', image: 'https://images.pexels.com/photos/1918291/pexels-photo-1918291.jpeg?auto=compress&w=200', flagged: true, reported: 3, postedAt: '25 min ago', status: 'pending' },
-  { id: 3, title: 'iPhone 15 Pro Max — Lot of 10 units wholesale', category: 'Electronics', seller: 'Ahmed Tazi', city: 'Rabat', price: '95,000 MAD', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=200', flagged: true, reported: 7, postedAt: '1h ago', status: 'pending' },
-  { id: 4, title: 'Rolex Submariner 2024 — Brand New', category: 'The Vault', seller: 'Youssef Alami', city: 'Rabat', price: '320,000 MAD', image: 'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&w=200', flagged: false, reported: 0, postedAt: '2h ago', status: 'pending' },
-]
+function formatPrice(centimes: number | null): string {
+  if (!centimes) return '—'
+  return `${(centimes / 100).toLocaleString()} MAD`
+}
 
-const ALL_LISTINGS = [
-  { id: 5,  title: 'BMW M4 Competition — Carbon Pack', category: 'Motors',      seller: 'Amine Radi',     city: 'Casablanca', price: '785,000 MAD', status: 'active',   reported: 0,  views: 1284 },
-  { id: 6,  title: 'Appartement 3Ch — Agdal Rabat',   category: 'Property',     seller: 'Nadia Fassi',    city: 'Rabat',       price: '25,000 MAD/mo',status: 'active',  reported: 0,  views: 847 },
-  { id: 7,  title: 'iPhone 15 Pro Max 256GB',          category: 'Electronics',  seller: 'Youssef Alami',  city: 'Rabat',       price: '12,500 MAD',  status: 'active',   reported: 2,  views: 923 },
-  { id: 8,  title: 'Faux Coran — Lot importé',         category: 'Other',        seller: 'Unknown User',   city: 'Fès',         price: '500 MAD',      status: 'flagged',  reported: 12, views: 34  },
-  { id: 9,  title: 'Produit miracle minceur',          category: 'Health',       seller: 'Spam Account',   city: 'Casablanca', price: '299 MAD',      status: 'flagged',  reported: 8,  views: 156 },
-  { id: 10, title: 'MacBook Pro 14" M3 Pro',           category: 'Electronics',  seller: 'Sara Bennani',   city: 'Rabat',       price: '24,800 MAD',  status: 'active',   reported: 0,  views: 412 },
-]
-
-const USERS = [
-  { id: 1, name: 'Youssef Alami',   email: 'youssef@gmail.com',  phone: '+212 6 12 34 56 78', city: 'Rabat',       joined: 'Mar 2021', ads: 12, badge: 'Diamond', status: 'active',   reports: 0 },
-  { id: 2, name: 'Sara Bennani',    email: 'sara@gmail.com',      phone: '+212 6 98 76 54 32', city: 'Casablanca',  joined: 'Jan 2022', ads: 5,  badge: 'Certified',status: 'active',   reports: 0 },
-  { id: 3, name: 'Spam Account',    email: 'spam123@temp.com',    phone: '+212 7 00 00 00 00', city: 'Unknown',     joined: 'Jul 2026', ads: 34, badge: null,       status: 'flagged',  reports: 14},
-  { id: 4, name: 'Karim Benali',    email: 'karim@hotmail.com',   phone: '+212 6 55 44 33 22', city: 'Marrakech',   joined: 'Jun 2020', ads: 28, badge: 'Pro',      status: 'active',   reports: 0 },
-  { id: 5, name: 'Unknown User',    email: 'anon@temp.io',        phone: '+212 6 11 22 33 44', city: 'Fès',         joined: 'Jul 2026', ads: 8,  badge: null,       status: 'suspended',reports: 5 },
-  { id: 6, name: 'Nadia El Fassi',  email: 'nadia@gmail.com',     phone: '+212 6 77 88 99 00', city: 'Rabat',       joined: 'Feb 2023', ads: 3,  badge: 'Certified',status: 'active',   reports: 0 },
-]
-
-const DIAMOND_APPLICATIONS = [
-  { id: 1, name: 'Mouad Berrada',   type: 'Diamond',      email: 'mouad@gmail.com',    phone: '+212 6 33 44 55 66', city: 'Casablanca', applied: '2h ago',  cinUploaded: true, selfieUploaded: true,  businessDoc: false, status: 'pending' },
-  { id: 2, name: 'Imane Chraibi',   type: 'Diamond',      email: 'imane@gmail.com',    phone: '+212 6 77 22 11 55', city: 'Rabat',       applied: '5h ago',  cinUploaded: true, selfieUploaded: true,  businessDoc: false, status: 'pending' },
-  { id: 3, name: 'Atlas Immo SARL', type: 'Pro Business', email: 'atlas@immo.ma',      phone: '+212 5 22 00 11 22', city: 'Casablanca', applied: '1d ago',  cinUploaded: true, selfieUploaded: true,  businessDoc: true,  status: 'pending' },
-  { id: 4, name: 'Tarik Senhaji',   type: 'Diamond',      email: 'tarik@hotmail.com',  phone: '+212 6 44 55 66 77', city: 'Fès',         applied: '1d ago',  cinUploaded: true, selfieUploaded: false, businessDoc: false, status: 'pending' },
-  { id: 5, name: 'Leila Mernissi',  type: 'Diamond',      email: 'leila@gmail.com',    phone: '+212 6 88 99 00 11', city: 'Marrakech',   applied: '2d ago',  cinUploaded: true, selfieUploaded: true,  businessDoc: false, status: 'approved'},
-  { id: 6, name: 'Fake ID Corp',    type: 'Diamond',      email: 'fake@temp.net',      phone: '+212 6 00 00 00 00', city: 'Unknown',     applied: '3d ago',  cinUploaded: true, selfieUploaded: false, businessDoc: false, status: 'rejected'},
-]
-
-const REPORTS = [
-  { id: 1, listing: 'Faux Coran — Lot importé',        reporter: 'Ahmed Tazi',    reason: 'Prohibited content', count: 12, status: 'open',     priority: 'high',   date: '10 min ago' },
-  { id: 2, listing: 'Produit miracle minceur 30 jours',reporter: 'Sara B.',       reason: 'Misleading/fraud',   count: 8,  status: 'open',     priority: 'high',   date: '1h ago' },
-  { id: 3, listing: 'iPhone 15 Pro Max 256GB',          reporter: 'Karim O.',     reason: 'Fake product',       count: 2,  status: 'reviewing',priority: 'medium', date: '3h ago' },
-  { id: 4, listing: 'Terrain 1000m² Bouskoura',        reporter: 'Nadia F.',     reason: 'Wrong price',        count: 1,  status: 'resolved', priority: 'low',    date: '1d ago' },
-  { id: 5, listing: 'Villa à vendre Ain Diab',         reporter: 'Youssef A.',   reason: 'Already sold',       count: 1,  status: 'resolved', priority: 'low',    date: '2d ago' },
-]
+function categoryLabel(slug: string | null): string {
+  if (!slug) return 'Other'
+  return slug.split('-').map(w => w[0]?.toUpperCase() + w.slice(1)).join(' ')
+}
 
 const REVENUE_DATA = [
   { month: 'Jan', diamond: 180000, pro: 45000 },
@@ -91,11 +65,15 @@ const statusBadge = (status: string) => {
     pending:   { color: '#b45309', bg: '#fff4e0' },
     flagged:   { color: '#dc2626', bg: '#fee2e2' },
     suspended: { color: 'white',   bg: INK       },
+    paused:    { color: MUTED,     bg: SURFACE   },
     approved:  { color: '#0f9b8e', bg: '#e6f9f3' },
     rejected:  { color: '#dc2626', bg: '#fee2e2' },
     open:      { color: '#dc2626', bg: '#fee2e2' },
     reviewing: { color: '#b45309', bg: '#fff4e0' },
     resolved:  { color: '#0f9b8e', bg: '#e6f9f3' },
+    reviewed:  { color: '#b45309', bg: '#fff4e0' },
+    actioned:  { color: '#0f9b8e', bg: '#e6f9f3' },
+    dismissed: { color: MUTED,     bg: SURFACE   },
   }
   const s = map[status] || { color: MUTED, bg: SURFACE }
   return <Badge label={status} color={s.color} bg={s.bg} />
@@ -118,54 +96,226 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
   const [listingFilter, setListingFilter] = useState('all')
   const [userFilter, setUserFilter] = useState('all')
   const [diamondFilter, setDiamondFilter] = useState('pending')
-  const [reportFilter, setReportFilter] = useState('open')
+  const [reportFilter, setReportFilter] = useState('pending')
   const [toast, setToast] = useState<string | null>(null)
 
-  // Application states
-  const [listings, setListings]   = useState(ALL_LISTINGS)
-  const [users, setUsers]         = useState(USERS)
-  const [applications, setApplications] = useState(DIAMOND_APPLICATIONS)
-  const [reports, setReports]     = useState(REPORTS)
-  const [pendingListings, setPendingListings] = useState(PENDING_LISTINGS)
+  // Real data, fetched from Supabase — see fetchAll() below
+  const supabase = getSupabaseClient()
+  const { user: currentUser } = useStore()
+  const [dataLoading, setDataLoading] = useState(true)
+  const [listings, setListings]   = useState<any[]>([])
+  const [users, setUsers]         = useState<any[]>([])
+  const [applications, setApplications] = useState<any[]>([])
+  const [reports, setReports]     = useState<any[]>([])
+  const pendingListings = listings.filter(l => l.status === 'pending')
 
   const showToast = (msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
 
-  const approveListing = (id: number) => {
-    setPendingListings(prev => prev.filter(l => l.id !== id))
+  const fetchAll = useCallback(async () => {
+    setDataLoading(true)
+    const [listingsRes, profilesRes, diamondRes, reportsRes] = await Promise.all([
+      supabase.from('listings').select('*, profiles(id, full_name, username)').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      supabase.from('diamond_applications').select('*, profiles(full_name, username, phone, city)').order('created_at', { ascending: false }),
+      supabase.from('reports').select('*, reporter:profiles!reporter_id(full_name, username)').order('created_at', { ascending: false }),
+    ])
+
+    const rawReports = reportsRes.data || []
+    const isOpenReport = (r: any) => r.status === 'pending' || r.status === 'reviewed'
+
+    // target_type/target_id is a polymorphic reference (listing/user/message) —
+    // PostgREST can't embed-join a variable target table, so resolve display
+    // labels with a few batched lookups instead.
+    const listingTargetIds = [...new Set(rawReports.filter((r: any) => r.target_type === 'listing').map((r: any) => r.target_id))]
+    const userTargetIds    = [...new Set(rawReports.filter((r: any) => r.target_type === 'user').map((r: any) => r.target_id))]
+    const messageTargetIds = [...new Set(rawReports.filter((r: any) => r.target_type === 'message').map((r: any) => r.target_id))]
+
+    const [targetListingsRes, targetUsersRes, targetMessagesRes] = await Promise.all([
+      listingTargetIds.length ? supabase.from('listings').select('id, title, seller_id').in('id', listingTargetIds) : Promise.resolve({ data: [] }),
+      userTargetIds.length    ? supabase.from('profiles').select('id, full_name, username').in('id', userTargetIds)  : Promise.resolve({ data: [] }),
+      messageTargetIds.length ? supabase.from('messages').select('id, text, sender_id, conversation_id').in('id', messageTargetIds) : Promise.resolve({ data: [] }),
+    ])
+    const targetListingMap = new Map((targetListingsRes.data || []).map((l: any) => [l.id, l]))
+    const targetUserMap    = new Map((targetUsersRes.data || []).map((u: any) => [u.id, u]))
+    const targetMessageMap = new Map((targetMessagesRes.data || []).map((m: any) => [m.id, m]))
+
+    const openReportCountByListing = new Map<string, number>()
+    const openReportCountByUser = new Map<string, number>()
+    for (const r of rawReports) {
+      if (!isOpenReport(r)) continue
+      if (r.target_type === 'listing') openReportCountByListing.set(r.target_id, (openReportCountByListing.get(r.target_id) || 0) + 1)
+      if (r.target_type === 'user') openReportCountByUser.set(r.target_id, (openReportCountByUser.get(r.target_id) || 0) + 1)
+    }
+
+    const rawListings = listingsRes.data || []
+    const adsCountBySeller = new Map<string, number>()
+    const reportsCountByUser = new Map<string, number>(openReportCountByUser)
+    for (const l of rawListings) {
+      adsCountBySeller.set(l.seller_id, (adsCountBySeller.get(l.seller_id) || 0) + 1)
+      const c = openReportCountByListing.get(l.id) || 0
+      if (c > 0) reportsCountByUser.set(l.seller_id, (reportsCountByUser.get(l.seller_id) || 0) + c)
+    }
+
+    setListings(rawListings.map((l: any) => ({
+      id: l.id,
+      title: l.title,
+      category: categoryLabel(l.category_slug),
+      seller: l.profiles?.full_name || l.profiles?.username || 'Unknown',
+      sellerId: l.seller_id,
+      city: l.city || '—',
+      price: formatPrice(l.price),
+      status: l.status,
+      reported: openReportCountByListing.get(l.id) || 0,
+      views: l.views || 0,
+      image: (l.images && l.images[0]) || '',
+      flagged: (openReportCountByListing.get(l.id) || 0) > 0,
+      postedAt: timeAgo(l.created_at),
+    })))
+
+    setUsers((profilesRes.data || []).map((p: any) => ({
+      id: p.id,
+      name: p.full_name || p.username || 'Unnamed',
+      phone: p.phone || '—',
+      city: p.city || '—',
+      joined: timeAgo(p.created_at),
+      ads: adsCountBySeller.get(p.id) || 0,
+      badge: p.badge ? p.badge[0].toUpperCase() + p.badge.slice(1) : null,
+      status: p.suspended ? 'suspended' : 'active',
+      reports: reportsCountByUser.get(p.id) || 0,
+    })))
+
+    setApplications((diamondRes.data || []).map((a: any) => ({
+      id: a.id,
+      name: a.profiles?.full_name || a.profiles?.username || 'Unknown',
+      type: a.plan === 'pro' ? 'Pro Business' : 'Diamond',
+      plan: a.plan,
+      userId: a.user_id,
+      phone: a.profiles?.phone || '—',
+      city: a.profiles?.city || '—',
+      applied: timeAgo(a.created_at),
+      cinUploaded: !!a.cin_front_url,
+      selfieUploaded: !!a.selfie_url,
+      businessDoc: !!a.business_doc_url,
+      status: a.status,
+    })))
+
+    setReports(rawReports.map((r: any) => {
+      let targetLabel = 'Unknown'
+      let targetHref: string | null = null
+      let targetSenderId: string | null = null
+      if (r.target_type === 'listing') {
+        const l = targetListingMap.get(r.target_id)
+        targetLabel = l?.title || 'Listing removed'
+        targetHref = `/${locale}/listing/${r.target_id}`
+      } else if (r.target_type === 'user') {
+        const u = targetUserMap.get(r.target_id)
+        targetLabel = u?.full_name || u?.username || 'User removed'
+        targetHref = `/${locale}/seller/${r.target_id}`
+      } else if (r.target_type === 'message') {
+        const m = targetMessageMap.get(r.target_id)
+        targetLabel = m?.text ? `"${m.text.slice(0, 60)}${m.text.length > 60 ? '…' : ''}"` : 'Message removed'
+        targetHref = m?.conversation_id ? `/${locale}/messages?c=${m.conversation_id}` : null
+        targetSenderId = m?.sender_id || null
+      }
+      // No priority column — derive a rough severity from the reason so the
+      // existing red/amber/grey visual treatment still means something.
+      const priority = r.reason === 'scam' || r.reason === 'fake' ? 'high' : r.reason === 'other' ? 'low' : 'medium'
+      return {
+        id: r.id,
+        targetType: r.target_type,
+        targetId: r.target_id,
+        targetSenderId,
+        targetLabel,
+        targetHref,
+        reporter: r.reporter?.full_name || r.reporter?.username || 'Unknown',
+        reason: r.reason,
+        details: r.details,
+        status: r.status,
+        priority,
+        date: timeAgo(r.created_at),
+      }
+    }))
+
+    setDataLoading(false)
+  }, [supabase])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  const approveListing = async (id: string) => {
+    const { error } = await supabase.from('listings').update({ status: 'active' }).eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'active' } : l))
     showToast('✓ Listing approved and published')
   }
 
-  const rejectListing = (id: number) => {
-    setPendingListings(prev => prev.filter(l => l.id !== id))
-    showToast('✕ Listing rejected and removed')
+  const rejectListing = async (id: string) => {
+    const { error } = await supabase.from('listings').update({ status: 'rejected' }).eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'rejected' } : l))
+    showToast('✕ Listing rejected')
   }
 
-  const approveApplication = (id: number) => {
+  const approveApplication = async (id: string) => {
+    const app = applications.find(a => a.id === id)
+    const { error } = await supabase.from('diamond_applications')
+      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: currentUser?.id })
+      .eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    if (app) await supabase.from('profiles').update({ badge: app.plan === 'pro' ? 'pro' : 'diamond' }).eq('id', app.userId)
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a))
     showToast('💎 Diamond application approved')
   }
 
-  const rejectApplication = (id: number) => {
+  const rejectApplication = async (id: string) => {
+    const { error } = await supabase.from('diamond_applications')
+      .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: currentUser?.id })
+      .eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a))
     showToast('✕ Application rejected')
   }
 
-  const suspendUser = (id: number) => {
+  const suspendUser = async (id: string) => {
+    const { error } = await supabase.from('profiles').update({ suspended: true }).eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'suspended' } : u))
     showToast('⚠ User suspended')
   }
 
-  const resolveReport = (id: number) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'resolved' } : r))
-    showToast('✓ Report marked as resolved')
+  const unsuspendUser = async (id: string) => {
+    const { error } = await supabase.from('profiles').update({ suspended: false }).eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'active' } : u))
+    showToast('✓ User unsuspended')
   }
 
-  const removeListing = (id: number) => {
-    setListings(prev => prev.filter(l => l.id !== id))
-    showToast('✕ Listing removed from platform')
+  const updateReportStatus = async (id: string, status: 'pending' | 'reviewed' | 'actioned' | 'dismissed') => {
+    const { error } = await supabase.from('reports')
+      .update({ status, reviewed_at: new Date().toISOString(), reviewed_by: currentUser?.id })
+      .eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r))
+    showToast(status === 'dismissed' ? '✕ Report dismissed' : status === 'actioned' ? '✓ Report actioned' : '✓ Report marked reviewed')
+  }
+
+  const removeListing = async (id: string) => {
+    const { error } = await supabase.from('listings').update({ status: 'paused' }).eq('id', id)
+    if (error) { showToast('✕ Failed: ' + error.message); return }
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'paused' } : l))
+    showToast('⏸ Listing deactivated')
+  }
+
+  const actionReportDeactivateListing = async (reportId: string, listingId: string) => {
+    await removeListing(listingId)
+    await updateReportStatus(reportId, 'actioned')
+  }
+
+  const actionReportSuspendUser = async (reportId: string, userId: string) => {
+    await suspendUser(userId)
+    await updateReportStatus(reportId, 'actioned')
   }
 
   const NAV_TABS: { key: AdminTab; label: string; icon: React.ReactNode; alert?: number }[] = [
@@ -173,7 +323,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
     { key: 'listings',  label: 'Listings',         icon: <Package size={16} />,   alert: pendingListings.length },
     { key: 'users',     label: 'Users',            icon: <Users size={16} /> },
     { key: 'diamond',   label: 'Diamond / Certified', icon: <Sparkles size={16} />, alert: applications.filter(a => a.status === 'pending').length },
-    { key: 'reports',   label: 'Reports',          icon: <Flag size={16} />,      alert: reports.filter(r => r.status === 'open').length },
+    { key: 'reports',   label: 'Reports',          icon: <Flag size={16} />,      alert: reports.filter(r => r.status === 'pending').length },
     { key: 'revenue',   label: 'Revenue',          icon: <DollarSign size={16} /> },
   ]
 
@@ -267,19 +417,23 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
           {/* ── OVERVIEW ── */}
           {tab === 'overview' && (
             <div>
-              {/* Stat cards */}
+              {/* Stat cards — real counts, no fabricated trend since there's no historical baseline to compare against */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '28px' }}>
-                {STATS.map(s => (
+                {[
+                  { label: 'Total Users',       value: users.length.toLocaleString(),                                        icon: <Users size={18} color={MINT} /> },
+                  { label: 'Active Listings',   value: listings.filter(l => l.status === 'active').length.toLocaleString(),  icon: <Package size={18} color={MINT} /> },
+                  { label: 'Diamond Members',   value: users.filter(u => u.badge === 'Diamond').length.toLocaleString(),     icon: <Sparkles size={18} color={MINT} /> },
+                  { label: 'Pending Reports',   value: reports.filter(r => r.status === 'pending').length.toLocaleString(),     icon: <Flag size={18} color="#f97316" /> },
+                  { label: 'Pending Diamond',   value: applications.filter(a => a.status === 'pending').length.toLocaleString(), icon: <Clock size={18} color="#f59e0b" /> },
+                  { label: 'Open Reports (all)',value: reports.filter(r => r.status === 'pending' || r.status === 'reviewed').length.toLocaleString(), icon: <AlertTriangle size={18} color="#dc2626" /> },
+                ].map(s => (
                   <div key={s.label} style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2eae6' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                       <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: SURFACE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {s.icon}
                       </div>
-                      <span style={{ fontSize: '11px', fontWeight: 900, color: s.up ? '#0f9b8e' : '#ef4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        {s.up ? <ArrowUp size={11} /> : <ArrowDown size={11} />} {s.change}
-                      </span>
                     </div>
-                    <p style={{ fontSize: '22px', fontWeight: 900, color: INK, letterSpacing: '-0.05em', marginBottom: '2px' }}>{s.value}</p>
+                    <p style={{ fontSize: '22px', fontWeight: 900, color: INK, letterSpacing: '-0.05em', marginBottom: '2px' }}>{dataLoading ? '—' : s.value}</p>
                     <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>{s.label}</p>
                   </div>
                 ))}
@@ -323,15 +477,18 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                     <button onClick={() => setTab('reports')} style={{ fontSize: '12px', fontWeight: 900, color: MINT, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT }}>See all →</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {reports.filter(r => r.status === 'open').map(r => (
+                    {reports.filter(r => r.status === 'pending').slice(0, 5).map(r => (
                       <div key={r.id} style={{ padding: '10px 12px', background: SURFACE, borderRadius: '10px', border: '1px solid #e2eae6' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <p style={{ fontSize: '12px', fontWeight: 900, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{r.listing}</p>
+                          <p style={{ fontSize: '12px', fontWeight: 900, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{r.targetLabel}</p>
                           {priorityBadge(r.priority)}
                         </div>
-                        <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{r.reason} · {r.count} report{r.count !== 1 ? 's' : ''}</p>
+                        <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, textTransform: 'capitalize' }}>{r.targetType} · {r.reason}</p>
                       </div>
                     ))}
+                    {reports.filter(r => r.status === 'pending').length === 0 && (
+                      <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700 }}>No pending reports</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -411,7 +568,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                   </thead>
                   <tbody>
                     {listings
-                      .filter(l => listingFilter === 'all' || l.status === listingFilter)
+                      .filter(l => listingFilter === 'all' || (listingFilter === 'flagged' ? l.flagged : l.status === listingFilter))
                       .filter(l => !search || l.title.toLowerCase().includes(search.toLowerCase()))
                       .map((l, i) => (
                         <tr key={l.id} style={{ borderTop: '1px solid #f4fbf8', background: i % 2 === 0 ? 'white' : 'rgba(244,251,248,0.3)' }}>
@@ -474,8 +631,8 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                 </thead>
                 <tbody>
                   {users
-                    .filter(u => userFilter === 'all' || u.status === userFilter)
-                    .filter(u => !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
+                    .filter(u => userFilter === 'all' || (userFilter === 'flagged' ? u.reports > 0 : u.status === userFilter))
+                    .filter(u => !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.phone.toLowerCase().includes(search.toLowerCase()))
                     .map((u, i) => (
                       <tr key={u.id} style={{ borderTop: '1px solid #f4fbf8', background: i % 2 === 0 ? 'white' : 'rgba(244,251,248,0.3)' }}>
                         <td style={{ padding: '12px 14px' }}>
@@ -487,8 +644,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                           </div>
                         </td>
                         <td style={{ padding: '12px 14px' }}>
-                          <p style={{ fontSize: '11px', color: INK, fontWeight: 700 }}>{u.email}</p>
-                          <p style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>{u.phone}</p>
+                          <p style={{ fontSize: '11px', color: INK, fontWeight: 700 }}>{u.phone}</p>
                         </td>
                         <td style={{ padding: '12px 14px' }}><span style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{u.city}</span></td>
                         <td style={{ padding: '12px 14px' }}><span style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{u.joined}</span></td>
@@ -519,7 +675,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                               </button>
                             )}
                             {u.status === 'suspended' && (
-                              <button onClick={() => setUsers(prev => prev.map(usr => usr.id === u.id ? { ...usr, status: 'active' } : usr))}
+                              <button onClick={() => unsuspendUser(u.id)}
                                 style={{ width: '26px', height: '26px', borderRadius: '6px', background: '#e6f9f3', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Check size={12} color="#0f9b8e" />
                               </button>
@@ -561,7 +717,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                               {app.type === 'Diamond' ? '💎' : '🏢'} {app.type}
                             </span>
                           </div>
-                          <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{app.email} · {app.phone}</p>
+                          <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{app.phone}</p>
                           <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>{app.city} · Applied {app.applied}</p>
                         </div>
                       </div>
@@ -626,7 +782,7 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
           {tab === 'reports' && (
             <div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                {['open', 'reviewing', 'resolved'].map(f => (
+                {['pending', 'reviewed', 'actioned', 'dismissed'].map(f => (
                   <button key={f} onClick={() => setReportFilter(f)}
                     style={{ padding: '8px 18px', borderRadius: '10px', border: `1px solid ${reportFilter === f ? 'transparent' : '#e2eae6'}`, cursor: 'pointer', fontSize: '13px', fontWeight: 900, fontFamily: FONT, background: reportFilter === f ? INK : 'white', color: reportFilter === f ? 'white' : MUTED, textTransform: 'capitalize' }}>
                     {f} ({reports.filter(r => r.status === f).length})
@@ -642,24 +798,49 @@ export default function AdminPage({ params }: { params: Promise<{ locale: Locale
                     </div>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                        <p style={{ fontSize: '13px', fontWeight: 900, color: INK }}>{r.listing}</p>
-                        {priorityBadge(r.priority)}
+                        <span style={{ fontSize: '9px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.targetType}</span>
+                        {r.targetHref ? (
+                          <Link href={r.targetHref} style={{ fontSize: '13px', fontWeight: 900, color: MINT, textDecoration: 'none' }}>{r.targetLabel} ↗</Link>
+                        ) : (
+                          <p style={{ fontSize: '13px', fontWeight: 900, color: INK }}>{r.targetLabel}</p>
+                        )}
                       </div>
                       <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>
-                        Reason: <strong style={{ color: INK }}>{r.reason}</strong> · {r.count} report{r.count !== 1 ? 's' : ''} · Reported by {r.reporter} · {r.date}
+                        Reason: <strong style={{ color: INK, textTransform: 'capitalize' }}>{r.reason}</strong> · Reported by {r.reporter} · {r.date}
                       </p>
+                      {r.details && <p style={{ fontSize: '11px', color: MUTED, marginTop: '4px', fontStyle: 'italic' }}>"{r.details}"</p>}
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       {statusBadge(r.status)}
-                      {r.status !== 'resolved' && (
+                      {r.status !== 'actioned' && r.status !== 'dismissed' && (
                         <>
-                          <button onClick={() => resolveReport(r.id)}
+                          {r.status === 'pending' && (
+                            <button onClick={() => updateReportStatus(r.id, 'reviewed')}
+                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: SURFACE, border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: INK, fontFamily: FONT }}>
+                              <Eye size={12} /> Mark Reviewed
+                            </button>
+                          )}
+                          {r.targetType === 'listing' && (
+                            <button onClick={() => actionReportDeactivateListing(r.id, r.targetId)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: '#dc2626', fontFamily: FONT }}>
+                              <Trash2 size={12} /> Deactivate Listing
+                            </button>
+                          )}
+                          {r.targetType === 'user' && (
+                            <button onClick={() => actionReportSuspendUser(r.id, r.targetId)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: '#dc2626', fontFamily: FONT }}>
+                              <Ban size={12} /> Suspend User
+                            </button>
+                          )}
+                          {r.targetType === 'message' && r.targetSenderId && (
+                            <button onClick={() => actionReportSuspendUser(r.id, r.targetSenderId)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: '#dc2626', fontFamily: FONT }}>
+                              <Ban size={12} /> Suspend Sender
+                            </button>
+                          )}
+                          <button onClick={() => updateReportStatus(r.id, 'dismissed')}
                             style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: '#e6f9f3', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: '#0f9b8e', fontFamily: FONT }}>
-                            <Check size={12} /> Resolve
-                          </button>
-                          <button onClick={() => removeListing(r.id)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900, color: '#dc2626', fontFamily: FONT }}>
-                            <Trash2 size={12} /> Remove Listing
+                            <Check size={12} /> Dismiss
                           </button>
                         </>
                       )}

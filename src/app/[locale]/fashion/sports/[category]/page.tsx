@@ -9,6 +9,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ALL_CITIES } from '@/data/moroccoLocations'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
@@ -117,7 +118,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ id, brand, title, price, location, condition, img, badge, size, phone }: any) {
+function ListingCard({ id, brand, title, price, location, condition, img, badge, size, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -144,10 +145,10 @@ function ListingCard({ id, brand, title, price, location, condition, img, badge,
         <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'6px' }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'12px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title}
             style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, gap:'4px' }}>
             💬 WhatsApp
@@ -158,7 +159,7 @@ function ListingCard({ id, brand, title, price, location, condition, img, badge,
   )
 }
 
-function ListRowCard({ id, brand, title, price, location, condition, img, badge, size, phone }: any) {
+function ListRowCard({ id, brand, title, price, location, condition, img, badge, size, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -187,10 +188,10 @@ function ListRowCard({ id, brand, title, price, location, condition, img, badge,
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'12px' }}>
           <p style={{ fontSize:'20px', ...CB, color:C.mint }}>{price.toLocaleString()} MAD</p>
           <div style={{ display:'flex', gap:'8px' }}>
-            <button style={{ border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+            <MessageSellerButton listingId={id} sellerId={sellerId} style={{ border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
               onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
               onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-            >Message</button>
+            >Message</MessageSellerButton>
             <WhatsAppButton phone={phone} title={title}
               style={{ padding:'8px 16px', borderRadius:'10px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>
               WhatsApp
@@ -345,6 +346,7 @@ export default function SportsCategoryPage() {
       discount: null,
       isNew: row.badge === 'new',
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 

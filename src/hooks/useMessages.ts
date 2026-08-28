@@ -82,5 +82,74 @@ export function useMessages(conversationId?: string) {
       .neq('sender_id', user.id)
   }, [conversationId, user, supabase])
 
-  return { messages, sendMessage, markRead, loading }
+  // Finds the existing thread for this (listing, buyer, seller) triple, or
+  // creates one. Relies on the DB unique constraint rather than a
+  // check-then-insert race — if two tabs create it simultaneously, the
+  // second insert fails on the constraint and we just re-select.
+  const startConversation = useCallback(async (listingId: string | null, sellerId: string) => {
+    if (!user) return null
+    if (user.id === sellerId) return null // can't message yourself
+
+    const { data: existing } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('buyer_id', user.id)
+      .eq('seller_id', sellerId)
+      .eq('listing_id', listingId)
+      .maybeSingle()
+    if (existing) return existing.id
+
+    const { data: created, error } = await supabase
+      .from('conversations')
+      .insert({ listing_id: listingId, buyer_id: user.id, seller_id: sellerId })
+      .select('id')
+      .single()
+
+    if (error) {
+      // Unique-constraint race: someone else (or another tab) created it
+      // first — fetch the one that now exists instead of failing.
+      const { data: raceWinner } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('buyer_id', user.id)
+        .eq('seller_id', sellerId)
+        .eq('listing_id', listingId)
+        .maybeSingle()
+      return raceWinner?.id ?? null
+    }
+    return created.id
+  }, [user, supabase])
+
+  // Full inbox for the signed-in user, newest activity first, with the
+  // other participant and (if any) the related listing resolved.
+  const fetchConversations = useCallback(async () => {
+    if (!user) return []
+    const { data, error } = await supabase
+      .from('conversations')
+      .select(`
+        *,
+        listings(id, title, images, price, currency),
+        buyer:profiles!buyer_id(full_name, avatar_url, badge),
+        seller:profiles!seller_id(full_name, avatar_url, badge)
+      `)
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .order('last_message_at', { ascending: false })
+    if (error) return []
+    return data || []
+  }, [user, supabase])
+
+  // All messages for a specific thread, oldest first — same shape as the
+  // auto-fetch above, exposed as a callable for callers that don't want to
+  // mount this hook with a conversationId (e.g. a header preview dropdown).
+  const fetchMessages = useCallback(async (id: string) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*, profiles(full_name, avatar_url)')
+      .eq('conversation_id', id)
+      .order('created_at', { ascending: true })
+    if (error) return []
+    return data || []
+  }, [supabase])
+
+  return { messages, sendMessage, markRead, markAsRead: markRead, loading, startConversation, fetchConversations, fetchMessages }
 }

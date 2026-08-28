@@ -20,7 +20,10 @@ const PROTECTED_ROUTES = [
   '/qr',
   '/setup',
   '/buyer-agent',
+  '/admin',
 ]
+
+const ADMIN_ROUTES = ['/admin']
 
 const AUTH_ROUTES = ['/auth', '/login']
 
@@ -55,6 +58,20 @@ export async function middleware(request: NextRequest) {
   if (isProtected && !session) {
     const locale = pathname.split('/')[1] || 'en'
     return NextResponse.redirect(new URL(`/${locale}/auth?next=${pathname}`, request.url))
+  }
+
+  const isAdminRoute = ADMIN_ROUTES.some(r => pathWithoutLocale.startsWith(r))
+  if (isAdminRoute && session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!profile?.is_admin) {
+      const locale = pathname.split('/')[1] || 'en'
+      return NextResponse.redirect(new URL(`/${locale}`, request.url))
+    }
   }
 
   if (isAuthRoute && session) {

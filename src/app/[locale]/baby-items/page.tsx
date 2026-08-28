@@ -6,6 +6,7 @@ import { Heart, Search, MapPin, ChevronDown, SlidersHorizontal, ChevronRight, Di
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useFavorites } from '@/hooks/useFavorites'
 
@@ -24,7 +25,7 @@ const I = {
 }
 
 type Badge = 'diamond' | 'certified' | 'pro' | null
-interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null }
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null; sellerId?:string|null }
 
 const featuredListings: Listing[] = [
   { id:'f1', badge:'diamond',   title:'Stokke Tripp Trapp High Chair + Newborn Set', price:3200, location:'Casablanca', time:'Just now', image:I.b1 },
@@ -104,9 +105,9 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
           <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
           <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
           <div style={{ display:'flex', gap:6 }}>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+            <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
-            </button>
+            </MessageSellerButton>
             <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontSize:11 }} />
           </div>
         </div>
@@ -230,6 +231,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
       image: (row.images && row.images[0]) || fallbackImg,
       badge,
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 
@@ -462,7 +464,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
                   <p style={{ ...HK, fontSize:18, color:'white', marginBottom:8, lineHeight:1.2 }}>{realExclusiveListings[0].title}</p>
                   <p style={{ ...HK, fontSize:22, color:C.mint, marginBottom:14 }}>{realExclusiveListings[0].price.toLocaleString()} MAD</p>
                   <div style={{ display:'flex', gap:8 }}>
-                    <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12, cursor:'pointer' }}>Chat</button>
+                    <MessageSellerButton listingId={realExclusiveListings[0].id} sellerId={realExclusiveListings[0].sellerId} style={{ flex:1, backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', color:'white', border:'1px solid rgba(255,255,255,0.3)', padding:'9px 0', borderRadius:100, fontWeight:700, fontSize:12 }}>Chat</MessageSellerButton>
                     <WhatsAppButton phone={realExclusiveListings[0].phone} title={realExclusiveListings[0].title} style={{ flex:1, padding:'9px 0', borderRadius:100, fontSize:12 }} />
                   </div>
                 </div>
@@ -554,7 +556,7 @@ export default function BabyItemsPage({ params }: { params: Promise<{ locale:str
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <p style={{ fontSize:17, fontWeight:900, color:C.mint }}>{item.price.toLocaleString()} MAD</p>
                         <div style={{ display:'flex', gap:8 }}>
-                          <button style={{ padding:'7px 14px', borderRadius:10, border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:10, fontWeight:700, cursor:'pointer' }}>Chat</button>
+                          <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ padding:'7px 14px', borderRadius:10, border:`1px solid ${C.ink}`, backgroundColor:'transparent', color:C.ink, fontSize:10, fontWeight:700 }}>Chat</MessageSellerButton>
                           <WhatsAppButton phone={item.phone} title={item.title} style={{ padding:'7px 14px', borderRadius:10, fontSize:10 }} />
                         </div>
                       </div>

@@ -10,6 +10,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 
 const C = {
   mint:   '#22d4a8',
@@ -57,7 +58,7 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ id, brand, title, price, location, img, badges, formatPrice, phone }: any) {
+function FeaturedCard({ id, brand, title, price, location, img, badges, formatPrice, phone, sellerId }: any) {
   const [hov, setHov]     = useState(false)
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
@@ -79,10 +80,10 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, formatPr
         <p style={{ fontSize:'20px', ...CB, color:C.mint, marginBottom:'4px' }}>{formatPrice(price)}</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'14px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.mint}`, color:C.ink, backgroundColor:'transparent', padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, transition:'all 0.15s' }}
             onMouseEnter={e=>e.currentTarget.style.backgroundColor=C.mint}
             onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'10px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
@@ -90,7 +91,7 @@ function FeaturedCard({ id, brand, title, price, location, img, badges, formatPr
   )
 }
 
-function GridCard({ id, brand, title, price, img, badge, formatPrice, phone }: any) {
+function GridCard({ id, brand, title, price, img, badge, formatPrice, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -109,10 +110,10 @@ function GridCard({ id, brand, title, price, img, badge, formatPrice, phone }: a
         <h4 style={{ fontSize:'12px', ...CB, color:hov?C.mint:C.ink, marginBottom:'8px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
         <p style={{ fontSize:'14px', ...CB, color:C.mint, marginBottom:'10px' }}>{formatPrice(price)}</p>
         <div style={{ display:'flex', gap:'6px' }}>
-          <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.muted, backgroundColor:'transparent', padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const, transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.color=C.mint}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.color=C.muted}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title} style={{ flex:1, padding:'7px', borderRadius:'10px', fontSize:'9px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
         </div>
       </div>
@@ -186,6 +187,7 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
       img: (row.images && row.images[0]) || I.g1,
       badge: row.badge || 'certified',
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
   const hasRealData = dbListings.length > 0
@@ -443,10 +445,10 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
                 </div>
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'16px' }}>2023 · 8,200 km · Full service history · Casablanca, Maarif</p>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const, transition:'all 0.15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor=C.mint;e.currentTarget.style.backgroundColor=`${C.mint}14`}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(107,122,118,0.2)';e.currentTarget.style.backgroundColor='transparent'}}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="this listing" style={{ flex:1, padding:'12px', borderRadius:'16px', fontSize:'11px', ...CB, textTransform:'uppercase' as const }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -465,7 +467,7 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>{formatPrice(1100000)}</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="this listing" style={{ flex:1, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -484,7 +486,7 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
                   <span style={{ fontSize:'14px', ...CB, color:C.mint, flexShrink:0 }}>{formatPrice(640000)}</span>
                 </div>
                 <div style={{ display:'flex', gap:'6px' }}>
-                  <button style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB, cursor:'pointer' }}>Message</button>
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`1px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="this listing" style={{ flex:1, padding:'8px', borderRadius:'12px', fontSize:'9px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>
@@ -502,10 +504,10 @@ export default function CarsPage({ params }: { params: Promise<{ locale: string 
                 <p style={{ fontSize:'13px', color:C.muted, ...CB, marginBottom:'12px' }}>2023 · 18,000 km · Full BMW dealership history · Casablanca</p>
                 <span style={{ fontSize:'22px', ...CB, color:C.mint, marginBottom:'20px', display:'block' }}>{formatPrice(1850000)}</span>
                 <div style={{ display:'flex', gap:'10px' }}>
-                  <button style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, cursor:'pointer', transition:'border-color 0.15s' }}
+                  <MessageSellerButton listingId={undefined} sellerId={undefined} style={{ flex:1, border:`2px solid rgba(107,122,118,0.2)`, color:C.ink, backgroundColor:'transparent', padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB, transition:'border-color 0.15s' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor=C.mint}
                     onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(107,122,118,0.2)'}
-                  >Message</button>
+                  >Message</MessageSellerButton>
                   <WhatsAppButton phone={undefined} title="this listing" style={{ flex:1, padding:'12px', borderRadius:'16px', fontSize:'10px', ...CB }}>WhatsApp</WhatsAppButton>
                 </div>
               </div>

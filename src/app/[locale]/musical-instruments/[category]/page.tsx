@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -120,7 +121,7 @@ function Badge({ type }: { type: BadgeT }) {
   return <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block', boxShadow:'0 2px 6px rgba(0,0,0,0.15)', whiteSpace:'nowrap' as const }}>{s.label}</span>
 }
 
-function ListingCard({ id, brand, title, price, location, condition, img, badge, phone }: any) {
+function ListingCard({ id, brand, title, price, location, condition, img, badge, phone, sellerId }: any) {
   const { isFavorited, toggleFavorite } = useFavorites()
   const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
@@ -141,10 +142,10 @@ function ListingCard({ id, brand, title, price, location, condition, img, badge,
         <p style={{ fontSize:'18px', ...CB, color:C.mint, marginBottom:'6px' }}>{price.toLocaleString()} MAD</p>
         {location && <p style={{ fontSize:'10px', color:C.muted, ...CB, display:'flex', alignItems:'center', gap:'3px', marginBottom:'12px' }}><MapPin size={10}/>{location}</p>}
         <div style={{ marginTop:'auto', display:'flex', gap:'8px' }}>
-          <button style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, cursor:'pointer', transition:'all 0.15s' }}
+          <MessageSellerButton listingId={id} sellerId={sellerId} style={{ flex:1, border:`2px solid ${C.ink}`, color:C.ink, backgroundColor:'transparent', padding:'9px', borderRadius:'12px', fontSize:'10px', ...CB, textTransform:'uppercase' as const, transition:'all 0.15s' }}
             onMouseEnter={e=>{e.currentTarget.style.backgroundColor=C.ink;e.currentTarget.style.color='white'}}
             onMouseLeave={e=>{e.currentTarget.style.backgroundColor='transparent';e.currentTarget.style.color=C.ink}}
-          >Message</button>
+          >Message</MessageSellerButton>
           <WhatsAppButton phone={phone} title={title}
             style={{ flex:1, padding:'9px', borderRadius:'12px', fontSize:'10px', textTransform:'uppercase' as const }}>
             💬 WhatsApp
@@ -221,6 +222,7 @@ export default function InstrumentCategoryPage() {
       badge:     row.badge || 'certified',
       phone:     row.profiles?.phone,
       id:        row.id,
+      sellerId:  row.seller_id,
     }
   }
 

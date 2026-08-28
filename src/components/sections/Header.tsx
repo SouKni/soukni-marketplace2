@@ -4,11 +4,13 @@ import Link from 'next/link'
 import VoiceSearch from '@/components/sections/VoiceSearch'
 import VisualSearch from '@/components/ui/VisualSearch'
 import { useState, useEffect } from 'react'
-import { Bell, Heart, Menu, X, ChevronDown, Search, User } from 'lucide-react'
+import { Bell, Heart, Menu, X, ChevronDown, Search, User, MessageCircle } from 'lucide-react'
 import CityPicker from '@/components/ui/CityPicker'
 import { useRouter, usePathname } from 'next/navigation'
 import type { Locale } from '@/lib/types'
 import { useMarket, type Currency } from '@/context/MarketContext'
+import { useStore } from '@/lib/store'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 const verticals = [
   { key: 'motors',      slug: 'motors',      label: { en: 'Motors',               fr: 'Voitures',        ar: 'سيارات',     es: 'Motores',    de: 'Motoren',    ber: 'ⵜⵉⴽⵕⴰⵙ'      } },
@@ -54,6 +56,7 @@ export default function Header({ locale, currentSlug: currentSlugProp }: HeaderP
   const [searchQuery, setSearchQuery] = useState('')
   const { currency, setCurrency } = useMarket()
   const router = useRouter()
+  const { user, unreadCount, setUnreadCount } = useStore()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,6 +64,32 @@ export default function Header({ locale, currentSlug: currentSlugProp }: HeaderP
       router.push(`/${locale}/search?q=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
+
+  // Real unread-message count for the header badge — sum of whichever
+  // unread column applies to this user (buyer_unread if they're the buyer
+  // on a thread, seller_unread if they're the seller), kept live via
+  // Realtime on `conversations` rather than a manual refresh.
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return }
+    const supabase = getSupabaseClient()
+
+    const loadUnread = async () => {
+      const { data } = await supabase
+        .from('conversations')
+        .select('buyer_id, seller_id, buyer_unread, seller_unread')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      const total = (data || []).reduce((sum, c: any) =>
+        sum + (c.buyer_id === user.id ? c.buyer_unread : c.seller_unread), 0)
+      setUnreadCount(total)
+    }
+    loadUnread()
+
+    const channel = supabase
+      .channel(`header-unread:${user.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, loadUnread)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user?.id])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -159,6 +188,19 @@ export default function Header({ locale, currentSlug: currentSlugProp }: HeaderP
             </div>
 
             <div style={{ width: '1px', height: '18px', backgroundColor: '#e2e8f0', margin: '0 4px' }} />
+
+            {/* Messages */}
+            <Link href={`/${locale}/messages`} title="Messages"
+              style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7a76', textDecoration: 'none', transition: 'all 0.15s', position: 'relative' }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(34,212,168,0.1)'; e.currentTarget.style.color = '#22d4a8' }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#6b7a76' }}>
+              <MessageCircle size={17} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: '2px', right: '2px', minWidth: '15px', height: '15px', padding: '0 3px', borderRadius: '100px', backgroundColor: '#ef4444', color: 'white', fontSize: '9px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
 
             {/* Notifications */}
             <Link href={`/${locale}/notifications`} title="Notifications"

@@ -7,6 +7,8 @@ import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
 import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
+import ReportButton from '@/components/ui/ReportButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -197,10 +199,10 @@ export default function ListingPage() {
                 style={{ width:'100%', padding:'14px 0', borderRadius:100, fontSize:14, ...UB, gap:8 }}>
                 <MessageCircle size={16} /> WhatsApp
               </WhatsAppButton>
-              <button
-                style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:'#eef5f2', border:'none', color:C.ink, fontSize:14, ...UB, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              <MessageSellerButton listingId={listing.id} sellerId={listing.seller_id}
+                style={{ width:'100%', padding:'14px 0', borderRadius:100, backgroundColor:'#eef5f2', border:'none', color:C.ink, fontSize:14, ...UB, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <MessageCircle size={16} /> Send Message
-              </button>
+              </MessageSellerButton>
             </div>
 
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
@@ -213,6 +215,8 @@ export default function ListingPage() {
                 style={{ flex:1, padding:'10px 0', borderRadius:100, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'white', color:C.muted, fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
                 <Share2 size={13} /> Share
               </button>
+              <ReportButton targetType="listing" targetId={listing.id}
+                style={{ flex:1, padding:'10px 0', borderRadius:100, border:'1px solid rgba(186,202,197,0.4)', backgroundColor:'white', color:C.muted, fontSize:12, fontWeight:700, justifyContent:'center' }} />
             </div>
           </div>
 

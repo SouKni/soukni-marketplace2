@@ -5,6 +5,7 @@ import { Search, X, MapPin, Heart, MessageCircle, ChevronRight, Star, ChevronDow
 import { useListings } from '@/hooks/useListings'
 import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const HERO = 'https://images.pexels.com/photos/1413420/pexels-photo-1413420.jpeg?auto=compress&w=1600'
@@ -86,7 +87,7 @@ function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: s
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'20px' }}>
             <div><span style={{ fontWeight:900, fontSize:'24px', color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</span></div>
             <div style={{ display:'flex', gap:'8px' }}>
-              <button onClick={e=>e.preventDefault()} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Message</button>
+              <MessageSellerButton listingId={item.id} sellerId={(item as any).sellerId} style={{ padding:'10px 20px', borderRadius:'100px', border:'1px solid #22d4a8', backgroundColor:'transparent', color:'#22d4a8', fontWeight:700, fontSize:'12px', display:'flex', alignItems:'center', gap:'5px' }}><MessageCircle size={13} />Message</MessageSellerButton>
               <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'10px 20px', borderRadius:'100px', fontSize:'12px' }}>WhatsApp</WhatsAppButton>
             </div>
           </div>
@@ -111,7 +112,7 @@ function DiscoveryCard({ item, locale }: { item: typeof discoveryGrid[0], locale
           <h4 style={{ fontWeight:900, letterSpacing:'-0.05em', fontSize:'14px', color:'#161d1b', marginBottom:'8px', lineHeight:1.3 }}>{item.title}</h4>
           <p style={{ fontWeight:900, fontSize:'18px', color:'#22d4a8', marginBottom:'12px' }}>{item.price.toLocaleString()} MAD</p>
           <div style={{ display:'flex', gap:'6px' }}>
-            <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px', cursor:'pointer' }}>Message</button>
+            <MessageSellerButton listingId={item.id} sellerId={(item as any).sellerId} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px', borderRadius:'100px', fontWeight:700, fontSize:'11px' }}>Message</MessageSellerButton>
             <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ flex:1, padding:'8px', borderRadius:'100px', fontSize:'11px' }}>WhatsApp</WhatsAppButton>
           </div>
         </div>
@@ -169,7 +170,7 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
       title: row.title,
       price: (row.price || 0) / 100,
       location: row.city || '',
-      rating: row.profiles?.rating || 4.8,
+      rating: row.profiles?.rating ?? 0,
       reviews: row.profiles?.review_count || 0,
       image: (row.images && row.images[0]) || HERO,
       desc: row.description || '',
@@ -543,8 +544,8 @@ export default function CollectiblesPage({ params }: { params: Promise<{ locale:
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <p style={{ fontSize:'17px', fontWeight:900, color:'#22d4a8' }}>{item.price.toLocaleString()} MAD</p>
                       <div style={{ display:'flex', gap:'8px' }}>
-                        <button style={{ padding:'7px 14px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>Message</button>
-                        <button style={{ padding:'7px 14px', borderRadius:'10px', border:'none', backgroundColor:'#25D366', color:'white', fontSize:'10px', fontWeight:700, cursor:'pointer' }}>WhatsApp</button>
+                        <MessageSellerButton listingId={item.id} sellerId={(item as any).sellerId} style={{ padding:'7px 14px', borderRadius:'10px', border:'1px solid #161d1b', backgroundColor:'transparent', color:'#161d1b', fontSize:'10px', fontWeight:700 }}>Message</MessageSellerButton>
+                        <WhatsAppButton phone={(item as any).phone} title={item.title} style={{ padding:'7px 14px', borderRadius:'10px', border:'none', fontSize:'10px' }}>WhatsApp</WhatsAppButton>
                       </div>
                     </div>
                   </div>

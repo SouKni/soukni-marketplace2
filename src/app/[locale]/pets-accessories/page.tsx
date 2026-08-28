@@ -6,6 +6,7 @@ import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, Messag
 import { useMarket } from '@/context/MarketContext'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import MessageSellerButton from '@/components/ui/MessageSellerButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useFavorites } from '@/hooks/useFavorites'
 
@@ -24,7 +25,7 @@ const I = {
 }
 
 type Badge = 'diamond' | 'certified' | 'pro' | null
-interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null }
+interface Listing { id:string; title:string; price:number; location:string; time:string; image:string; badge:Badge; phone?:string|null; sellerId?:string|null }
 
 const featuredListings: Listing[] = [
   { id:'f1', badge:'diamond',   title:'Milo & Gabby Luxury Dog Bed — King Size',   price:2800, location:'Casablanca', time:'Just now', image:I.p1 },
@@ -104,9 +105,9 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
           <h4 style={{ ...HK, fontSize:compact?13:14, color:C.ink, marginBottom:6, lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.title}</h4>
           <p style={{ ...HK, fontSize:compact?15:17, color:C.mint, marginBottom:10 }}>{formatPrice(item.price)}</p>
           <div style={{ display:'flex', gap:6 }}>
-            <button onClick={e=>e.preventDefault()} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', border:'none', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+            <MessageSellerButton listingId={item.id} sellerId={item.sellerId} style={{ flex:1, backgroundColor:'#eef5f2', color:'#3c4a46', padding:'8px 0', borderRadius:100, fontWeight:700, fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
               <MessageCircle size={11} /> Chat
-            </button>
+            </MessageSellerButton>
             <WhatsAppButton phone={item.phone} title={item.title} style={{ flex:1, padding:'8px 0', borderRadius:100, fontSize:11 }} />
           </div>
         </div>
@@ -228,6 +229,7 @@ export default function PetsAccessoriesPage({ params }: { params: Promise<{ loca
       image: (row.images && row.images[0]) || fallbackImg,
       badge,
       phone: row.profiles?.phone,
+      sellerId: row.seller_id,
     }
   }
 
