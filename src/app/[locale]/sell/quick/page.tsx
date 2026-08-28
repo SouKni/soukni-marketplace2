@@ -4,6 +4,7 @@ import { useState, use, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { Camera, Upload, X, Check, Sparkles, AlertTriangle } from 'lucide-react'
+import VoiceInput from '@/components/ui/VoiceInput'
 import { useAuth } from '@/hooks/useAuth'
 import { useListings } from '@/hooks/useListings'
 import { getSupabaseClient } from '@/lib/supabase/client'
@@ -91,6 +92,30 @@ export default function QuickListPage({ params }: { params: Promise<{ locale: Lo
     if (uploadResult.url) setPhotoUrl(uploadResult.url)
     else setPhotoUploadError(uploadResult.error || 'Photo upload failed. You can still publish without it.')
     setPhotoUploading(false)
+
+    if (draftResult.draft) {
+      setTitle(draftResult.draft.title || '')
+      setDescription(draftResult.draft.description || '')
+      if (draftResult.draft.category) setCategory(draftResult.draft.category)
+      if (draftResult.draft.condition) setCondition(CONDITION_FROM_DB[draftResult.draft.condition] || '')
+      if (draftResult.draft.suggestedPrice) setPrice(String(draftResult.draft.suggestedPrice))
+    }
+    if (draftResult.message) setAiNotice(draftResult.message)
+
+    setStage('review')
+  }
+
+  const handleVoice = async (transcript: string) => {
+    if (!transcript.trim()) return
+    setPublishError(null)
+    setStage('analyzing')
+    setAiNotice(null)
+
+    const draftResult = await fetch('/api/quick-list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcript }),
+    }).then(r => r.json()).catch(() => ({ draft: null, source: 'unavailable', message: 'Listing generation failed to reach the server.' }))
 
     if (draftResult.draft) {
       setTitle(draftResult.draft.title || '')
@@ -207,23 +232,34 @@ export default function QuickListPage({ params }: { params: Promise<{ locale: Lo
                   <Camera size={16} /> Take Photo
                 </button>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '18px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: '#e2eae6' }} />
+                <span style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>OR</span>
+                <div style={{ flex: 1, height: '1px', background: '#e2eae6' }} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <VoiceInput locale={locale} onResult={handleVoice} label="Describe it out loud" />
+              </div>
+
               <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, marginTop: '18px', textAlign: 'center' }}>
                 Prefer the full form? <Link href={`/${locale}/post-ad`} style={{ color: MINT, fontWeight: 900 }}>Post an ad manually</Link>
               </p>
             </div>
           )}
 
-          {(stage === 'analyzing' || stage === 'review' || stage === 'publishing') && photoPreview && (
+          {(stage === 'analyzing' || stage === 'review' || stage === 'publishing') && (
             <div>
-              <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '18px', aspectRatio: '4/3', background: '#e2eae6', position: 'relative' }}>
-                <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {stage === 'review' && (
-                  <button onClick={reset}
-                    style={{ position: 'absolute', top: '10px', right: '10px', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={14} color="white" />
-                  </button>
-                )}
-              </div>
+              {photoPreview && (
+                <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '18px', aspectRatio: '4/3', background: '#e2eae6', position: 'relative' }}>
+                  <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {stage === 'review' && (
+                    <button onClick={reset}
+                      style={{ position: 'absolute', top: '10px', right: '10px', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <X size={14} color="white" />
+                    </button>
+                  )}
+                </div>
+              )}
 
               {stage === 'analyzing' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px', background: '#f0fdf9', borderRadius: '12px' }}>

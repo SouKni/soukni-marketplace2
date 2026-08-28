@@ -179,17 +179,17 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
           <div style={{ maxWidth: '720px', margin: '0 auto', position: 'relative', zIndex: 50 }}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', justifyContent: 'center' }}>
               {[
-                { key: 'All',         label: t.homepage.searchAnything.charAt(0).toUpperCase()+t.homepage.searchAnything.slice(1) },
-                { key: 'Motors',      label: t.categories.motors },
-                { key: 'Property',    label: t.categories.property },
-                { key: 'Electronics', label: t.categories.electronics },
-                { key: 'Fashion',     label: t.categories.fashion },
+                { key: 'All',         emoji: '🔍', label: t.homepage.searchAnything.charAt(0).toUpperCase()+t.homepage.searchAnything.slice(1) },
+                { key: 'Motors',      emoji: '🚗', label: t.categories.motors },
+                { key: 'Property',    emoji: '🏠', label: t.categories.property },
+                { key: 'Electronics', emoji: '📱', label: t.categories.electronics },
+                { key: 'Fashion',     emoji: '👗', label: t.categories.fashion },
               ].map(tabObj => {
                 const tab = tabObj.key
                 return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
                   style={{ padding: '6px 16px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em', backgroundColor: activeTab === tab ? '#2dd4bf' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', color: activeTab === tab ? '#00201c' : 'white', transition: 'all 0.15s' }}>
-                  {tabObj.label}
+                  <span aria-hidden="true" style={{ marginRight: '5px' }}>{tabObj.emoji}</span>{tabObj.label}
                 </button>
                 )
               })}

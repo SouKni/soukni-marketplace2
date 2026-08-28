@@ -13,14 +13,14 @@ import { useStore } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase/client'
 
 const verticals = [
-  { key: 'motors',      slug: 'motors',      label: { en: 'Motors',               fr: 'Voitures',        ar: 'سيارات',     es: 'Motores',    de: 'Motoren',    ber: 'ⵜⵉⴽⵕⴰⵙ'      } },
-  { key: 'property',    slug: 'property',    label: { en: 'Property',             fr: 'Immobilier',      ar: 'عقارات',     es: 'Propiedad',  de: 'Immobilien', ber: 'ⵜⵉⵖⵔⵎⵜ'       } },
-  { key: 'vault',       slug: 'vault',       label: { en: 'The Vault',            fr: 'Le Vault',        ar: 'الخزنة',     es: 'El Vault',   de: 'Der Vault',  ber: 'ⴰⵙⵎⴽⵍ'        } },
-  { key: 'fashion',     slug: 'fashion',     label: { en: 'Fashion',              fr: 'Mode',            ar: 'موضة',       es: 'Moda',       de: 'Mode',       ber: 'ⵍⵍⵉⴱⴰⵙ'       } },
-  { key: 'jobs',        slug: 'jobs',        label: { en: 'Jobs',                 fr: 'Emplois',         ar: 'وظائف',      es: 'Empleo',     de: 'Jobs',       ber: 'ⵜⵉⵡⵓⵔⵉⵡⵉⵏ'    } },
-  { key: 'electronics', slug: 'electronics', label: { en: 'Mobiles & Electronics',fr: 'Électronique',    ar: 'إلكترونيات', es: 'Electrónica',de: 'Elektronik', ber: 'ⵜⵉⵎⵙⵙⵉⵢⵉⵏ'    } },
-  { key: 'home-garden', slug: 'home-garden', label: { en: 'Home & Garden',        fr: 'Maison & Jardin', ar: 'منزل وحديقة',es: 'Hogar',      de: 'Haus',       ber: 'ⴰⵅⵅⴰⵎ ⴷ ⵓⵔⵜⵉ' } },
-  { key: 'services',    slug: 'services',    label: { en: 'Services',             fr: 'Services',        ar: 'خدمات',      es: 'Servicios',  de: 'Dienste',    ber: 'ⵜⵉⵎⴰⵡⴰⵙⵉⵏ'    } },
+  { key: 'motors',      slug: 'motors',      emoji: '🚗', label: { en: 'Motors',               fr: 'Voitures',        ar: 'سيارات',     es: 'Motores',    de: 'Motoren',    ber: 'ⵜⵉⴽⵕⴰⵙ'      } },
+  { key: 'property',    slug: 'property',    emoji: '🏠', label: { en: 'Property',             fr: 'Immobilier',      ar: 'عقارات',     es: 'Propiedad',  de: 'Immobilien', ber: 'ⵜⵉⵖⵔⵎⵜ'       } },
+  { key: 'vault',       slug: 'vault',       emoji: '💎', label: { en: 'The Vault',            fr: 'Le Vault',        ar: 'الخزنة',     es: 'El Vault',   de: 'Der Vault',  ber: 'ⴰⵙⵎⴽⵍ'        } },
+  { key: 'fashion',     slug: 'fashion',     emoji: '👗', label: { en: 'Fashion',              fr: 'Mode',            ar: 'موضة',       es: 'Moda',       de: 'Mode',       ber: 'ⵍⵍⵉⴱⴰⵙ'       } },
+  { key: 'jobs',        slug: 'jobs',        emoji: '💼', label: { en: 'Jobs',                 fr: 'Emplois',         ar: 'وظائف',      es: 'Empleo',     de: 'Jobs',       ber: 'ⵜⵉⵡⵓⵔⵉⵡⵉⵏ'    } },
+  { key: 'electronics', slug: 'electronics', emoji: '📱', label: { en: 'Mobiles & Electronics',fr: 'Électronique',    ar: 'إلكترونيات', es: 'Electrónica',de: 'Elektronik', ber: 'ⵜⵉⵎⵙⵙⵉⵢⵉⵏ'    } },
+  { key: 'home-garden', slug: 'home-garden', emoji: '🛋️', label: { en: 'Home & Garden',        fr: 'Maison & Jardin', ar: 'منزل وحديقة',es: 'Hogar',      de: 'Haus',       ber: 'ⴰⵅⵅⴰⵎ ⴷ ⵓⵔⵜⵉ' } },
+  { key: 'services',    slug: 'services',    emoji: '🔧', label: { en: 'Services',             fr: 'Services',        ar: 'خدمات',      es: 'Servicios',  de: 'Dienste',    ber: 'ⵜⵉⵎⴰⵡⴰⵙⵉⵏ'    } },
 ]
 
 const languages: { code: Locale; label: string }[] = [
@@ -303,7 +303,7 @@ export default function Header({ locale, currentSlug: currentSlugProp }: HeaderP
                   style={{ textDecoration: 'none', padding: '6px 14px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: isActive ? '#22d4a8' : '#64748b', borderBottom: isActive ? '2px solid #22d4a8' : '2px solid transparent', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = '#22d4a8' }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = '#64748b' }}>
-                  {label}
+                  <span aria-hidden="true" style={{ marginRight: '5px' }}>{v.emoji}</span>{label}
                 </Link>
               )
             })}
@@ -349,8 +349,8 @@ export default function Header({ locale, currentSlug: currentSlugProp }: HeaderP
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Browse</div>
               {verticals.map(v => (
                 <Link key={v.slug} href={`/${locale}/${v.slug}`} onClick={() => setMobileOpen(false)}
-                  style={{ display: 'block', padding: '14px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>
-                  {v.label[locale] ?? v.label.en}
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>
+                  <span aria-hidden="true" style={{ fontSize: '18px' }}>{v.emoji}</span>{v.label[locale] ?? v.label.en}
                 </Link>
               ))}
 

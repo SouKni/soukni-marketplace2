@@ -9,6 +9,7 @@ import { useMessages } from '@/hooks/useMessages'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import ReportModal, { ReportTargetType } from '@/components/ui/ReportModal'
 import ReviewModal from '@/components/ui/ReviewModal'
+import SpeakButton from '@/components/ui/SpeakButton'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -469,8 +470,9 @@ function MessagesPageInner({ params }: { params: Promise<{ locale: Locale }> }) 
                   }}>
                     {msg.text}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '10px', color: MUTED, fontWeight: 700 }}>{msg.time}</span>
+                    <SpeakButton id={msg.id} text={msg.text} locale={locale} color={MUTED} />
                     {isMe && (
                       msg.sending
                         ? <Clock size={10} color={MUTED} />
