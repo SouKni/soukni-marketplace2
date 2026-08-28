@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useEffect } from 'react'
 import Link from 'next/link'
 import { Check, Shield, Star, Zap, ChevronRight, Upload, Phone, Mail, CreditCard, ArrowRight, X, Camera, Building2, FileCheck, Lock, Users, TrendingUp, Award } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import { useAuth } from '@/hooks/useAuth'
+import { getSupabaseClient } from '@/lib/supabase/client'
+import { SubscriptionPlanKey } from '@/lib/stripe/plans'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 type Step = 'landing' | 'choose-plan' | 'verify-phone' | 'verify-id' | 'verify-business' | 'payment' | 'success'
@@ -66,8 +69,13 @@ const TRUST_STATS = [
 
 export default function DiamondPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
+  const { user } = useAuth()
+  const supabase = getSupabaseClient()
   const [step, setStep] = useState<Step>('landing')
   const [plan, setPlan] = useState<Plan>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [redirecting, setRedirecting] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   // Phone verification
   const [phone, setPhone] = useState('')
@@ -85,13 +93,52 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
   const [ifNumber, setIfNumber] = useState('')
   const [businessDoc, setBusinessDoc] = useState<string | null>(null)
 
-  // Payment
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardCvc, setCardCvc] = useState('')
-  const [cardName, setCardName] = useState('')
-
   const selectedPlan = PLANS.find(p => p.key === plan)
+
+  // Poll briefly after returning from Stripe — the webhook is what actually
+  // grants the badge, so confirm against the real profile rather than
+  // trusting the redirect alone.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!params.get('session_id') || !user) return
+    setConfirming(true)
+    let attempts = 0
+    const poll = setInterval(async () => {
+      attempts++
+      const { data } = await supabase.from('profiles').select('badge').eq('id', user.id).single()
+      if (data?.badge) {
+        setConfirming(false)
+        setStep('success')
+        clearInterval(poll)
+      } else if (attempts >= 10) {
+        setConfirming(false)
+        clearInterval(poll)
+      }
+    }, 1500)
+    return () => clearInterval(poll)
+  }, [user?.id])
+
+  const startSubscriptionCheckout = async () => {
+    if (!plan) return
+    setCheckoutError(null)
+    setRedirecting(true)
+    try {
+      const res = await fetch('/api/stripe/checkout-subscription', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey: plan as SubscriptionPlanKey, locale }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.url) {
+        setCheckoutError(json.error || 'Could not start checkout')
+        setRedirecting(false)
+        return
+      }
+      window.location.href = json.url
+    } catch {
+      setCheckoutError('Could not reach the payment server. Please try again.')
+      setRedirecting(false)
+    }
+  }
 
   const handleOtpChange = (i: number, val: string) => {
     if (!/^\d*$/.test(val)) return
@@ -124,8 +171,6 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
   const canProceedId = cinFront && cinBack && selfie
   const canProceedBusiness = rcNumber.length >= 4 && ifNumber.length >= 4
 
-  const formatCard = (v: string) => v.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19)
-  const formatExpiry = (v: string) => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5)
 
   // ── shared UI ──────────────────────────────────────────────────
 
@@ -157,6 +202,15 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
         : <>{icon}<span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7a76', textAlign: 'center' }}>{label}</span></>
       }
     </button>
+  )
+
+  // ── CONFIRMING (returning from Stripe) ────────────────────────
+  if (confirming) return (
+    <div style={{ background: '#f4fbf8', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px', fontFamily: 'Hanken Grotesk, Inter, system-ui, sans-serif' }}>
+      <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '3px solid #e2eae6', borderTopColor: '#22d4a8', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ fontSize: '13px', fontWeight: 700, color: '#6b7a76' }}>Confirming your payment…</p>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
   )
 
   // ── LANDING ────────────────────────────────────────────────────
@@ -495,50 +549,20 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
             </div>
           </div>
 
-          {/* Card form */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
-            <div>
-              <label style={{ fontSize: '11px', fontWeight: 700, color: '#161d1b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Name on Card</label>
-              <input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Youssef Alami"
-                style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e2eae6', fontSize: '14px', fontFamily: 'inherit', color: '#161d1b', background: '#f4fbf8', outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = '#22d4a8'}
-                onBlur={e => e.target.style.borderColor = '#e2eae6'}
-              />
+          {checkoutError && (
+            <div style={{ padding: '14px 16px', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '12px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '13px', color: '#dc2626', fontWeight: 700 }}>{checkoutError}</p>
             </div>
-            <div>
-              <label style={{ fontSize: '11px', fontWeight: 700, color: '#161d1b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>Card Number</label>
-              <input value={cardNumber} onChange={e => setCardNumber(formatCard(e.target.value))} placeholder="1234 5678 9012 3456" maxLength={19}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e2eae6', fontSize: '14px', fontFamily: 'inherit', color: '#161d1b', background: '#f4fbf8', outline: 'none', boxSizing: 'border-box', letterSpacing: '0.05em' }}
-                onFocus={e => e.target.style.borderColor = '#22d4a8'}
-                onBlur={e => e.target.style.borderColor = '#e2eae6'}
-              />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {[
-                { label: 'Expiry', value: cardExpiry, set: (v: string) => setCardExpiry(formatExpiry(v)), placeholder: 'MM/YY', max: 5 },
-                { label: 'CVC', value: cardCvc, set: (v: string) => setCardCvc(v.replace(/\D/g, '').slice(0, 3)), placeholder: '•••', max: 3 },
-              ].map(f => (
-                <div key={f.label}>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#161d1b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>{f.label}</label>
-                  <input value={f.value} onChange={e => f.set(e.target.value)} placeholder={f.placeholder} maxLength={f.max}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e2eae6', fontSize: '14px', fontFamily: 'inherit', color: '#161d1b', background: '#f4fbf8', outline: 'none', boxSizing: 'border-box' }}
-                    onFocus={e => e.target.style.borderColor = '#22d4a8'}
-                    onBlur={e => e.target.style.borderColor = '#e2eae6'}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
             <Lock size={13} color="#6b7a76" />
-            <p style={{ fontSize: '11px', color: '#6b7a76' }}>Secured by 256-bit SSL encryption. Cancel anytime.</p>
+            <p style={{ fontSize: '11px', color: '#6b7a76' }}>Secure checkout by Stripe — card details never touch our servers. Cancel anytime.</p>
           </div>
 
-          <button
-            onClick={() => cardName && cardNumber.length === 19 && cardExpiry.length === 5 && cardCvc.length === 3 && setStep('success')}
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#22d4a8', color: 'white', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <Award size={17} /> Start Free Trial
+          <button onClick={startSubscriptionCheckout} disabled={redirecting}
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#22d4a8', color: 'white', border: 'none', fontSize: '15px', fontWeight: 700, cursor: redirecting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: redirecting ? 0.7 : 1 }}>
+            <Award size={17} /> {redirecting ? 'Redirecting to Stripe…' : 'Start Free Trial with Stripe'}
           </button>
         </div>
       </div>
@@ -564,7 +588,7 @@ export default function DiamondPage({ params }: { params: Promise<{ locale: Loca
             { icon: <Check size={15} color="#22d4a8" />, text: `${selectedPlan?.badge} ${selectedPlan?.name} badge active on all listings` },
             { icon: <Check size={15} color="#22d4a8" />, text: 'Phone number verified ✓' },
             { icon: <Check size={15} color="#22d4a8" />, text: 'Identity verified ✓' },
-            { icon: <Check size={15} color="#22d4a8" />, text: '7-day free trial started — no charge until Aug 9' },
+            { icon: <Check size={15} color="#22d4a8" />, text: `7-day free trial started — no charge until ${new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}` },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: i < 3 ? '1px solid #f4fbf8' : 'none' }}>
               <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#f0fdf9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{item.icon}</div>
