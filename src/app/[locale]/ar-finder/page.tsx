@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, use, useEffect, useRef } from 'react'
+import { useState, use, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import {
   MapPin, Navigation, Home, Eye, ChevronRight,
   X, Filter, Layers, ZoomIn, Building, Star, Wifi
 } from 'lucide-react'
+import { getSupabaseClient } from '@/lib/supabase/client'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -15,28 +16,105 @@ const MUTED   = '#6b7a76'
 const SURFACE = '#f4fbf8'
 const FONT    = "'Inter', system-ui, sans-serif"
 
-const NEARBY_PROPERTIES = [
-  { id: '1', title: '3 Bedroom Apt — Agdal',      price: '18,500 MAD/mo', type: 'rent', distance: '120m', direction: 'ahead',         angle: 15,  distance_y: 30, badge: 'diamond', rating: 4.8, image: 'https://images.pexels.com/photos/1918291/pexels-photo-1918291.jpeg?auto=compress&w=300' },
-  { id: '2', title: 'Studio — Hassan',              price: '4,200 MAD/mo',  type: 'rent', distance: '250m', direction: 'right',         angle: 85,  distance_y: 55, badge: null,      rating: 4.2, image: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&w=300' },
-  { id: '3', title: 'Villa for Sale — Souissi',     price: '4.2M MAD',     type: 'sale', distance: '400m', direction: 'left',          angle: -60, distance_y: 65, badge: 'diamond', rating: 4.9, image: 'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&w=300' },
-  { id: '4', title: '2 Bedroom — Hay Riad',        price: '9,800 MAD/mo',  type: 'rent', distance: '180m', direction: 'ahead-right',   angle: 35,  distance_y: 40, badge: 'certified', rating: 4.5, image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&w=300' },
-  { id: '5', title: 'Commercial Space — Agdal',    price: '22,000 MAD/mo', type: 'rent', distance: '320m', direction: 'behind',        angle: 160, distance_y: 60, badge: null,      rating: 4.0, image: 'https://images.pexels.com/photos/269077/pexels-photo-269077.jpeg?auto=compress&w=300' },
+// Real Moroccan city centers — used to turn a real GPS reading into the
+// nearest city, since listings only carry a `city` text column (no
+// latitude/longitude of their own to do true proximity math against).
+const CITY_CENTERS: { name: string; lat: number; lng: number }[] = [
+  { name: 'Rabat',      lat: 34.0209, lng: -6.8416 },
+  { name: 'Casablanca', lat: 33.5731, lng: -7.5898 },
+  { name: 'Marrakech',  lat: 31.6295, lng: -7.9811 },
+  { name: 'Tanger',     lat: 35.7595, lng: -5.8340 },
+  { name: 'Fes',        lat: 34.0331, lng: -5.0003 },
+  { name: 'Agadir',     lat: 30.4278, lng: -9.5981 },
+  { name: 'Meknes',     lat: 33.8935, lng: -5.5473 },
+  { name: 'Oujda',      lat: 34.6814, lng: -1.9086 },
+  { name: 'Kenitra',    lat: 34.2610, lng: -6.5802 },
+  { name: 'Tetouan',    lat: 35.5785, lng: -5.3684 },
 ]
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function nearestCity(lat: number, lng: number) {
+  let best = CITY_CENTERS[0], bestDist = Infinity
+  for (const c of CITY_CENTERS) {
+    const d = haversineKm(lat, lng, c.lat, c.lng)
+    if (d < bestDist) { bestDist = d; best = c }
+  }
+  return { city: best.name, distanceKm: Math.round(bestDist) }
+}
+
+// Deterministic pseudo-scatter for AR bubble screen position — real
+// listings don't carry precise coordinates relative to the viewer, so this
+// only controls layout, never implies a measured distance/bearing.
+function scatterFor(id: string, index: number) {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0
+  const angle = ((hash % 360) + 360) % 360
+  const distanceY = 25 + (Math.abs(hash >> 8) % 45)
+  return { angle, distanceY }
+}
+
+type DbListing = { id: string; title: string; price: number; currency: string; images: string[]; city: string | null; badge: string | null }
+type NearbyItem = { id: string; title: string; price: string; badge: string | null; image: string; angle: number; distance_y: number }
 
 export default function ARFinderPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = use(params)
+  const supabase = getSupabaseClient()
   const [mode, setMode]           = useState<'ar' | 'map' | 'list'>('ar')
-  const [selected, setSelected]   = useState<typeof NEARBY_PROPERTIES[0] | null>(null)
-  const [filter, setFilter]       = useState<'all' | 'rent' | 'sale'>('all')
-  const [maxPrice, setMaxPrice]   = useState(50000)
+  const [selected, setSelected]   = useState<NearbyItem | null>(null)
   const [hasCamera, setHasCamera] = useState(false)
   const [heading, setHeading]     = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
-  const filtered = NEARBY_PROPERTIES.filter(p =>
-    (filter === 'all' || p.type === filter)
-  )
+  // Real geolocation → nearest known city → real Supabase query
+  const [locStatus, setLocStatus] = useState<'locating' | 'granted' | 'denied' | 'unsupported'>('locating')
+  const [detectedCity, setDetectedCity] = useState<string | null>(null)
+  const [listings, setListings] = useState<DbListing[] | null>(null)
+
+  useEffect(() => {
+    if (!('geolocation' in navigator)) { setLocStatus('unsupported'); return }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { city } = nearestCity(pos.coords.latitude, pos.coords.longitude)
+        setDetectedCity(city)
+        setLocStatus('granted')
+      },
+      () => setLocStatus('denied'),
+      { enableHighAccuracy: false, timeout: 10000 }
+    )
+  }, [])
+
+  useEffect(() => {
+    // While locating, wait; once resolved (granted or not), run the real
+    // query — filtered to the detected city when we have one, otherwise a
+    // general "nearby" fallback across all active listings.
+    if (locStatus === 'locating') return
+    let cancelled = false
+    let query = supabase.from('listings').select('id, title, price, currency, images, city, badge').eq('status', 'active')
+    if (detectedCity) query = query.eq('city', detectedCity)
+    query.order('boosted', { ascending: false }).order('created_at', { ascending: false }).limit(20)
+      .then(({ data }) => { if (!cancelled) setListings(data || []) })
+    return () => { cancelled = true }
+  }, [locStatus, detectedCity])
+
+  const filtered: NearbyItem[] = useMemo(() => (listings || []).map((l, i) => {
+    const { angle, distanceY } = scatterFor(l.id, i)
+    return {
+      id: l.id,
+      title: l.title,
+      price: `${Math.round(l.price / 100).toLocaleString()} ${l.currency}`,
+      badge: l.badge,
+      image: l.images?.[0] || '',
+      angle, distance_y: distanceY,
+    }
+  }), [listings])
 
   useEffect(() => {
     // Device orientation for AR compass
@@ -64,8 +142,6 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
     if (mode === 'ar') startCamera()
     return () => { streamRef.current?.getTracks().forEach(t => t.stop()) }
   }, [mode])
-
-  const typeColor = (type: string) => type === 'rent' ? '#0891b2' : '#7c3aed'
 
   return (
     <div style={{ background: INK, minHeight: '100vh', fontFamily: FONT, position: 'relative', overflow: 'hidden' }}>
@@ -132,9 +208,9 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
                       {prop.badge === 'diamond' ? '💎' : '✓'} {prop.badge}
                     </span>
                   )}
-                  <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>📍 {prop.distance}</p>
+                  <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700, marginBottom: '2px' }}>📍 {detectedCity || 'Nearby'}</p>
                   <p style={{ fontSize: '12px', fontWeight: 900, color: INK, marginBottom: '4px', lineHeight: 1.3 }}>{prop.title}</p>
-                  <p style={{ fontSize: '14px', fontWeight: 900, color: typeColor(prop.type) }}>{prop.price}</p>
+                  <p style={{ fontSize: '14px', fontWeight: 900, color: MINT }}>{prop.price}</p>
                 </div>
               </div>
             )
@@ -145,7 +221,7 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: MINT, animation: 'pulse 1s infinite' }} />
-                <span style={{ fontSize: '13px', fontWeight: 900, color: 'white' }}>AR Property Finder</span>
+                <span style={{ fontSize: '13px', fontWeight: 900, color: 'white' }}>AR Finder</span>
               </div>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {[
@@ -168,27 +244,25 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
                 <span style={{ fontSize: '12px', fontWeight: 900, color: 'white' }}>
                   {['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(heading / 45) % 8]}
                 </span>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', fontWeight: 700 }}>Agdal, Rabat</span>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', fontWeight: 700 }}>
+                  {locStatus === 'locating' ? 'Locating…' : detectedCity || 'Location unavailable'}
+                </span>
               </div>
             </div>
+
+            {(locStatus === 'denied' || locStatus === 'unsupported') && (
+              <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(0,0,0,0.6)', borderRadius: '12px', textAlign: 'center' }}>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontWeight: 700 }}>
+                  {locStatus === 'denied' ? 'Location access denied — showing listings from across the marketplace instead.' : "Your browser doesn't support location — showing listings from across the marketplace instead."}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Bottom filters */}
+          {/* Bottom summary */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px', background: 'linear-gradient(0deg, rgba(0,0,0,0.8), transparent)' }}>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', overflowX: 'auto' }}>
-              {[
-                { key: 'all',  label: '🏘 All Properties' },
-                { key: 'rent', label: '🔑 For Rent' },
-                { key: 'sale', label: '🏷 For Sale' },
-              ].map(f => (
-                <button key={f.key} onClick={() => setFilter(f.key as any)}
-                  style={{ whiteSpace: 'nowrap', padding: '8px 16px', borderRadius: '100px', border: `1.5px solid ${filter === f.key ? MINT : 'rgba(255,255,255,0.3)'}`, background: filter === f.key ? MINT : 'rgba(255,255,255,0.1)', color: 'white', fontSize: '12px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT }}>
-                  {f.label}
-                </button>
-              ))}
-            </div>
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 700, textAlign: 'center' }}>
-              {filtered.length} properties within 500m · Point camera around to explore
+              {listings === null ? 'Loading nearby listings…' : `${filtered.length} listing${filtered.length === 1 ? '' : 's'} ${detectedCity ? `in ${detectedCity}` : 'nearby'} · Point camera around to explore`}
             </p>
           </div>
         </div>
@@ -199,7 +273,7 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
         <div style={{ minHeight: '100vh', background: SURFACE }}>
           <div style={{ background: INK, padding: '20px 20px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <h1 style={{ fontSize: '20px', fontWeight: 900, color: 'white', letterSpacing: '-0.05em' }}>📍 Properties Near You</h1>
+              <h1 style={{ fontSize: '20px', fontWeight: 900, color: 'white', letterSpacing: '-0.05em' }}>📍 Listings Near You</h1>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {[{ key: 'ar', label: '📷' }, { key: 'map', label: '🗺' }, { key: 'list', label: '☰' }].map(m => (
                   <button key={m.key} onClick={() => setMode(m.key as any)}
@@ -211,7 +285,11 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
             </div>
           </div>
           <div style={{ padding: '16px' }}>
-            {NEARBY_PROPERTIES.map(prop => (
+            {listings === null ? (
+              <p style={{ textAlign: 'center', fontSize: '13px', fontWeight: 700, color: MUTED, padding: '32px' }}>Loading nearby listings…</p>
+            ) : filtered.length === 0 ? (
+              <p style={{ textAlign: 'center', fontSize: '13px', fontWeight: 700, color: MUTED, padding: '32px' }}>No active listings found {detectedCity ? `in ${detectedCity}` : 'nearby'} right now.</p>
+            ) : filtered.map(prop => (
               <Link key={prop.id} href={`/${locale}/listing/${prop.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', border: '1px solid #e2eae6', display: 'flex', transition: 'border-color 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = MINT}
@@ -221,19 +299,16 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
                   <div style={{ padding: '12px 14px', flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                       <p style={{ fontSize: '13px', fontWeight: 900, color: INK, flex: 1 }}>{prop.title}</p>
-                      <span style={{ fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '100px', background: typeColor(prop.type) + '20', color: typeColor(prop.type), flexShrink: 0, marginLeft: '6px' }}>
-                        {prop.type}
-                      </span>
+                      {prop.badge && (
+                        <span style={{ fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '100px', background: `${MINT}20`, color: MINT, flexShrink: 0, marginLeft: '6px', textTransform: 'uppercase' }}>
+                          {prop.badge}
+                        </span>
+                      )}
                     </div>
                     <p style={{ fontSize: '14px', fontWeight: 900, color: MINT, marginBottom: '4px' }}>{prop.price}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', color: MUTED, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <MapPin size={10} /> {prop.distance}
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        ★ {prop.rating}
-                      </span>
-                    </div>
+                    <span style={{ fontSize: '11px', color: MUTED, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <MapPin size={10} /> {detectedCity || 'Morocco'}
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -251,8 +326,7 @@ export default function ARFinderPage({ params }: { params: Promise<{ locale: Loc
               <p style={{ fontSize: '15px', fontWeight: 900, color: 'white', marginBottom: '3px', lineHeight: 1.3 }}>{selected.title}</p>
               <p style={{ fontSize: '16px', fontWeight: 900, color: MINT, marginBottom: '4px' }}>{selected.price}</p>
               <div style={{ display: 'flex', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', fontWeight: 700 }}>📍 {selected.distance}</span>
-                <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 900 }}>★ {selected.rating}</span>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', fontWeight: 700 }}>📍 {detectedCity || 'Nearby'}</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
