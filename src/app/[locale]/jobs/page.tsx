@@ -162,6 +162,8 @@ export default function JobsPage({ params }: { params: Promise<{ locale: string 
     { label: t.jobs.catHrAdmin,        count: '420',   slug: 'hr-admin',         image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&w=600' },
     { label: t.jobs.catLogistics,      count: '580',   slug: 'logistics',        image: 'https://images.pexels.com/photos/4483610/pexels-photo-4483610.jpeg?auto=compress&w=600' },
     { label: t.jobs.catManufacturing,  count: '720',   slug: 'manufacturing',    image: 'https://images.pexels.com/photos/3846022/pexels-photo-3846022.jpeg?auto=compress&w=600' },
+    { label: t.jobs.catAccounting,     count: '150',   slug: 'accounting',       image: 'https://images.pexels.com/photos/6801648/pexels-photo-6801648.jpeg?auto=compress&w=600' },
+    { label: t.jobs.catIt,             count: '260',   slug: 'it',               image: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&w=600' },
   ]
   const moreCategories = [
     { label: t.jobs.catManufacturing, count: '440' },

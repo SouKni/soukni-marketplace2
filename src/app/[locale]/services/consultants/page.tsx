@@ -15,6 +15,7 @@ const SUBCATS = [
   { slug:'finance',           label:'Finance',           image:'https://images.pexels.com/photos/6801648/pexels-photo-6801648.jpeg?auto=compress&w=600' },
   { slug:'marketing',         label:'Marketing',         image:'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&w=600' },
   { slug:'technology',        label:'Technology',        image:'https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&w=600' },
+  { slug:'hr',                label:'HR Consulting',     image:'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=600' },
 ]
 
 const topChoices = [

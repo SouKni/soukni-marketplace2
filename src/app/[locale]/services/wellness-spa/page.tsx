@@ -15,6 +15,7 @@ const SUBCATS = [
   { slug:'yoga-pilates',  label:'Yoga & Pilates',  image:'https://images.pexels.com/photos/4056535/pexels-photo-4056535.jpeg?auto=compress&w=600' },
   { slug:'skincare',      label:'Skincare',        image:'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&w=600' },
   { slug:'energy-healing',label:'Energy Healing',  image:'https://images.pexels.com/photos/3822621/pexels-photo-3822621.jpeg?auto=compress&w=600' },
+  { slug:'meditation',    label:'Meditation',      image:'https://images.pexels.com/photos/3757952/pexels-photo-3757952.jpeg?auto=compress&w=600' },
 ]
 
 const topChoices = [
