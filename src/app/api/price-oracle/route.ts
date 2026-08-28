@@ -71,7 +71,7 @@ async function askGemini(apiKey: string, listing: any, comparablePrices: number[
     : 'No comparable active listings found in this category right now.'
 
   const call = ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3.6-flash',
     contents: `You are a marketplace pricing analyst for a Morocco classifieds site. Assess whether this listing's price is fair based ONLY on the real comparable listings given — do not invent historical price trends.
 
 Listing: "${listing.title}"

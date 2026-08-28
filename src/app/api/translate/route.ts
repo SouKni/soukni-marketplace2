@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Gemini request timed out')), 8000))
 
     const call = ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: `Translate this marketplace listing accurately to ${LANGUAGE_NAMES[targetLang]}. Keep it natural, not literal. Preserve the meaning and selling tone.
 
 Title: "${title}"

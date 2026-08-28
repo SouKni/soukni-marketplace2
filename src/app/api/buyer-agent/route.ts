@@ -53,7 +53,7 @@ async function parseWithGemini(query: string, apiKey: string) {
   const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Gemini request timed out')), 8000))
 
   const call = ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3.6-flash',
     contents: `Extract search filters from this marketplace buyer request. Respond with the structured JSON only.\n\nRequest: "${query}"`,
     config: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA },
   })
