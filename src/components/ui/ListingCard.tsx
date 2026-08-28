@@ -6,6 +6,7 @@ import { Heart, ChevronLeft, ChevronRight, BadgeCheck, User, Building2, Store, D
 import Link from 'next/link'
 import type { Listing, Locale } from '@/lib/types'
 import { useMarket } from '@/context/MarketContext'
+import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from './WhatsAppButton'
 
 interface ListingCardProps {
@@ -17,7 +18,8 @@ interface ListingCardProps {
 export default function ListingCard({ listing, locale, dict }: ListingCardProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(listing.id)
   const [hovered, setHovered] = useState(false)
   const { formatPrice } = useMarket()
 
@@ -86,7 +88,7 @@ export default function ListingCard({ listing, locale, dict }: ListingCardProps)
             </>
           )}
 
-          <button onClick={e => { e.preventDefault(); e.stopPropagation(); setSaved(!saved) }} aria-label={dict.save} style={{ position: 'absolute', top: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 2, transition: 'transform 0.2s' }}>
+          <button onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(listing.id) }} aria-label={dict.save} style={{ position: 'absolute', top: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 2, transition: 'transform 0.2s' }}>
             <Heart size={14} fill={saved ? '#ef4444' : 'none'} color={saved ? '#ef4444' : '#64748b'} />
           </button>
 

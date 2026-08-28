@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Search, MapPin, Heart, MessageCircle, ChevronRight, Star } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { useFavorites } from '@/hooks/useFavorites'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 
 const HERO = 'https://images.pexels.com/photos/1458867/pexels-photo-1458867.jpeg?auto=compress&w=1600'
@@ -51,7 +52,8 @@ function Stars({ rating }: { rating: number }) {
   return <div style={{ display:'flex', gap:'1px' }}>{[1,2,3,4,5].map(i=><Star key={i} size={11} fill={i<=Math.floor(rating)?'#f59e0b':'none'} color="#f59e0b" />)}</div>
 }
 function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: string }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hov, setHov] = useState(false)
   return (
     <Link href={`/${locale}/listing/${item.id}`} style={{ textDecoration:'none' }}>
@@ -60,7 +62,7 @@ function TopChoiceCard({ item, locale }: { item: typeof topChoices[0], locale: s
         <div style={{ position:'relative', width:'320px', flexShrink:0, overflow:'hidden' }}>
           <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <div style={{ position:'absolute', top:'16px', left:'16px' }}><CertifiedBadge /></div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={e=>{e.preventDefault();toggleFavorite(item.id)}} style={{ position:'absolute', top:'16px', right:'16px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <Heart size={14} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>

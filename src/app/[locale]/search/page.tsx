@@ -4,6 +4,7 @@ import { useState, use, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, SlidersHorizontal, X, ChevronDown, Heart, Grid, List, ArrowUpDown, Check } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import { useFavorites } from '@/hooks/useFavorites'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
@@ -58,10 +59,9 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
     : POPULAR_SEARCHES
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
-  const [savedIds, setSavedIds] = useState<number[]>([])
+  const { isFavorited, toggleFavorite } = useFavorites()
 
   const toggleCondition = (c: string) => setConditions(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
-  const toggleSave = (id: number) => setSavedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
   // Fuzzy match — scores how well query matches title
   const fuzzyScore = (text: string, query: string): number => {
@@ -295,9 +295,9 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
                             {item.badge}
                           </span>
                         )}
-                        <button onClick={e => { e.preventDefault(); toggleSave(item.id) }}
+                        <button onClick={e => { e.preventDefault(); toggleFavorite(String(item.id)) }}
                           style={{ position: 'absolute', top: '10px', right: '10px', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Heart size={14} color={savedIds.includes(item.id) ? '#ef4444' : '#6b7a76'} fill={savedIds.includes(item.id) ? '#ef4444' : 'none'} />
+                          <Heart size={14} color={isFavorited(String(item.id)) ? '#ef4444' : '#6b7a76'} fill={isFavorited(String(item.id)) ? '#ef4444' : 'none'} />
                         </button>
                       </div>
                       <div style={{ padding: '14px' }}>

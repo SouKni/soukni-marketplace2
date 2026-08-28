@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useListings } from '@/hooks/useListings'
+import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
@@ -129,7 +130,8 @@ function Badge({ type }: { type: BadgeT }) {
 }
 
 function ListingCard({ brand, title, price, location, condition, img, badge, year, formatPrice, id, locale, phone }: any) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
   const CardTag: any = id ? Link : 'div'
   const cardProps: any = id ? { href: `/${locale}/listing/${id}` } : {}
@@ -139,7 +141,7 @@ function ListingCard({ brand, title, price, location, condition, img, badge, yea
       <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
         <div style={{ position:'absolute', top:'10px', left:'10px', zIndex:10 }}><Badge type={badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}}
           style={{ position:'absolute', top:'8px', right:'8px', zIndex:10, width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>

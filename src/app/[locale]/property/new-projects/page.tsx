@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, TrendingUp, Building, Calendar, Users, Star, CheckCircle, Clock, Hammer, LayoutGrid, List } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -77,7 +78,8 @@ function ProgressBar({ pct, status }: { pct: number; status: Project['status'] }
 }
 
 function ProjectCard({ p, locale, view }: { p:Project; locale:string; view:'grid'|'list' }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(p.id)
   const [hov,   setHov  ] = useState(false)
 
   if (view === 'list') return (
@@ -135,7 +137,7 @@ function ProjectCard({ p, locale, view }: { p:Project; locale:string; view:'grid
           {p.badge && (
             <span style={{ position:'absolute', top:12, left:12, backgroundColor:p.status==='ready'?'#10b981':p.status==='off-plan'?'#7c3aed':C.mint, color:'white', fontSize:'9px', fontWeight:800, padding:'4px 10px', borderRadius:100, textTransform:'uppercase', letterSpacing:'0.07em' }}>{p.badge}</span>
           )}
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}}
+          <button onClick={e=>{e.preventDefault();toggleFavorite(p.id)}}
             style={{ position:'absolute', top:12, right:12, width:34, height:34, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#6b7a76'}/>
           </button>

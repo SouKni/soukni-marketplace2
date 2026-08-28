@@ -9,6 +9,7 @@ import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
   mint:   '#22d4a8',
@@ -116,8 +117,9 @@ function CondBadge({ type }: { type: CondT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, compatible, phone }: any) {
-  const [saved, setSaved] = useState(false)
+function ListingCard({ id, brand, title, price, location, condition, img, compatible, phone }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
   return (
     <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -125,7 +127,7 @@ function ListingCard({ brand, title, price, location, condition, img, compatible
       <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
         <div style={{ position:'absolute', top:'10px', left:'10px', zIndex:10 }}><CondBadge type={condition} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}}
           style={{ position:'absolute', top:'8px', right:'8px', zIndex:10, width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
@@ -202,6 +204,7 @@ export default function AccessoriesCategoryPage() {
   }, [])
   function mapDbRowToCard(row: any) {
     return {
+      id: row.id,
       brand: row.brand || '',
       title: row.title,
       price: (row.price || 0) / 100,

@@ -6,6 +6,7 @@ import { Search, ChevronRight, MapPin, Heart } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -38,8 +39,9 @@ const IMGS = [
   'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&w=400',
 ]
 
-function ListingCard({ title, price, location, img, condition }: any) {
-  const [saved, setSaved] = useState(false)
+function ListingCard({ id, title, price, location, img, condition }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov, setHov]     = useState(false)
   return (
     <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -47,7 +49,7 @@ function ListingCard({ title, price, location, img, condition }: any) {
       <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
         <span style={{ position:'absolute', top:10, left:10, background:'linear-gradient(135deg,#22d4a8,#0f9b8e)', color:'white', fontSize:8, ...CB, padding:'3px 10px', borderRadius:100, textTransform:'uppercase' as const }}>◆ SOUKNI CERTIFIED</span>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:8, right:8, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}} style={{ position:'absolute', top:8, right:8, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={13} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
         {condition && <div style={{ position:'absolute', bottom:8, left:8, backgroundColor:'rgba(255,255,255,0.92)', padding:'3px 8px', borderRadius:6, fontSize:9, ...CB, color:C.mintDk, textTransform:'uppercase' as const }}>{condition}</div>}
@@ -99,6 +101,7 @@ export default function PropertyCategoryPage() {
   }, [])
   function mapDbRowToCard(row: any) {
     return {
+      id: row.id,
       title: row.title,
       price: (row.price || 0) / 100,
       location: row.city,

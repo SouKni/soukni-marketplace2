@@ -7,6 +7,7 @@ import { useMarket } from '@/context/MarketContext'
 import { useDictionary } from '@/lib/useDictionary'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -45,7 +46,8 @@ const truckVans = [
 type MotorItem = typeof usedCars[0]
 
 function ListingCard({ item, locale, t }: { item: MotorItem; locale: string; t: any }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hovered, setHovered] = useState(false)
   const { formatPrice } = useMarket()
   return (
@@ -60,7 +62,7 @@ function ListingCard({ item, locale, t }: { item: MotorItem; locale: string; t: 
           {item.badge === 'verified' && (
             <span style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', color: C.mint, fontSize: '8px', fontWeight: 900, padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>✓ {t.common.verified}</span>
           )}
-          <button onClick={e => { e.preventDefault(); setSaved(!saved) }} style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={e => { e.preventDefault(); toggleFavorite(item.id) }} style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Heart size={14} color={saved ? '#ef4444' : 'white'} fill={saved ? '#ef4444' : 'none'} />
           </button>
         </div>

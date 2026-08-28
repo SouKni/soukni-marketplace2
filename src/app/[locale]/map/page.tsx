@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { Search, MapPin, Filter, X, Heart, Eye, List, SlidersHorizontal } from 'lucide-react'
 import type { MapListing } from '@/components/map/LeafletMap'
+import { useFavorites } from '@/hooks/useFavorites'
 
 // ── Load Leaflet with NO SSR — fixes "window is not defined" server errors ──
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
@@ -51,15 +52,14 @@ export default function MapPage({ params }: { params: Promise<{ locale: Locale }
   const [search,     setSearch    ] = useState('')
   const [category,   setCategory  ] = useState('All')
   const [selected,   setSelected  ] = useState<MapListing | null>(null)
-  const [saved,      setSaved     ] = useState<number[]>([])
+  const { isFavorited, toggleFavorite } = useFavorites()
   const [view,       setView      ] = useState<'map'|'list'>('map')
   const [maxPrice,   setMaxPrice  ] = useState(10000000)
   const [filtersOpen,setFiltersOpen] = useState(false)
   const [city,       setCity      ] = useState('All Morocco')
   const [sortBy,     setSortBy    ] = useState<'newest'|'price_asc'|'price_desc'>('newest')
 
-  const handleSave = (id: number) =>
-    setSaved(prev => prev.includes(id) ? prev.filter(i=>i!==id) : [...prev, id])
+  const handleSave = (id: number) => toggleFavorite(String(id))
 
   const filtered = LISTINGS.filter(l => {
     if (search && !l.title.toLowerCase().includes(search.toLowerCase())) return false
@@ -160,7 +160,7 @@ export default function MapPage({ params }: { params: Promise<{ locale: Locale }
             selected={selected}
             onSelect={setSelected}
             locale={locale}
-            saved={saved}
+            isFavorited={(id: number) => isFavorited(String(id))}
             onSave={handleSave}
             allListings={LISTINGS}
           />
@@ -188,7 +188,7 @@ export default function MapPage({ params }: { params: Promise<{ locale: Locale }
                         )}
                         <button onClick={e=>{e.preventDefault();handleSave(listing.id)}}
                           style={{ position:'absolute', top:10, right:10, width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <Heart size={14} color={saved.includes(listing.id)?'#ef4444':C.muted} fill={saved.includes(listing.id)?'#ef4444':'none'}/>
+                          <Heart size={14} color={isFavorited(String(listing.id))?'#ef4444':C.muted} fill={isFavorited(String(listing.id))?'#ef4444':'none'}/>
                         </button>
                       </div>
                       <div style={{ padding:'14px 16px' }}>

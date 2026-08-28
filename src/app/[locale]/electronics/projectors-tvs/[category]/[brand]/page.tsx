@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useParams } from 'next/navigation'
 import { Search, Heart, MapPin } from 'lucide-react'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', ink:'#161d1b', surface:'#f4fbf8', cream:'#f5ede0', muted:'#6b7a76' }
 const UB: React.CSSProperties = { fontFamily:'Inter,sans-serif', fontWeight:900, letterSpacing:'-0.05em' }
@@ -78,8 +79,9 @@ function Badge({ type }: { type:'certified'|'diamond'|'featured'|'new' }) {
   return <span style={{ backgroundColor:s.bg, color:s.color, fontSize:'8px', ...CB, padding:'4px 10px', borderRadius:'6px', textTransform:'uppercase' as const, letterSpacing:'0.08em', display:'inline-block' }}>{s.label}</span>
 }
 
-function ListingCard({ model, price, location, condition, img, badge }: any) {
-  const [saved, setSaved] = useState(false)
+function ListingCard({ id, model, price, location, condition, img, badge }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov, setHov] = useState(false)
   return (
     <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -87,7 +89,7 @@ function ListingCard({ model, price, location, condition, img, badge }: any) {
       <div style={{ position:'relative', aspectRatio:'16/9', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={model} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
         <div style={{ position:'absolute', top:10, left:10 }}><Badge type={badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:8, right:8, width:32, height:32, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}} style={{ position:'absolute', top:8, right:8, width:32, height:32, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
         {condition && <div style={{ position:'absolute', bottom:8, left:8, backgroundColor:'rgba(255,255,255,0.92)', padding:'3px 8px', borderRadius:6, fontSize:'9px', ...CB, color:C.mint }}>{condition}</div>}

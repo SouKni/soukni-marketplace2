@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Heart, Search, ChevronRight, ChevronLeft, MapPin, Star, Users, Wifi, Waves, TreePine, Sun, Coffee, Car } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -71,7 +72,8 @@ function AmenityTag({ amenity }: { amenity: string }) {
 }
 
 function StayCard({ stay, locale }: { stay: Stay; locale: string }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(stay.id)
   const [hov,   setHov  ] = useState(false)
   return (
     <Link href={`/${locale}/listing/${stay.id}`} style={{ textDecoration:'none' }}>
@@ -86,7 +88,7 @@ function StayCard({ stay, locale }: { stay: Stay; locale: string }) {
               {stay.badge}
             </span>
           </div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}}
+          <button onClick={e=>{e.preventDefault();toggleFavorite(stay.id)}}
             style={{ position:'absolute', top:12, right:12, width:34, height:34, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
             <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#6b7a76'} />
           </button>

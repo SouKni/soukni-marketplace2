@@ -8,6 +8,7 @@ import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -170,7 +171,8 @@ function makeListings(catSlug: string, count: number): Listing[] {
 }
 
 function ListingCard({ item, locale }: { item:Listing; locale:string }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hov, setHov] = useState(false)
   const { formatPrice } = useMarket()
   return (
@@ -180,7 +182,7 @@ function ListingCard({ item, locale }: { item:Listing; locale:string }) {
         <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
           <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <CertifiedBadge type={item.badge} />
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={e=>{e.preventDefault();toggleFavorite(item.id)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { MapPin, Heart, MessageCircle, Share2, Eye, Clock, Shield, Star, ChevronLeft, ChevronRight, Phone } from 'lucide-react'
 import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
+import { useFavorites } from '@/hooks/useFavorites'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
@@ -21,7 +22,8 @@ export default function ListingPage() {
 
   const [listing, setListing] = useState<any>(null)
   const [imgIdx, setImgIdx] = useState(0)
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = listing ? isFavorited(listing.id) : false
   const [showPhone, setShowPhone] = useState(false)
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function ListingPage() {
           <div style={{ backgroundColor:'white', borderRadius:24, padding:28, marginBottom:16, boxShadow:'0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:12 }}>
               <h1 style={{ ...UB, fontSize:'clamp(20px,2.5vw,28px)', color:C.ink, lineHeight:1.1, flex:1 }}>{listing.title}</h1>
-              <button onClick={()=>setSaved(!saved)}
+              <button onClick={()=>toggleFavorite(listing.id)}
                 style={{ width:44, height:44, borderRadius:'50%', border:`1px solid ${saved?'#ef4444':'rgba(186,202,197,0.4)'}`, backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'all 0.2s' }}>
                 <Heart size={18} color={saved?'#ef4444':C.muted} fill={saved?'#ef4444':'none'} />
               </button>
@@ -202,7 +204,7 @@ export default function ListingPage() {
             </div>
 
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
-              <button onClick={()=>setSaved(!saved)}
+              <button onClick={()=>toggleFavorite(listing.id)}
                 style={{ flex:1, padding:'10px 0', borderRadius:100, border:`1px solid ${saved?'#ef4444':'rgba(186,202,197,0.4)'}`, backgroundColor:'white', color:saved?'#ef4444':C.muted, fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
                 <Heart size={13} fill={saved?'#ef4444':'none'} /> {saved?'Saved':'Save'}
               </button>

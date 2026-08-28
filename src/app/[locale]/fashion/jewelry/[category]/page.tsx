@@ -9,6 +9,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ALL_CITIES } from '@/data/moroccoLocations'
 import { useListings } from '@/hooks/useListings'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
   mint:   '#22d4a8',
@@ -108,8 +109,9 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function ListingCard({ brand, title, price, location, condition, img, badge, metal, phone }: any) {
-  const [saved, setSaved] = useState(false)
+function ListingCard({ id, brand, title, price, location, condition, img, badge, metal, phone }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
   return (
     <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -117,7 +119,7 @@ function ListingCard({ brand, title, price, location, condition, img, badge, met
       <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.6s', transform:hov?'scale(1.08)':'scale(1)' }} />
         <div style={{ position:'absolute', top:'10px', left:'10px', zIndex:10 }}><Badge type={badge} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}}
           style={{ position:'absolute', top:'8px', right:'8px', zIndex:10, width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
@@ -148,8 +150,9 @@ function ListingCard({ brand, title, price, location, condition, img, badge, met
   )
 }
 
-function ListRowCard({ brand, title, price, location, condition, img, badge, metal, phone }: any) {
-  const [saved, setSaved] = useState(false)
+function ListRowCard({ id, brand, title, price, location, condition, img, badge, metal, phone }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
   return (
     <article onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -167,7 +170,7 @@ function ListRowCard({ brand, title, price, location, condition, img, badge, met
               <h4 style={{ fontSize:'15px', ...CB, color:hov?C.mint:C.ink, marginBottom:'4px', transition:'color 0.2s', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{title}</h4>
               {metal && <p style={{ fontSize:'10px', ...CB, color:C.muted }}>{metal}</p>}
             </div>
-            <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ flexShrink:0, width:'30px', height:'30px', borderRadius:'50%', backgroundColor:C.surface, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}} style={{ flexShrink:0, width:'30px', height:'30px', borderRadius:'50%', backgroundColor:C.surface, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Heart size={13} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
             </button>
           </div>
@@ -327,6 +330,7 @@ export default function JewelryCategoryPage() {
 
   function mapDbRowToCard(row: any) {
     return {
+      id: row.id,
       brand: row.brand || '',
       title: row.title,
       price: (row.price || 0) / 100,

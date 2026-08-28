@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MapPin, Star, Shield, MessageCircle, Phone, Heart, Diamond, Check, ChevronRight, Package, Clock } from 'lucide-react'
 import { useMarket } from '@/context/MarketContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { useFavorites } from '@/hooks/useFavorites'
 
 type DbProfile = {
   id: string; full_name: string | null; username: string | null; avatar_url: string | null
@@ -39,7 +40,8 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 }
 
 function ListingCard({ item, locale }: { item: ListingCardItem, locale: string }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hovered, setHovered] = useState(false)
   const { formatPrice } = useMarket()
   return (
@@ -56,7 +58,7 @@ function ListingCard({ item, locale }: { item: ListingCardItem, locale: string }
           {item.badge === 'verified' && (
             <span style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'rgba(255,255,255,0.92)', color: '#22d4a8', fontSize: '9px', fontWeight: 800, padding: '4px 10px', borderRadius: '100px', textTransform: 'uppercase' }}>Verified</span>
           )}
-          <button onClick={e => { e.preventDefault(); setSaved(!saved) }}
+          <button onClick={e => { e.preventDefault(); toggleFavorite(item.id) }}
             style={{ position: 'absolute', top: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Heart size={14} color={saved ? '#ef4444' : 'white'} fill={saved ? '#ef4444' : 'none'} />
           </button>

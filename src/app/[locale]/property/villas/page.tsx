@@ -5,6 +5,7 @@ import { Heart, Search, ChevronDown, ChevronsLeft, ChevronLeft, ChevronRight, Ch
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -37,7 +38,8 @@ function BadgeChip({ label }: { label: string }) {
 }
 
 function PropertyCard({ prop }: { prop: typeof VILLA_LISTINGS[0] }) {
-  const [saved, setSaved]     = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(prop.id)
   const [hovered, setHovered] = useState(false)
   return (
     <article onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
@@ -48,7 +50,7 @@ function PropertyCard({ prop }: { prop: typeof VILLA_LISTINGS[0] }) {
           <BadgeChip label={prop.badge} />
           {(prop as any).badge2 && <BadgeChip label={(prop as any).badge2} />}
         </div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}}
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(prop.id)}}
           style={{ position:'absolute', top:10, right:10, width:34, height:34, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.2)', backdropFilter:'blur(12px)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'white'} />
         </button>

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -94,7 +95,8 @@ function PermitBadge({ status }: { status: string }) {
 }
 
 function LandCard({ item, locale, view }: { item:any; locale:string; view:'grid'|'list' }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hov,   setHov  ] = useState(false)
   const pricePerM2 = Math.round(item.price / item.area).toLocaleString()
 
@@ -148,7 +150,7 @@ function LandCard({ item, locale, view }: { item:any; locale:string; view:'grid'
           <div style={{ position:'absolute', top:12, left:12 }}>
             <span style={{ backgroundColor:C.mint, color:'white', fontSize:'9px', fontWeight:800, padding:'3px 9px', borderRadius:'4px', textTransform:'uppercase' }}>{item.badge}</span>
           </div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:12, right:12, width:32, height:32, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <button onClick={e=>{e.preventDefault();toggleFavorite(item.id)}} style={{ position:'absolute', top:12, right:12, width:32, height:32, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Heart size={15} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#6b7a76'}/>
           </button>
           <div style={{ position:'absolute', bottom:12, left:12 }}><PermitBadge status={item.permit} /></div>

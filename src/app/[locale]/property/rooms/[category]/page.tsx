@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { useListings } from '@/hooks/useListings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = { mint:'#22d4a8', mintDk:'#0f9b8e', ink:'#161d1b', surface:'#f4fbf8', muted:'#6b7a76' }
 const UB = { fontFamily:"'Inter',sans-serif", fontWeight:900, letterSpacing:'-0.05em' } as const
@@ -75,7 +76,8 @@ function BadgeChip({ label }: { label: string }) {
 }
 
 function RoomCard({ item, locale, view }: { item: ReturnType<typeof makeListings>[0]; locale: string; view: 'grid'|'list' }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hov,   setHov  ] = useState(false)
 
   if (view === 'list') return (
@@ -128,7 +130,7 @@ function RoomCard({ item, locale, view }: { item: ReturnType<typeof makeListings
             <BadgeChip label={item.badge} />
             {item.badge2 && <BadgeChip label={item.badge2} />}
           </div>
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}}
+          <button onClick={e=>{e.preventDefault();toggleFavorite(item.id)}}
             style={{ position:'absolute', top:'10px', right:'10px', width:'34px', height:'34px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.9)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
             <Heart size={16} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':'#6b7a76'} />
           </button>

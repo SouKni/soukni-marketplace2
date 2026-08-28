@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { ALL_CITIES, getNeighborhoods } from '@/data/moroccoLocations'
 import { FashionBreadcrumb, FashionCrossNav } from '@/components/ui/FashionPageWrapper'
 import CategoryFooterNav from '@/components/ui/CategoryFooterNav'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const C = {
   mint:   '#22d4a8',
@@ -58,9 +59,10 @@ function Badge({ type }: { type: BadgeT }) {
   )
 }
 
-function FeaturedCard({ brand, title, price, location, img, badges, era, phone }: any) {
+function FeaturedCard({ id, brand, title, price, location, img, badges, era, phone }: any) {
   const [hov, setHov]     = useState(false)
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   return (
     <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{ backgroundColor:'white', borderRadius:'24px', border:`1px solid ${hov?C.mint:'rgba(107,122,118,0.1)'}`, boxShadow:hov?`0 20px 40px ${C.mint}18`:'0 2px 8px rgba(0,0,0,0.04)', overflow:'hidden', transition:'all 0.3s', cursor:'pointer' }}>
@@ -69,7 +71,7 @@ function FeaturedCard({ brand, title, price, location, img, badges, era, phone }
         <div style={{ position:'absolute', top:'12px', left:'12px', display:'flex', flexDirection:'column' as const, gap:'5px' }}>
           {badges?.map((b:string)=><Badge key={b} type={b as BadgeT} />)}
         </div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'10px', right:'10px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}} style={{ position:'absolute', top:'10px', right:'10px', width:'32px', height:'32px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={14} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
         {era && <div style={{ position:'absolute', bottom:'10px', right:'10px', backgroundColor:'rgba(22,29,27,0.75)', color:'white', fontSize:'9px', ...CB, padding:'4px 10px', borderRadius:'6px' }}>{era}</div>}
@@ -91,8 +93,9 @@ function FeaturedCard({ brand, title, price, location, img, badges, era, phone }
   )
 }
 
-function GridCard({ brand, title, price, img, badge, era, phone }: any) {
-  const [saved, setSaved] = useState(false)
+function GridCard({ id, brand, title, price, img, badge, era, phone }: any) {
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(id)
   const [hov,   setHov  ] = useState(false)
   return (
     <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -100,7 +103,7 @@ function GridCard({ brand, title, price, img, badge, era, phone }: any) {
       <div style={{ position:'relative', aspectRatio:'1/1', overflow:'hidden', backgroundColor:C.cream }}>
         <img src={img} alt={title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.7s', transform:hov?'scale(1.1)':'scale(1)' }} />
         <div style={{ position:'absolute', top:'10px', left:'10px' }}><Badge type={badge as BadgeT} /></div>
-        <button onClick={e=>{e.stopPropagation();setSaved(!saved)}} style={{ position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <button onClick={e=>{e.stopPropagation();toggleFavorite(id)}} style={{ position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.85)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Heart size={12} fill={saved?'#ef4444':'none'} color={saved?'#ef4444':C.muted} />
         </button>
         {era && <div style={{ position:'absolute', bottom:'8px', right:'8px', backgroundColor:'rgba(22,29,27,0.75)', color:'white', fontSize:'8px', ...CB, padding:'3px 8px', borderRadius:'5px' }}>{era}</div>}
@@ -284,6 +287,7 @@ export default function VintagePage({ params }: { params: Promise<{ locale: stri
 
   function mapDbRowToCard(row: any) {
     return {
+      id: row.id,
       brand: row.brand || '',
       title: row.title,
       price: (row.price || 0) / 100,

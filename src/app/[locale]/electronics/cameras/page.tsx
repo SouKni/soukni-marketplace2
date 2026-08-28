@@ -7,6 +7,7 @@ import { Heart, Search, MapPin, SlidersHorizontal, ChevronRight, Diamond, Messag
 import { useListings } from '@/hooks/useListings'
 import { useMarket } from '@/context/MarketContext'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const I = {
   hero:    'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&w=1600',
@@ -85,7 +86,8 @@ function CertifiedBadge({ type }: { type: Badge }) {
 }
 
 function ListingCard({ item, locale, compact=false }: { item:Listing; locale:string; compact?:boolean }) {
-  const [saved, setSaved] = useState(false)
+  const { isFavorited, toggleFavorite } = useFavorites()
+  const saved = isFavorited(item.id)
   const [hov, setHov] = useState(false)
   const { formatPrice } = useMarket()
   return (
@@ -95,7 +97,7 @@ function ListingCard({ item, locale, compact=false }: { item:Listing; locale:str
         <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
           <img src={item.image} alt={item.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s', transform:hov?'scale(1.06)':'scale(1)' }} />
           <CertifiedBadge type={item.badge} />
-          <button onClick={e=>{e.preventDefault();setSaved(!saved)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={e=>{e.preventDefault();toggleFavorite(item.id)}} style={{ position:'absolute', top:10, right:10, zIndex:2, width:30, height:30, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <Heart size={13} color={saved?'#ef4444':'white'} fill={saved?'#ef4444':'none'} />
           </button>
         </div>

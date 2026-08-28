@@ -16,12 +16,12 @@ interface Props {
   selected: MapListing | null
   onSelect: (l: MapListing | null) => void
   locale: string
-  saved: number[]
+  isFavorited: (id: number) => boolean
   onSave: (id: number) => void
   allListings: MapListing[]
 }
 
-export default function LeafletMap({ listings, selected, onSelect, locale, saved, onSave, allListings }: Props) {
+export default function LeafletMap({ listings, selected, onSelect, locale, isFavorited, onSave, allListings }: Props) {
   const mapRef     = useRef<any>(null)
   const mapElRef   = useRef<HTMLDivElement>(null)
   const markersRef = useRef<any[]>([])
@@ -132,8 +132,8 @@ export default function LeafletMap({ listings, selected, onSelect, locale, saved
                   View Listing →
                 </Link>
                 <button onClick={()=>onSave(selected.id)}
-                  style={{ width:44, height:44, borderRadius:12, border:`1.5px solid ${saved.includes(selected.id)?'#ef4444':'#e2eae6'}`, background:saved.includes(selected.id)?'#fef2f2':'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <Heart size={16} color={saved.includes(selected.id)?'#ef4444':C.muted} fill={saved.includes(selected.id)?'#ef4444':'none'}/>
+                  style={{ width:44, height:44, borderRadius:12, border:`1.5px solid ${isFavorited(selected.id)?'#ef4444':'#e2eae6'}`, background:isFavorited(selected.id)?'#fef2f2':'white', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Heart size={16} color={isFavorited(selected.id)?'#ef4444':C.muted} fill={isFavorited(selected.id)?'#ef4444':'none'}/>
                 </button>
               </div>
               <Link href={`/${locale}/messages`}
