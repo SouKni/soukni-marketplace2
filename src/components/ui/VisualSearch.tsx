@@ -2,70 +2,110 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, Search, X, Sparkles, ChevronRight } from 'lucide-react'
+import { Camera, Search, X, ChevronRight } from 'lucide-react'
+import { CATEGORIES, CONDITION_FROM_DB } from '@/lib/categories'
 
 const MINT = '#22d4a8'
 const INK  = '#161d1b'
 const MUTED = '#6b7a76'
 const FONT = "'Inter', system-ui, sans-serif"
 
-const MOCK_RESULTS = [
-  { id: '1', title: 'iPhone 15 Pro Max 256GB', price: '12,500 MAD', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=300', similarity: 97, city: 'Rabat' },
-  { id: '4', title: 'iPhone 15 Pro 128GB', price: '10,800 MAD', image: 'https://images.pexels.com/photos/5750001/pexels-photo-5750001.jpeg?auto=compress&w=300', similarity: 89, city: 'Casa' },
-  { id: '7', title: 'iPhone 14 Pro Max 256GB', price: '9,500 MAD', image: 'https://images.pexels.com/photos/5750001/pexels-photo-5750001.jpeg?auto=compress&w=300', similarity: 82, city: 'Marrakech' },
-]
+type Analysis = {
+  title: string
+  category: string | null
+  brand: string | null
+  color: string | null
+  condition: string | null
+  material: string | null
+  keywords: string
+  confidence: number
+}
+
+type Result = {
+  id: string
+  title: string
+  price: number
+  currency: string
+  image: string | null
+  city: string | null
+  condition: string | null
+}
+
+function categoryLabel(slug: string | null) {
+  return CATEGORIES.find(c => c.slug === slug)?.label || null
+}
+
+// Downscale to a reasonable max dimension before upload — keeps the request
+// small and the Gemini call cheap without any visible quality loss for
+// product identification purposes.
+function resizeImage(file: File, maxDim = 1024, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error)
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('Could not read image'))
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('Canvas unavailable'))
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function VisualSearch({ locale }: { locale: string }) {
   const router = useRouter()
   const [open, setOpen]           = useState(false)
   const [image, setImage]         = useState<string | null>(null)
   const [loading, setLoading]     = useState(false)
-  const [analysis, setAnalysis]   = useState<any>(null)
-  const [results, setResults]     = useState<typeof MOCK_RESULTS>([])
+  const [analysis, setAnalysis]   = useState<Analysis | null>(null)
+  const [results, setResults]     = useState<Result[]>([])
+  const [notice, setNotice]       = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      setImage(e.target?.result as string)
-      analyzeImage(e.target?.result as string)
+  const handleFile = async (file: File) => {
+    try {
+      const dataUrl = await resizeImage(file)
+      setImage(dataUrl)
+      analyzeImage(dataUrl)
+    } catch {
+      setNotice('Could not read that photo — please try another one.')
     }
-    reader.readAsDataURL(file)
   }
 
   const analyzeImage = async (src: string) => {
     setLoading(true)
     setResults([])
+    setAnalysis(null)
+    setNotice(null)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/visual-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 400,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
-              { type: 'text', text: `Identify this product for a Moroccan marketplace search. Respond ONLY with JSON:
-{"item":"<product name>","brand":"<brand or null>","category":"<Electronics|Motors|Property|Fashion|Home|Other>","color":"<main color>","condition_guess":"<new|used>","search_query":"<best search term for marketplace>","confidence":<50-99>}` }
-            ]
-          }]
-        })
+        body: JSON.stringify({ image: src }),
       })
       const data = await res.json()
-      const text = data.content?.[0]?.text || '{}'
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
-      setAnalysis(parsed)
-      setResults(MOCK_RESULTS)
+      if (data.analysis) setAnalysis(data.analysis)
+      if (Array.isArray(data.results)) setResults(data.results)
+      if (data.message) setNotice(data.message)
+      else if (data.analysis && (!data.results || data.results.length === 0)) {
+        setNotice(`No active listings matched "${data.analysis.title}" yet.`)
+      }
     } catch {
-      setAnalysis({ item: 'Smartphone', category: 'Electronics', search_query: 'smartphone', confidence: 70 })
-      setResults(MOCK_RESULTS)
+      setNotice('Visual search failed to reach the server. Please try again.')
     }
     setLoading(false)
   }
 
-  const reset = () => { setImage(null); setAnalysis(null); setResults([]) }
+  const reset = () => { setImage(null); setAnalysis(null); setResults([]); setNotice(null) }
 
   if (!open) return (
     <button onClick={() => setOpen(true)}
@@ -131,11 +171,12 @@ export default function VisualSearch({ locale }: { locale: string }) {
                 <p style={{ fontSize: '11px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>AI Identified:</p>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {[
-                    analysis.item,
+                    analysis.title,
                     analysis.brand,
-                    analysis.category,
+                    categoryLabel(analysis.category),
                     analysis.color,
-                    `${analysis.confidence}% confident`
+                    analysis.condition ? CONDITION_FROM_DB[analysis.condition] : null,
+                    `${analysis.confidence}% confident`,
                   ].filter(Boolean).map((tag, i) => (
                     <span key={i} style={{ fontSize: '12px', fontWeight: 900, padding: '4px 10px', borderRadius: '100px', background: 'white', border: `1px solid ${MINT}`, color: i === 0 ? INK : MUTED }}>
                       {tag}
@@ -145,10 +186,16 @@ export default function VisualSearch({ locale }: { locale: string }) {
               </div>
             )}
 
+            {notice && (
+              <div style={{ padding: '12px 14px', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: '12px', marginBottom: '14px' }}>
+                <p style={{ fontSize: '12px', color: '#9a3412', fontWeight: 700, lineHeight: 1.5 }}>{notice}</p>
+              </div>
+            )}
+
             {results.length > 0 && (
               <div>
                 <p style={{ fontSize: '13px', fontWeight: 900, color: INK, marginBottom: '10px' }}>
-                  🔍 {results.length} similar listings found
+                  🔍 {results.length} matching listing{results.length === 1 ? '' : 's'} found
                 </p>
                 {results.map(r => (
                   <div key={r.id} onClick={() => { router.push(`/${locale}/listing/${r.id}`); setOpen(false) }}
@@ -156,23 +203,38 @@ export default function VisualSearch({ locale }: { locale: string }) {
                     onMouseEnter={e => e.currentTarget.style.borderColor = MINT}
                     onMouseLeave={e => e.currentTarget.style.borderColor = '#e2eae6'}
                   >
-                    <img src={r.image} alt="" style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
+                    {r.image ? (
+                      <img src={r.image} alt="" style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: '60px', height: '60px', borderRadius: '10px', background: '#e2eae6', flexShrink: 0 }} />
+                    )}
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '13px', fontWeight: 900, color: INK, marginBottom: '2px' }}>{r.title}</p>
-                      <p style={{ fontSize: '13px', fontWeight: 900, color: MINT, marginBottom: '2px' }}>{r.price}</p>
-                      <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>📍 {r.city}</p>
+                      <p style={{ fontSize: '13px', fontWeight: 900, color: MINT, marginBottom: '2px' }}>{Math.round(r.price / 100).toLocaleString()} {r.currency}</p>
+                      <p style={{ fontSize: '11px', color: MUTED, fontWeight: 700 }}>📍 {r.city || 'Morocco'}</p>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: '14px', fontWeight: 900, color: r.similarity > 90 ? MINT : MUTED }}>{r.similarity}%</span>
-                      <span style={{ fontSize: '9px', color: MUTED, fontWeight: 700 }}>match</span>
-                    </div>
+                    <ChevronRight size={16} color={MUTED} style={{ flexShrink: 0, alignSelf: 'center' }} />
                   </div>
                 ))}
-                <button onClick={() => { router.push(`/${locale}/search?q=${analysis?.search_query || ''}&visual=1`); setOpen(false) }}
+                <button onClick={() => { router.push(`/${locale}/search?q=${encodeURIComponent(analysis?.keywords || '')}`); setOpen(false) }}
                   style={{ width: '100%', padding: '12px', borderRadius: '12px', background: INK, border: 'none', color: 'white', fontSize: '13px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px' }}>
                   <Search size={14} /> See all matches
                 </button>
               </div>
+            )}
+
+            {!loading && analysis && results.length === 0 && (
+              <button onClick={() => { router.push(`/${locale}/search?q=${encodeURIComponent(analysis?.keywords || '')}`); setOpen(false) }}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', background: INK, border: 'none', color: 'white', fontSize: '13px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Search size={14} /> Browse "{analysis.keywords}" manually
+              </button>
+            )}
+
+            {!loading && !analysis && notice && (
+              <button onClick={() => { router.push(`/${locale}/search`); setOpen(false) }}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', background: INK, border: 'none', color: 'white', fontSize: '13px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Search size={14} /> Search manually
+              </button>
             )}
           </div>
         )}
