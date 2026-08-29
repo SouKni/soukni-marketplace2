@@ -125,18 +125,13 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
     setAiWriterLoading(true)
     setAiWriterResult(null)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai-writer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: `You are a marketplace copywriter for SouKni Morocco. Generate a listing title and description from: "${aiWriterPrompt}". Category: ${selectedCat?.label || 'General'}. City: ${city || 'Morocco'}. Respond ONLY with JSON: {"title":"<max 80 chars>","description":"<150-300 words>"}` }]
-        })
+        body: JSON.stringify({ prompt: aiWriterPrompt, category: selectedCat?.label || '', city }),
       })
-      const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+      const parsed = await res.json()
+      if (!res.ok) throw new Error(parsed.error || 'Request failed')
       setAiWriterResult(parsed)
     } catch {
       setAiWriterResult({ title: 'Error — please try again', description: '' })
@@ -148,18 +143,13 @@ export default function PostAdPage({ params }: { params: Promise<{ locale: Local
     setAiPriceLoading(true)
     setAiPriceResult(null)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai-price', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 800,
-          messages: [{ role: 'user', content: `You are a Moroccan marketplace pricing expert. Suggest prices in MAD for: "${title}" | Category: ${selectedCat?.label} | Condition: ${condition || 'Unknown'} | City: ${city || 'Morocco'}. Respond ONLY with JSON: {"low":<number>,"mid":<number>,"high":<number>,"reasoning":"<2 sentences>","tips":["<tip1>","<tip2>","<tip3>"]}` }]
-        })
+        body: JSON.stringify({ title, categorySlug: category, categoryLabel: selectedCat?.label || '', condition, city }),
       })
-      const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+      const parsed = await res.json()
+      if (!res.ok) throw new Error(parsed.error || 'Request failed')
       setAiPriceResult(parsed)
     } catch {
       setAiPriceResult({ low: 0, mid: 0, high: 0, reasoning: 'Could not analyse — try again.', tips: [] })
