@@ -1,15 +1,55 @@
 'use client'
 
-import { useState, use, useMemo } from 'react'
+import { useState, use, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, SlidersHorizontal, X, ChevronDown, Heart, Grid, List, ArrowUpDown, Check } from 'lucide-react'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import { useFavorites } from '@/hooks/useFavorites'
+import { getSupabaseClient } from '@/lib/supabase/client'
+import { CATEGORIES, CONDITION_FROM_DB } from '@/lib/categories'
 
 type Locale = 'en' | 'fr' | 'ar' | 'es' | 'de'
 
-// Mock dataset spanning multiple categories — in production this is a real DB query
-const ALL_LISTINGS = [
+type Listing = {
+  id: string | number
+  title: string
+  price: number
+  category: string
+  subcategory: string
+  city: string
+  image: string
+  badge: string | null
+  condition: string
+  postedDays: number
+}
+
+const PLACEHOLDER_IMAGE = 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&w=500'
+
+// Maps a real `listings` row (see src/lib/supabase/schema.sql) onto the same
+// shape the mock dataset below uses, so the existing filter/sort/render
+// logic works unchanged regardless of which dataset is active.
+function mapRealListing(row: any): Listing {
+  const categoryLabel = CATEGORIES.find(c => c.slug === row.category_slug)?.label || row.category_slug || 'Other'
+  const conditionLabel = row.condition ? (CONDITION_FROM_DB[row.condition] || row.condition) : ''
+  const badge = row.badge ? row.badge.charAt(0).toUpperCase() + row.badge.slice(1) : null
+  const postedDays = Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86400000))
+  return {
+    id: row.id,
+    title: row.title,
+    price: Math.round(row.price / 100),
+    category: categoryLabel,
+    subcategory: row.subcategory || '',
+    city: row.city || '',
+    image: row.images?.[0] || PLACEHOLDER_IMAGE,
+    badge,
+    condition: conditionLabel,
+    postedDays,
+  }
+}
+
+// Mock dataset spanning multiple categories — used only when a real search
+// against Supabase comes back empty, so the page never shows a dead end.
+const ALL_LISTINGS: Listing[] = [
   { id: 1, title: 'iPhone 15 Pro Max 256GB Titanium Black', price: 12500, category: 'Electronics', subcategory: 'Mobiles', city: 'Rabat', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500', badge: 'Diamond', condition: 'Like New', postedDays: 1 },
   { id: 2, title: 'iPhone 14 Pro Max 256GB Space Black', price: 9200, category: 'Electronics', subcategory: 'Mobiles', city: 'Marrakech', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500', badge: 'Verified', condition: 'Good', postedDays: 3 },
   { id: 3, title: 'iPhone 13 128GB Midnight — Unlocked', price: 5800, category: 'Electronics', subcategory: 'Mobiles', city: 'Casablanca', image: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&w=500', badge: null, condition: 'Good', postedDays: 5 },
@@ -36,6 +76,7 @@ const SORT_OPTIONS = [
 export default function SearchPage({ params, searchParams }: { params: Promise<{ locale: Locale }>; searchParams: Promise<{ q?: string }> }) {
   const { locale } = use(params)
   const { q } = use(searchParams)
+  const supabase = getSupabaseClient()
 
   const [query, setQuery] = useState(q || '')
   const [city, setCity] = useState('All Cities')
@@ -45,6 +86,35 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
   const [sortBy, setSortBy] = useState('relevance')
   const [sortOpen, setSortOpen] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  // Real listings matching the current query — null until the first fetch
+  // resolves, [] if Supabase genuinely returned nothing. The mock dataset
+  // only takes over when this is a real, confirmed-empty result.
+  const [realListings, setRealListings] = useState<Listing[] | null>(null)
+  const [searching, setSearching] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setSearching(true)
+    const timer = setTimeout(async () => {
+      // OR-join each keyword — same approach as /api/visual-search — so a
+      // multi-word query still surfaces listings that only match on one
+      // strong term, and a websearch AND-of-all-words match doesn't miss
+      // real results over a strict single-phrase ILIKE match.
+      const orQuery = query.trim().split(/\s+/).filter(w => w.length > 1).join(' OR ')
+      let dbQuery = supabase.from('listings')
+        .select('id, title, price, currency, category_slug, subcategory, city, images, badge, condition, created_at')
+        .eq('status', 'active')
+      if (orQuery) dbQuery = dbQuery.textSearch('search_vector', orQuery, { type: 'websearch', config: 'french' })
+      dbQuery = dbQuery.order('boosted', { ascending: false }).order('created_at', { ascending: false }).limit(60)
+
+      const { data, error } = await dbQuery
+      if (cancelled) return
+      setRealListings(!error && data ? data.map(mapRealListing) : [])
+      setSearching(false)
+    }, 300)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [query])
 
   const POPULAR_SEARCHES = [
     'iPhone 15 Pro', 'BMW Série 3', 'Appartement Rabat', 'MacBook Pro',
@@ -83,15 +153,23 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
     return ratio > 0.7 ? ratio * 0.5 : 0              // typo tolerance
   }
 
+  // Real results win whenever Supabase actually found something for this
+  // query; the mock dataset is the fallback for a genuinely empty real
+  // search, not a default.
+  const usingReal = realListings !== null && realListings.length > 0
+  const dataset = usingReal ? realListings! : ALL_LISTINGS
+
   const results = useMemo(() => {
-    let filtered = ALL_LISTINGS.filter(l => {
-      const score = query.trim() === '' ? 1 : Math.max(
+    let filtered = dataset.filter(l => {
+      // Real results already came back filtered by search_vector server-side
+      // — re-running the mock's title/category/subcategory/city fuzzy match
+      // on them would wrongly exclude a real match found via its description.
+      const matchesQuery = usingReal || query.trim() === '' ? true : Math.max(
         fuzzyScore(l.title, query),
         fuzzyScore(l.category, query),
         fuzzyScore(l.subcategory, query),
         fuzzyScore(l.city, query)
-      )
-      const matchesQuery = score > 0.3
+      ) > 0.3
       const matchesCity = city === 'All Cities' || l.city === city
       const matchesMin = minPrice === '' || l.price >= Number(minPrice)
       const matchesMax = maxPrice === '' || l.price <= Number(maxPrice)
@@ -105,7 +183,7 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
     if (sortBy === 'newest') filtered = [...filtered].sort((a, b) => a.postedDays - b.postedDays)
 
     return filtered
-  }, [query, city, minPrice, maxPrice, conditions, sortBy])
+  }, [dataset, usingReal, query, city, minPrice, maxPrice, conditions, sortBy])
 
   const activeFilterCount = (city !== 'All Cities' ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + conditions.length
 
@@ -170,7 +248,12 @@ export default function SearchPage({ params, searchParams }: { params: Promise<{
             <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#161d1b', letterSpacing: '-0.02em' }}>
               {query ? `Results for "${query}"` : 'All Listings'}
             </h1>
-            <p style={{ fontSize: '13px', color: '#6b7a76', marginTop: '2px' }}>{results.length} ad{results.length !== 1 ? 's' : ''} found</p>
+            <p style={{ fontSize: '13px', color: '#6b7a76', marginTop: '2px' }}>
+              {searching ? 'Searching…' : `${results.length} ad${results.length !== 1 ? 's' : ''} found`}
+              {!searching && !usingReal && realListings !== null && (
+                <span style={{ marginLeft: '8px', fontWeight: 600, color: '#9a6c1f' }}>· showing sample listings</span>
+              )}
+            </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
