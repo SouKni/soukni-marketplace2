@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, Sparkles, Download, RotateCcw, Check, Camera, Zap } from 'lucide-react'
+import { Upload, Sparkles, RotateCcw, Check, Camera, ShieldAlert } from 'lucide-react'
+import { resizeImage } from '@/lib/resizeImage'
 
 const MINT = '#22d4a8'
 const INK  = '#161d1b'
@@ -10,92 +11,53 @@ const FONT = "'Inter', system-ui, sans-serif"
 
 type Enhancement = 'auto' | 'remove_bg' | 'brighten' | 'sharpen' | 'compress'
 
-type Result = {
-  original: string
-  enhanced: string
-  improvements: string[]
-  score_before: number
-  score_after: number
+type Assessment = {
+  score: number
+  strengths: string[]
+  issues: string[]
+  tip: string
 }
 
 export default function AiPhotoEnhancer({ onEnhanced }: { onEnhanced?: (url: string) => void }) {
   const [image, setImage]       = useState<string | null>(null)
-  const [result, setResult]     = useState<Result | null>(null)
+  const [assessment, setAssessment] = useState<Assessment | null>(null)
+  const [notice, setNotice]     = useState<string | null>(null)
   const [loading, setLoading]   = useState(false)
-  const [mode, setMode]         = useState<'before' | 'after'>('after')
   const [enhancements, setEnhancements] = useState<Enhancement[]>(['auto'])
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) return
-    const reader = new FileReader()
-    reader.onload = e => setImage(e.target?.result as string)
-    reader.readAsDataURL(file)
-    setResult(null)
+    let dataUrl: string
+    try {
+      dataUrl = await resizeImage(file)
+    } catch {
+      setNotice('Could not read that photo — please try another one.')
+      return
+    }
+    setImage(dataUrl)
+    setAssessment(null)
+    setNotice(null)
   }
 
   const enhance = async () => {
     if (!image) return
     setLoading(true)
+    setNotice(null)
     try {
-      // Use Claude to analyse the photo and suggest improvements
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai-photo-enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 500,
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: { type: 'base64', media_type: 'image/jpeg', data: image.split(',')[1] }
-              },
-              {
-                type: 'text',
-                text: `You are SouKni's AI photo analyst for marketplace listings.
-Analyze this product photo and respond ONLY with JSON:
-{
-  "score_before": <1-100 quality score>,
-  "score_after": <estimated score after enhancement>,
-  "improvements": ["<specific improvement 1>", "<specific improvement 2>", "<specific improvement 3>"],
-  "issues": ["<issue found>"],
-  "tip": "<one actionable tip to take a better photo next time>"
-}`
-              }
-            ]
-          }]
-        })
+        body: JSON.stringify({ image }),
       })
       const data = await res.json()
-      const text = data.content?.[0]?.text || '{}'
-      const analysis = JSON.parse(text.replace(/```json|```/g, '').trim())
-
-      // Apply CSS-based enhancements (in production: Cloudinary AI transforms)
-      const enhanced = applyEnhancements(image, enhancements)
-
-      setResult({
-        original: image,
-        enhanced,
-        improvements: analysis.improvements || ['Auto-brightness adjusted', 'Contrast enhanced', 'Sharpness improved'],
-        score_before: analysis.score_before || 60,
-        score_after:  analysis.score_after  || 88,
-      })
+      if (data.assessment) setAssessment(data.assessment)
+      if (data.message) setNotice(data.message)
     } catch {
-      // Fallback without AI analysis
-      setResult({
-        original: image,
-        enhanced: applyEnhancements(image, enhancements),
-        improvements: ['Auto-brightness adjusted', 'Contrast enhanced', 'Colors optimised'],
-        score_before: 65, score_after: 90,
-      })
+      setNotice('Photo quality assessment failed to reach the server. You can still use this photo as-is.')
     }
     setLoading(false)
   }
-
-  // CSS filter-based enhancement (visual demo — production uses Cloudinary AI)
-  const applyEnhancements = (src: string, modes: Enhancement[]): string => src
 
   const ENHANCE_OPTIONS: { key: Enhancement; label: string; emoji: string; desc: string }[] = [
     { key: 'auto',      label: 'Auto Enhance',   emoji: '✨', desc: 'AI adjusts everything automatically' },
@@ -136,7 +98,7 @@ Analyze this product photo and respond ONLY with JSON:
             ))}
           </div>
         </div>
-      ) : !result ? (
+      ) : !assessment && !notice ? (
         /* Enhancement options */
         <div>
           <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '16px', aspectRatio: '16/10', background: '#e2eae6', position: 'relative' }}>
@@ -176,65 +138,70 @@ Analyze this product photo and respond ONLY with JSON:
           </button>
         </div>
       ) : (
-        /* Result comparison */
+        /* Assessment result — a real read on the photo as-is; nothing here
+           implies the image itself was edited, since no real enhancement
+           happens. */
         <div>
-          {/* Before/After toggle */}
-          <div style={{ display: 'flex', gap: '4px', background: '#e2eae6', padding: '4px', borderRadius: '12px', marginBottom: '14px' }}>
-            {(['before', 'after'] as const).map(m => (
-              <button key={m} onClick={() => setMode(m)}
-                style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 900, fontFamily: FONT, background: mode === m ? 'white' : 'transparent', color: mode === m ? INK : MUTED, boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s' }}>
-                {m === 'before' ? '📸 Before' : '✨ After AI'}
-              </button>
-            ))}
-          </div>
-
-          {/* Image */}
           <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '14px', aspectRatio: '16/10', position: 'relative', background: '#e2eae6' }}>
-            <img
-              src={mode === 'before' ? result.original : result.enhanced}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', filter: mode === 'after' ? 'brightness(1.08) contrast(1.05) saturate(1.1) sharpen(1)' : 'none', transition: 'filter 0.3s' }}
-            />
-            <div style={{ position: 'absolute', top: '10px', left: '10px', padding: '4px 10px', borderRadius: '100px', background: mode === 'after' ? MINT : 'rgba(0,0,0,0.5)', color: 'white', fontSize: '11px', fontWeight: 900 }}>
-              {mode === 'after' ? `Score: ${result.score_after}/100 ✨` : `Score: ${result.score_before}/100`}
-            </div>
+            <img src={image!} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {assessment && (
+              <div style={{ position: 'absolute', top: '10px', left: '10px', padding: '4px 10px', borderRadius: '100px', background: MINT, color: 'white', fontSize: '11px', fontWeight: 900 }}>
+                Quality Score: {assessment.score}/100
+              </div>
+            )}
           </div>
 
-          {/* Improvements */}
-          <div style={{ background: '#f0fdf9', borderRadius: '14px', padding: '14px', border: `1px solid ${MINT}`, marginBottom: '12px' }}>
-            <p style={{ fontSize: '12px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-              🤖 AI Improvements Applied
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {result.improvements.map((imp, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Check size={12} color={MINT} />
-                  <span style={{ fontSize: '12px', color: '#0f9b8e', fontWeight: 700 }}>{imp}</span>
+          {notice && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '12px 14px', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: '12px', marginBottom: '12px' }}>
+              <ShieldAlert size={14} color="#9a3412" style={{ flexShrink: 0, marginTop: '1px' }} />
+              <p style={{ fontSize: '12px', color: '#9a3412', fontWeight: 700, lineHeight: 1.5 }}>{notice}</p>
+            </div>
+          )}
+
+          {assessment && (
+            <>
+              {assessment.strengths.length > 0 && (
+                <div style={{ background: '#f0fdf9', borderRadius: '14px', padding: '14px', border: `1px solid ${MINT}`, marginBottom: '10px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 900, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                    What's working
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {assessment.strengths.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Check size={12} color={MINT} />
+                        <span style={{ fontSize: '12px', color: '#0f9b8e', fontWeight: 700 }}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              )}
 
-          {/* Score bar */}
-          <div style={{ marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 900, color: MUTED }}>Photo Quality Score</span>
-              <span style={{ fontSize: '11px', fontWeight: 900, color: MINT }}>{result.score_before} → {result.score_after}</span>
-            </div>
-            <div style={{ height: '6px', borderRadius: '3px', background: '#e2eae6', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${result.score_after}%`, background: `linear-gradient(90deg, ${MINT}, #0f9b8e)`, borderRadius: '3px', transition: 'width 0.8s ease' }} />
-            </div>
-          </div>
+              {assessment.issues.length > 0 && (
+                <div style={{ background: '#fef2f2', borderRadius: '14px', padding: '14px', border: '1px solid #fecaca', marginBottom: '10px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 900, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                    Worth fixing
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {assessment.issues.map((s, i) => (
+                      <span key={i} style={{ fontSize: '12px', color: '#b91c1c', fontWeight: 700 }}>· {s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p style={{ fontSize: '12px', color: MUTED, fontWeight: 700, lineHeight: 1.5, marginBottom: '14px' }}>💡 {assessment.tip}</p>
+            </>
+          )}
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => { setResult(null) }}
+            <button onClick={() => { setAssessment(null); setNotice(null) }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '11px 16px', borderRadius: '11px', border: '1.5px solid #e2eae6', background: 'white', fontSize: '13px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT, color: INK }}>
               <RotateCcw size={14} /> Redo
             </button>
-            <button onClick={() => onEnhanced?.(result.enhanced)}
+            <button onClick={() => onEnhanced?.(image!)}
               style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '11px', background: `linear-gradient(135deg, ${MINT}, #0f9b8e)`, border: 'none', color: 'white', fontSize: '13px', fontWeight: 900, cursor: 'pointer', fontFamily: FONT }}>
-              <Check size={14} /> Use Enhanced Photo
+              <Check size={14} /> Use This Photo
             </button>
           </div>
         </div>
