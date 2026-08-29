@@ -109,6 +109,53 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      // A failed renewal does NOT immediately revoke the badge here —
+      // Stripe's own dunning/retry schedule gets a chance to recover the
+      // payment first, and customer.subscription.deleted (already handled
+      // above) is what actually clears the badge once Stripe gives up. This
+      // case's job is just to tell the user their card was declined so they
+      // can fix it before that happens.
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+        if (customerId) {
+          const { data: profile, error: lookupErr } = await supabase.from('profiles').select('id').eq('stripe_customer_id', customerId).single()
+          if (lookupErr) throw new Error(`profile lookup by stripe_customer_id failed: ${lookupErr.message}`)
+          const { error: notifyErr } = await supabase.from('notifications').insert({
+            user_id: profile.id,
+            type: 'payment_failed',
+            title: 'Payment failed',
+            body: "We couldn't process your subscription payment. Please update your payment method to keep your badge.",
+            href: '/diamond',
+          })
+          if (notifyErr) throw new Error(`notifications insert failed: ${notifyErr.message}`)
+          console.log(`[stripe webhook] payment failed for customer ${customerId}, notified user ${profile.id}`)
+        }
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+        // Skip the very first invoice — that's the initial checkout, already
+        // confirmed to the user via the success page and granted above by
+        // checkout.session.completed. Only notify on actual renewals.
+        if (customerId && invoice.billing_reason === 'subscription_cycle') {
+          const { data: profile, error: lookupErr } = await supabase.from('profiles').select('id').eq('stripe_customer_id', customerId).single()
+          if (lookupErr) throw new Error(`profile lookup by stripe_customer_id failed: ${lookupErr.message}`)
+          const { error: notifyErr } = await supabase.from('notifications').insert({
+            user_id: profile.id,
+            type: 'payment_succeeded',
+            title: 'Subscription renewed',
+            body: 'Your subscription payment went through — thanks for being a SouKni member.',
+            href: '/diamond',
+          })
+          if (notifyErr) throw new Error(`notifications insert failed: ${notifyErr.message}`)
+          console.log(`[stripe webhook] renewal payment succeeded for customer ${customerId}`)
+        }
+        break
+      }
+
       default:
         // Unhandled event types are fine to ignore.
         break

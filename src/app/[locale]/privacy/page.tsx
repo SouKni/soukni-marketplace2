@@ -85,7 +85,7 @@ export default function PrivacyPage({ params }: { params: Promise<{ locale: Loca
 
         <div style={{ background: 'white', borderRadius: '24px', padding: '32px', border: '1px solid #e2eae6', display: 'flex', flexDirection: 'column', gap: '28px' }}>
           {SECTIONS.map(s => (
-            <div key={s.title}>
+            <div key={s.title} id={s.title.startsWith('4.') ? 'cookies' : undefined} style={{ scrollMarginTop: '24px' }}>
               <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#161d1b', marginBottom: '10px' }}>{s.title}</h2>
               <p style={{ fontSize: '14px', color: '#3c4a46', lineHeight: 1.75, whiteSpace: 'pre-line' }}>{s.body}</p>
             </div>

@@ -157,10 +157,10 @@ export default function Footer({ locale }: { locale: Locale }) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'12px' }}>
           <div style={{ display:'flex', gap:'24px' }}>
             {[
-              { label: t.footer.privacyPolicy,   href:`/${locale}/privacy` },
-              { label: t.footer.termsOfService,  href:`/${locale}/terms`   },
-              { label: t.footer.cookiePolicy,    href:`/${locale}/terms`   },
-              { label: t.footer.sitemap,         href:`/${locale}/about`   },
+              { label: t.footer.privacyPolicy,   href:`/${locale}/privacy`         },
+              { label: t.footer.termsOfService,  href:`/${locale}/terms`           },
+              { label: t.footer.cookiePolicy,    href:`/${locale}/privacy#cookies` },
+              { label: t.footer.sitemap,         href:`/${locale}/sitemap`         },
             ].map(({ label, href }) => (
               <Link key={label} href={href}
                 style={{ fontSize:'11px', color:'rgba(255,255,255,0.3)', textDecoration:'none', transition:'color 0.2s' }}
